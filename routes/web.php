@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Student\AttendanceHistoryController;
 use App\Http\Controllers\Teacher\ClassSessionController;
 use App\Http\Controllers\Teacher\ManualAttendanceController;
+use App\Http\Controllers\QrAttendanceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -86,3 +87,12 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'role:teacher'])
 Route::prefix('student')->name('student.')->middleware(['auth', 'role:student'])->group(function () {
     Route::get('/attendance', [AttendanceHistoryController::class, 'index'])->name('attendance.index');
 });
+
+// ─── QR ATTENDANCE (public — camera reads student QR card) ───────────────────
+// Student personal QR — scanned by teacher camera
+Route::post('/attend/student/{token}', [QrAttendanceController::class, 'markByToken'])->name('qr.student.mark');
+
+// Print page — admin prints QR card for a student
+Route::get('/admin/students/{student}/qr-print', [QrAttendanceController::class, 'printCard'])
+    ->middleware(['auth', 'role:admin'])
+    ->name('admin.students.qr-print');

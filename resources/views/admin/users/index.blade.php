@@ -28,6 +28,13 @@
                         <td>{{ $user->created_at->format('M d, Y') }}</td>
                         <td>
                             <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            @if($user->role === 'student' && $user->student)
+                                <a href="{{ route('admin.students.qr-print', $user->student) }}"
+                                   target="_blank" class="btn btn-sm btn-outline-info"
+                                   title="Print QR Card">
+                                    <i class="bi bi-qr-code"></i> QR
+                                </a>
+                            @endif
                             @if(auth()->id() !== $user->id)
                                 <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline"
                                       onsubmit="return confirm('Delete this user?')">

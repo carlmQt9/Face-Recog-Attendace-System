@@ -121,8 +121,10 @@ body { background:#0a0a0f; }
 .roster-name{font-size:14px;font-weight:600;color:#fff;}
 .roster-time{font-size:12px;color:#64748b;}
 .roster-badge{margin-left:auto;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;}
+/* ── Roster badges ─────────────────────────────────── */
 .badge-face  {background:rgba(79,70,229,.2);color:#818cf8;}
 .badge-manual{background:rgba(250,204,21,.15);color:#facc15;}
+.badge-qr    {background:rgba(6,182,212,.15);color:#22d3ee;}
 #rosterList::-webkit-scrollbar{width:4px;}
 #rosterList::-webkit-scrollbar-thumb{background:#334155;border-radius:2px;}
 
@@ -171,6 +173,62 @@ body { background:#0a0a0f; }
 .conf-bar-wrap{height:4px;background:rgba(255,255,255,.08);border-radius:50px;overflow:hidden;width:80px;}
 .conf-bar{height:100%;border-radius:50px;background:#4ade80;transition:width .3s;}
 
+/* ── Signal pills (compact) ────────────────────────── */
+.signal-pill{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:11px;font-weight:700;border-radius:50px;
+    padding:4px 11px;white-space:nowrap;
+}
+.signal-ok  {background:rgba(74,222,128,.1); color:#4ade80; border:1px solid rgba(74,222,128,.25);}
+.signal-err {background:rgba(248,113,113,.1);color:#f87171; border:1px solid rgba(248,113,113,.25);}
+.signal-wait{background:rgba(250,204,21,.1); color:#facc15; border:1px solid rgba(250,204,21,.25);}
+
+/* ── QR scan frame (shown in QR mode) ─────────────── */
+.qr-frame {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-55%);
+    width:46%; aspect-ratio:1;
+    border:3px solid #06b6d4;
+    border-radius:16px;
+    box-shadow:0 0 0 3000px rgba(0,0,0,.45), 0 0 24px rgba(6,182,212,.5);
+    display:none; pointer-events:none;
+    animation:qrPulse 2s ease-in-out infinite;
+}
+.qr-frame.active { display:block; }
+@keyframes qrPulse{0%,100%{border-color:#06b6d4;box-shadow:0 0 0 3000px rgba(0,0,0,.45),0 0 16px rgba(6,182,212,.4)} 50%{border-color:#4ade80;box-shadow:0 0 0 3000px rgba(0,0,0,.45),0 0 28px rgba(74,222,128,.6)}}
+
+/* ── QR modal ──────────────────────────────────────── */
+.qr-modal-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1050;
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.qr-modal-backdrop.open{opacity:1;pointer-events:all;}
+.qr-modal{
+    background:#0f172a;border:1px solid rgba(255,255,255,.1);
+    border-radius:24px;padding:32px;text-align:center;
+    max-width:380px;width:90%;
+    animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.qr-modal h6{color:#fff;font-weight:800;font-size:17px;margin-bottom:4px;}
+.qr-modal .qr-sub{color:#64748b;font-size:13px;margin-bottom:20px;}
+#qrCanvas{border-radius:16px;background:#fff;padding:12px;display:block;margin:0 auto 16px;}
+.qr-link{
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    border-radius:10px;padding:9px 12px;margin-bottom:16px;
+}
+.qr-link input{
+    flex:1;background:transparent;border:none;outline:none;
+    color:#94a3b8;font-size:12px;font-family:monospace;
+}
+.qr-link button{
+    background:rgba(79,70,229,.2);border:1px solid rgba(79,70,229,.4);
+    color:#818cf8;border-radius:7px;padding:4px 10px;font-size:12px;
+    cursor:pointer;white-space:nowrap;
+}
+.qr-link button:hover{background:rgba(79,70,229,.35);}
+
 /* ── Device picker ─────────────────────────────────── */
 .device-bar{
     background:rgba(15,15,30,.9);border:1px solid rgba(255,255,255,.08);
@@ -181,8 +239,7 @@ body { background:#0a0a0f; }
 .device-bar select{
     background:#1e293b;border:1px solid rgba(255,255,255,.12);
     color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;flex:1;min-width:160px;
-}
-</style>
+}</style>
 @endpush
 
 @section('content')
@@ -215,7 +272,16 @@ body { background:#0a0a0f; }
                     <button class="mode-btn" id="modeManual" onclick="setMode('manual')">
                         <i class="bi bi-hand-index me-1"></i>Manual
                     </button>
+                    <button class="mode-btn" id="modeQr" onclick="setMode('qr')">
+                        <i class="bi bi-qr-code-scan me-1"></i>QR
+                    </button>
                 </div>
+                {{-- QR attendance button --}}
+                @if($session->isActive())
+                <button class="cam-switch-btn" onclick="openQr()" title="QR Code Attendance">
+                    <i class="bi bi-qr-code"></i> QR
+                </button>
+                @endif
                 @if($session->isActive())
                 <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST" class="d-inline">
                     @csrf
@@ -250,6 +316,9 @@ body { background:#0a0a0f; }
             <div class="corner-mark cm-tr"></div>
             <div class="corner-mark cm-bl"></div>
             <div class="corner-mark cm-br"></div>
+
+            {{-- QR mode frame (shown when mode=qr) --}}
+            <div class="qr-frame" id="qrFrame"></div>
 
             {{-- Top bar --}}
             <div class="cam-topbar">
@@ -297,23 +366,12 @@ body { background:#0a0a0f; }
             </div>
         </div>
 
-        {{-- Signal guide --}}
-        <div class="d-flex gap-3 mt-3">
-            <div class="flex-fill text-center p-3" style="background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);border-radius:14px;">
-                <div style="font-size:18px;">🔊</div>
-                <div style="font-size:12px;font-weight:700;color:#4ade80;">1 Beep — Match</div>
-                <div style="font-size:11px;color:#475569;">Student marked present</div>
-            </div>
-            <div class="flex-fill text-center p-3" style="background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);border-radius:14px;">
-                <div style="font-size:18px;">🔊🔊</div>
-                <div style="font-size:12px;font-weight:700;color:#f87171;">2 Beeps — No Match</div>
-                <div style="font-size:11px;color:#475569;">Face not recognized</div>
-            </div>
-            <div class="flex-fill text-center p-3" style="background:rgba(250,204,21,.07);border:1px solid rgba(250,204,21,.2);border-radius:14px;">
-                <div style="font-size:18px;">⏳</div>
-                <div style="font-size:12px;font-weight:700;color:#facc15;" id="nextInLabel">Next in 3s</div>
-                <div style="font-size:11px;color:#475569;">Auto cooldown</div>
-            </div>
+        {{-- Signal guide — compact pill row --}}
+        <div class="d-flex align-items-center gap-2 mt-3 flex-wrap">
+            <span style="font-size:11px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Signals:</span>
+            <span class="signal-pill signal-ok">🔊 1 Beep — Match</span>
+            <span class="signal-pill signal-err">🔊🔊 2 Beeps — No Match</span>
+            <span class="signal-pill signal-wait" id="nextInLabel">⏳ Ready</span>
         </div>
     </div>
 
@@ -351,8 +409,9 @@ body { background:#0a0a0f; }
                         <div class="roster-name">{{ $record->student->user->name }}</div>
                         <div class="roster-time">{{ $record->arrived_at->format('h:i A') }}</div>
                     </div>
-                    <span class="roster-badge {{ $record->method==='manual'?'badge-manual':'badge-face' }}">
-                        {{ $record->method==='manual'?'Manual':'Face' }}
+                    <span class="roster-badge
+                        {{ $record->method==='manual' ? 'badge-manual' : ($record->method==='qr_code' ? 'badge-qr' : 'badge-face') }}">
+                        {{ $record->method==='manual' ? 'Manual' : ($record->method==='qr_code' ? 'QR' : 'Face') }}
                     </span>
                 </div>
                 @empty
@@ -368,10 +427,41 @@ body { background:#0a0a0f; }
 
 <audio id="successAudio" preload="auto"><source src="/sounds/success.mp3" type="audio/mpeg"></audio>
 <audio id="errorAudio"   preload="auto"><source src="/sounds/error.mp3"   type="audio/mpeg"></audio>
+
+{{-- ── QR Attendance Modal ── --}}
+@if($session->isActive())
+<div class="qr-modal-backdrop" id="qrBackdrop" onclick="closeQrOutside(event)">
+    <div class="qr-modal">
+        <h6><i class="bi bi-qr-code-scan me-2 text-primary"></i>QR Code Attendance</h6>
+        <p class="qr-sub">Students scan this with their phone camera to mark themselves present</p>
+        <canvas id="qrCanvas" width="200" height="200"></canvas>
+        <div class="qr-link">
+            <input type="text" id="qrLinkInput" readonly>
+            <button onclick="copyQrLink()"><i class="bi bi-clipboard me-1"></i>Copy</button>
+        </div>
+        <div class="d-flex gap-2 justify-content-center">
+            <button class="btn btn-sm btn-outline-secondary" onclick="closeQr()"
+                    style="border-radius:9px;color:#94a3b8;border-color:#334155;">
+                <i class="bi bi-x-lg me-1"></i>Close
+            </button>
+            <button class="btn btn-sm btn-primary" onclick="downloadQr()"
+                    style="border-radius:9px;">
+                <i class="bi bi-download me-1"></i>Download
+            </button>
+        </div>
+        <p style="font-size:11px;color:#475569;margin-top:14px;margin-bottom:0;">
+            QR expires when the session ends &nbsp;·&nbsp; each student can only mark once
+        </p>
+    </div>
+</div>
+@endif
+
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════
@@ -614,13 +704,25 @@ function setMode(mode) {
     scanMode = mode;
     document.getElementById('modeAuto').classList.toggle('active', mode === 'auto');
     document.getElementById('modeManual').classList.toggle('active', mode === 'manual');
+    document.getElementById('modeQr').classList.toggle('active', mode === 'qr');
+
+    // Toggle QR frame overlay
+    const qrFrame = document.getElementById('qrFrame');
+    if (qrFrame) qrFrame.classList.toggle('active', mode === 'qr');
+
+    // Stop whatever is running
+    stopAutoScan();
+    stopQrScan();
 
     if (mode === 'auto') {
         if (scanBtn) scanBtn.style.display = 'none';
         if (!inCooldown && IS_ACTIVE) startAutoScan();
         setStatus('🔍 Auto-scanning — stand in front of the camera', 'info');
+    } else if (mode === 'qr') {
+        if (scanBtn) scanBtn.style.display = 'none';
+        if (!inCooldown && IS_ACTIVE) startQrScan();
+        setStatus('📷 QR mode — hold student QR card up to the camera', 'info');
     } else {
-        stopAutoScan();
         if (scanBtn) { scanBtn.style.display = 'flex'; scanBtn.disabled = false; }
         setStatus('Manual mode — press Scan Now', 'info');
     }
@@ -636,6 +738,108 @@ function startAutoScan() {
 
 function stopAutoScan() {
     if (autoScanInterval) { clearInterval(autoScanInterval); autoScanInterval = null; }
+}
+
+// ═══════════════════════════════════════════════════════
+//  QR SCAN LOOP — jsQR decodes student QR from live feed
+// ═══════════════════════════════════════════════════════
+let qrScanInterval  = null;
+let lastQrToken     = null;   // debounce same token
+
+function startQrScan() {
+    stopQrScan();
+    qrScanInterval = setInterval(runQrScan, 250);   // 4fps is plenty for QR
+}
+
+function stopQrScan() {
+    if (qrScanInterval) { clearInterval(qrScanInterval); qrScanInterval = null; }
+}
+
+async function runQrScan() {
+    if (inCooldown || !stream || !video.videoWidth) return;
+
+    // Grab frame into an offscreen canvas
+    const c   = document.createElement('canvas');
+    c.width   = video.videoWidth;
+    c.height  = video.videoHeight;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    const imgData = ctx.getImageData(0, 0, c.width, c.height);
+
+    // Decode with jsQR
+    const code = jsQR(imgData.data, imgData.width, imgData.height, {
+        inversionAttempts: 'dontInvert'
+    });
+
+    if (!code) {
+        setStatus('📷 Hold student QR card up to the camera', 'info');
+        return;
+    }
+
+    // Extract token — QR encodes the full URL: .../attend/student/{token}
+    const url   = code.data;
+    const match = url.match(/\/attend\/student\/([A-Za-z0-9]+)$/);
+    if (!match) {
+        setStatus('❌ Unrecognised QR code', 'error');
+        return;
+    }
+
+    const token = match[1];
+
+    // Debounce — don't re-submit same token within cooldown
+    if (token === lastQrToken) return;
+    lastQrToken = token;
+
+    setStatus('⏳ QR detected — marking attendance…', 'wait');
+    stopQrScan();
+    inCooldown = true;
+
+    try {
+        const resp = await fetch(`/attend/student/${token}`, {
+            method:  'POST',
+            headers: {
+                'Content-Type':  'application/json',
+                'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]').content,
+                'Accept':        'application/json',
+            },
+            body: JSON.stringify({
+                session_id: SESSION_ID,
+                camera_id:  CAMERA_ID,
+            }),
+        });
+
+        const data = await resp.json();
+
+        if (data.result === 'success') {
+            playBeep('success');
+            wrapper.className = 'camera-wrapper matched';
+            addToRoster(data.student_name, 'qr_code', data.arrived_at);
+            showMatchPopup(data.student_name, `QR Scan · ${data.arrived_at}`);
+            setStatus(`✅ ${data.student_name} — Present (QR)`, 'ok');
+            markedIds.add(data.student_id);
+            await nextPersonCooldown(NEXT_PERSON_SECS);
+
+        } else if (data.result === 'cooldown') {
+            playBeep('error');
+            wrapper.className = 'camera-wrapper cooldown';
+            setStatus(`ℹ️ ${data.student_name} already marked present`, 'wait');
+            setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 1500);
+            resumeAfter(2);
+
+        } else {
+            playBeep('error');
+            wrapper.className = 'camera-wrapper no-match';
+            setStatus('❌ ' + (data.message || 'QR not recognised'), 'error');
+            setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 1200);
+            lastQrToken = null;   // allow retry
+            resumeAfter(2);
+        }
+
+    } catch (e) {
+        setStatus('⚠️ Network error — ' + e.message, 'error');
+        lastQrToken = null;
+        resumeAfter(3);
+    }
 }
 
 function manualScan() {
@@ -768,6 +972,10 @@ function hideMatchPopup() {
 }
 
 async function nextPersonCooldown(secs) {
+    // Stop both scan loops while showing popup
+    stopAutoScan();
+    stopQrScan();
+
     const fill = document.getElementById('timerFill');
     fill.style.transition = 'none';
     fill.style.width = '100%';
@@ -783,7 +991,7 @@ async function nextPersonCooldown(secs) {
     const tick = setInterval(() => {
         remaining--;
         document.getElementById('nextInLabel').textContent =
-            remaining > 0 ? `Next in ${remaining}s` : 'Ready';
+            remaining > 0 ? `⏳ Next in ${remaining}s` : '⏳ Ready';
     }, 1000);
 
     await new Promise(r => setTimeout(r, secs * 1000));
@@ -794,11 +1002,16 @@ async function nextPersonCooldown(secs) {
 
 function resumeAfter(secs) {
     setTimeout(() => {
-        inCooldown = false;
+        inCooldown  = false;
+        lastQrToken = null;   // allow next QR token
         wrapper.className = 'camera-wrapper';
+
         if (scanMode === 'auto' && IS_ACTIVE) {
             startAutoScan();
             setStatus('🔍 Auto-scanning — next person please', 'info');
+        } else if (scanMode === 'qr' && IS_ACTIVE) {
+            startQrScan();
+            setStatus('📷 QR mode — hold next QR card up to the camera', 'info');
         } else {
             if (scanBtn) scanBtn.disabled = false;
             setStatus('Ready — press Scan Now', 'info');
@@ -873,11 +1086,12 @@ function addToRoster(name, method, time) {
     document.getElementById('rosterCount').textContent = rosterCount;
     const item = document.createElement('div');
     item.className = 'roster-item';
+    const badgeClass = method === 'manual' ? 'badge-manual' : method === 'qr_code' ? 'badge-qr' : 'badge-face';
+    const badgeLabel = method === 'manual' ? 'Manual' : method === 'qr_code' ? 'QR' : 'Face';
     item.innerHTML = `
         <div class="roster-avatar">👤</div>
         <div><div class="roster-name">${name}</div><div class="roster-time">${time}</div></div>
-        <span class="roster-badge ${method==='manual'?'badge-manual':'badge-face'}">
-            ${method==='manual'?'Manual':'Face'}</span>`;
+        <span class="roster-badge ${badgeClass}">${badgeLabel}</span>`;
     document.getElementById('rosterList').prepend(item);
 }
 
@@ -922,5 +1136,52 @@ document.addEventListener('keydown', e => {
         if (scanMode === 'manual' && !inCooldown) manualScan();
     }
 });
+
+// ═══════════════════════════════════════════════════════
+//  QR CODE ATTENDANCE
+// ═══════════════════════════════════════════════════════
+const QR_URL = `${location.origin}/attend/qr/{{ $session->id }}/{{ hash('sha256', $session->id . config('app.key')) }}`;
+
+function openQr() {
+    const backdrop = document.getElementById('qrBackdrop');
+    const input    = document.getElementById('qrLinkInput');
+    if (!backdrop) return;
+
+    input.value = QR_URL;
+
+    // Generate QR into canvas
+    QRCode.toCanvas(document.getElementById('qrCanvas'), QR_URL, {
+        width: 200,
+        margin: 1,
+        color: { dark: '#000000', light: '#ffffff' }
+    }, err => { if (err) console.error('QR error:', err); });
+
+    backdrop.classList.add('open');
+}
+
+function closeQr() {
+    document.getElementById('qrBackdrop')?.classList.remove('open');
+}
+
+function closeQrOutside(e) {
+    if (e.target === document.getElementById('qrBackdrop')) closeQr();
+}
+
+function copyQrLink() {
+    const input = document.getElementById('qrLinkInput');
+    navigator.clipboard.writeText(input.value).then(() => {
+        const btn = input.nextElementSibling;
+        btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!';
+        setTimeout(() => { btn.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy'; }, 2000);
+    }).catch(() => { input.select(); document.execCommand('copy'); });
+}
+
+function downloadQr() {
+    const canvas = document.getElementById('qrCanvas');
+    const link   = document.createElement('a');
+    link.download = `qr-attendance-{{ $session->subject }}-{{ $session->id }}.png`;
+    link.href      = canvas.toDataURL('image/png');
+    link.click();
+}
 </script>
 @endpush
