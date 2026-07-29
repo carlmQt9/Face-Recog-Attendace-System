@@ -14,16 +14,6 @@
 @endpush
 
 @section('content')
-
-{{-- Flash messages --}}
-@foreach(['success','warning','error'] as $t)
-    @if(session($t))
-        <div class="alert alert-{{ $t === 'error' ? 'danger' : $t }} alert-dismissible fade show">
-            {{ session($t) }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-@endforeach
-
 <div class="row g-4">
 
     {{-- ── LEFT: My Students ── --}}
