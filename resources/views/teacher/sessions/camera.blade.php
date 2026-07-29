@@ -940,7 +940,7 @@ async function runScan() {
         // Match against registered faces
         const match      = faceMatcher.findBestMatch(detection.descriptor);
         const studentId  = match.label === 'unknown' ? null : parseInt(match.label, 10);
-        const confidence = Math.round((1 - match.distance) * 100);   // 0-100%
+        const confidence = Math.round((1 - match.distance) * 100);
         const info       = studentId ? studentMap[studentId] : null;
 
         drawFaceBox(detection.detection.box, studentId !== null, info?.name, confidence);
@@ -954,9 +954,9 @@ async function runScan() {
             return;
         }
 
-        // Already marked this session?
-        if (markedIds.has(studentId)) {
-            setStatus(`ℹ️ ${info.name} already marked present`, 'wait');
+        // Already marked this session? (only block time_in duplicates)
+        if (scanType === 'time_in' && markedIds.has(studentId)) {
+            setStatus(`ℹ️ ${info.name} already timed in`, 'wait');
             return;
         }
 
@@ -999,7 +999,7 @@ async function recordAttendance(studentId, confidence, frame) {
         const data = await resp.json();
 
         if (data.result === 'success') {
-            markedIds.add(studentId);
+            if (data.scan_type === 'time_in') markedIds.add(studentId);
             playBeep('success');
             wrapper.className = 'camera-wrapper matched';
             addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration);

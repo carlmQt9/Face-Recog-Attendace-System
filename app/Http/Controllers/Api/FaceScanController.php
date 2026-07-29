@@ -121,8 +121,12 @@ class FaceScanController extends Controller
 
         // Notify parent — time in
         if ($student->parent) {
-            Mail::to($student->parent->gmail)->send(new AttendanceTimeIn($record));
-            $record->update(['notification_sent' => true]);
+            try {
+                Mail::to($student->parent->gmail)->send(new AttendanceTimeIn($record));
+                $record->update(['notification_sent' => true]);
+            } catch (\Exception $e) {
+                \Log::error('Time-in email failed: ' . $e->getMessage());
+            }
         }
 
         return response()->json([
@@ -131,7 +135,7 @@ class FaceScanController extends Controller
             'signal'       => 'single_beep',
             'student_name' => $student->user->name,
             'arrived_at'   => $record->arrived_at->format('h:i A'),
-            'message'      => "{$student->user->name} timed in at {$record->arrived_at->format('h:i A')}. Parent notified.",
+            'message'      => "{$student->user->name} timed in at {$record->arrived_at->format('h:i A')}.",
         ]);
     }
 
@@ -148,22 +152,45 @@ class FaceScanController extends Controller
             ->latest('arrived_at')
             ->first();
 
+        // No open time-in — auto-create one so the student isn't blocked
         if (!$record) {
-            return response()->json([
-                'result'       => 'error',
-                'student_name' => $student->user->name,
-                'message'      => "{$student->user->name} has no open time-in record today. Please time in first.",
+            $cooldown = (int) SystemSetting::get('cooldown_seconds', 5);
+            $recent   = AttendanceRecord::where('student_id', $student->id)
+                ->where('arrived_at', '>=', now()->subSeconds($cooldown))
+                ->exists();
+
+            if ($recent) {
+                return response()->json([
+                    'result'  => 'cooldown',
+                    'signal'  => 'double_beep',
+                    'message' => "Cool-down active.",
+                ]);
+            }
+
+            $record = AttendanceRecord::create([
+                'student_id'        => $student->id,
+                'class_session_id'  => $session?->id,
+                'camera_id'         => $camera->id,
+                'scan_result'       => 'success',
+                'scan_type'         => 'time_in',
+                'method'            => 'face_scan',
+                'confidence_score'  => $request->confidence_score,
+                'arrived_at'        => now()->subMinutes(1), // assume arrived 1 min ago
             ]);
         }
 
-        // Record time-out on the existing record
+        // Record time-out
         $record->update(['time_out' => now()]);
         $record->refresh();
 
         // Notify parent — time out
         if ($student->parent && !$record->time_out_notification_sent) {
-            Mail::to($student->parent->gmail)->send(new AttendanceTimeOut($record));
-            $record->update(['time_out_notification_sent' => true]);
+            try {
+                Mail::to($student->parent->gmail)->send(new AttendanceTimeOut($record));
+                $record->update(['time_out_notification_sent' => true]);
+            } catch (\Exception $e) {
+                \Log::error('Time-out email failed: ' . $e->getMessage());
+            }
         }
 
         return response()->json([
@@ -174,7 +201,7 @@ class FaceScanController extends Controller
             'arrived_at'   => $record->arrived_at->format('h:i A'),
             'time_out'     => $record->time_out->format('h:i A'),
             'duration'     => $record->durationLabel(),
-            'message'      => "{$student->user->name} timed out at {$record->time_out->format('h:i A')} (stayed {$record->durationLabel()}). Parent notified.",
+            'message'      => "{$student->user->name} timed out at {$record->time_out->format('h:i A')} (stayed {$record->durationLabel()}).",
         ]);
     }
 }
