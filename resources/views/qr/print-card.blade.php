@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Card — {{ $student->user->name }}</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -110,7 +110,7 @@
         </div>
         <div class="card-body">
             <div class="qr-wrap">
-                <canvas class="qr-card-canvas" id="qrCanvas{{ $copy }}" width="180" height="180"></canvas>
+                <div class="qr-card-canvas" id="qrCanvas{{ $copy }}" style="line-height:0;"></div>
             </div>
             <div class="student-name">{{ $student->user->name }}</div>
             <div class="student-meta">
@@ -129,14 +129,16 @@
 <script>
 const QR_DATA = @json($student->qrUrl());
 
-// Render QR into both card copies
-document.querySelectorAll('.qr-card-canvas').forEach(canvas => {
-    QRCode.toCanvas(canvas, QR_DATA, {
-        width: 180,
-        margin: 1,
-        color: { dark: '#0f172a', light: '#ffffff' },
-        errorCorrectionLevel: 'H'
-    }, err => { if (err) console.error('QR error:', err); });
+// qrcodejs renders into each div container
+document.querySelectorAll('.qr-card-canvas').forEach(div => {
+    new QRCode(div, {
+        text:         QR_DATA,
+        width:        180,
+        height:       180,
+        colorDark:    '#0f172a',
+        colorLight:   '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+    });
 });
 </script>
 </body>
