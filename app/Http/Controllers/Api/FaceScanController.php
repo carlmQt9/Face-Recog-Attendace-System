@@ -143,7 +143,21 @@ class FaceScanController extends Controller
 
     private function handleTimeOut($student, $session, $camera, $request)
     {
-        // Find the most recent open time-in record for today
+        // ── Check short cooldown to prevent rapid duplicate scans ─────────────
+        $cooldown = (int) SystemSetting::get('cooldown_seconds', 5);
+        $recentAny = AttendanceRecord::where('student_id', $student->id)
+            ->where('updated_at', '>=', now()->subSeconds($cooldown))
+            ->exists();
+
+        if ($recentAny) {
+            return response()->json([
+                'result'  => 'cooldown',
+                'signal'  => 'double_beep',
+                'message' => "Cool-down active. Please wait {$cooldown} seconds.",
+            ]);
+        }
+
+        // ── Find open time-in record for today ────────────────────────────────
         $record = AttendanceRecord::where('student_id', $student->id)
             ->where('scan_type', 'time_in')
             ->whereNull('time_out')
@@ -152,21 +166,23 @@ class FaceScanController extends Controller
             ->latest('arrived_at')
             ->first();
 
-        // No open time-in — auto-create one so the student isn't blocked
+        // ── Already timed out today in this session? ──────────────────────────
+        $alreadyOut = AttendanceRecord::where('student_id', $student->id)
+            ->whereNotNull('time_out')
+            ->whereDate('arrived_at', today())
+            ->when($session, fn($q) => $q->where('class_session_id', $session->id))
+            ->exists();
+
+        if ($alreadyOut && !$record) {
+            return response()->json([
+                'result'       => 'already_out',
+                'student_name' => $student->user->name,
+                'message'      => "{$student->user->name} has already timed out today.",
+            ]);
+        }
+
+        // ── No open time-in — create one then close it ────────────────────────
         if (!$record) {
-            $cooldown = (int) SystemSetting::get('cooldown_seconds', 5);
-            $recent   = AttendanceRecord::where('student_id', $student->id)
-                ->where('arrived_at', '>=', now()->subSeconds($cooldown))
-                ->exists();
-
-            if ($recent) {
-                return response()->json([
-                    'result'  => 'cooldown',
-                    'signal'  => 'double_beep',
-                    'message' => "Cool-down active.",
-                ]);
-            }
-
             $record = AttendanceRecord::create([
                 'student_id'        => $student->id,
                 'class_session_id'  => $session?->id,
@@ -175,15 +191,14 @@ class FaceScanController extends Controller
                 'scan_type'         => 'time_in',
                 'method'            => 'face_scan',
                 'confidence_score'  => $request->confidence_score,
-                'arrived_at'        => now()->subMinutes(1), // assume arrived 1 min ago
+                'arrived_at'        => now()->subMinutes(1),
             ]);
         }
 
-        // Record time-out
+        // ── Record time-out ───────────────────────────────────────────────────
         $record->update(['time_out' => now()]);
         $record->refresh();
 
-        // Notify parent — time out
         if ($student->parent && !$record->time_out_notification_sent) {
             try {
                 Mail::to($student->parent->gmail)->send(new AttendanceTimeOut($record));

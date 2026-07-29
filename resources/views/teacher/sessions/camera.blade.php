@@ -529,8 +529,11 @@ let scanType            = DEFAULT_SCAN_TYPE;  // auto-set from session type
 let inCooldown          = false;
 let rosterCount         = {{ $attendance->count() }};
 // Track which students are already marked in this session (client-side dedup)
-let markedIds           = new Set([
-    @foreach($attendance as $r) {{ $r->student_id }}, @endforeach
+// Key format: "studentId:scan_type" e.g. "5:time_in" or "5:time_out"
+let markedIds = new Set([
+    @foreach($attendance as $r)
+        '{{ $r->student_id }}:{{ $r->scan_type ?? "time_in" }}',
+    @endforeach
 ]);
 
 // DOM refs
@@ -874,7 +877,7 @@ async function runQrScan() {
                 : `QR Time In · ${data.arrived_at}`;
             showMatchPopup(data.student_name, sub, data.scan_type);
             setStatus(`✅ ${data.student_name} — ${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'} (QR)`, 'ok');
-            if (data.student_id) markedIds.add(data.student_id);
+            if (data.student_id) markedIds.add(`${data.student_id}:${data.scan_type}`);
             await nextPersonCooldown(NEXT_PERSON_SECS);
 
         } else if (data.result === 'already_in') {
@@ -954,9 +957,9 @@ async function runScan() {
             return;
         }
 
-        // Already marked this session? (only block time_in duplicates)
-        if (scanType === 'time_in' && markedIds.has(studentId)) {
-            setStatus(`ℹ️ ${info.name} already timed in`, 'wait');
+        // Already scanned for this type in this session? (client-side dedup)
+        if (markedIds.has(`${studentId}:${scanType}`)) {
+            setStatus(`ℹ️ ${info.name} already ${scanType === 'time_out' ? 'timed out' : 'timed in'} this session`, 'wait');
             return;
         }
 
@@ -999,7 +1002,8 @@ async function recordAttendance(studentId, confidence, frame) {
         const data = await resp.json();
 
         if (data.result === 'success') {
-            if (data.scan_type === 'time_in') markedIds.add(studentId);
+            // Track this student+type so we don't scan them again this session
+            markedIds.add(`${studentId}:${data.scan_type}`);
             playBeep('success');
             wrapper.className = 'camera-wrapper matched';
             addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration);
@@ -1014,6 +1018,15 @@ async function recordAttendance(studentId, confidence, frame) {
             playBeep('error');
             wrapper.className = 'camera-wrapper cooldown';
             setStatus(`ℹ️ ${data.student_name} already timed in — switch to Time-Out mode`, 'wait');
+            setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 2000);
+            resumeAfter(2);
+
+        } else if (data.result === 'already_out') {
+            playBeep('error');
+            wrapper.className = 'camera-wrapper cooldown';
+            setStatus(`ℹ️ ${data.student_name} already timed out today`, 'wait');
+            // Add to markedIds so scanner skips this student
+            markedIds.add(`${studentId}:time_out`);
             setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 2000);
             resumeAfter(2);
 
