@@ -327,6 +327,13 @@ body { background:#0a0a0f; }
                     </button>
                 </form>
                 @endif
+                {{-- Go back without stopping the session --}}
+                <a href="{{ route('teacher.sessions.index') }}"
+                   class="cam-switch-btn"
+                   style="text-decoration:none;"
+                   title="Return to Sessions — session stays active">
+                    <i class="bi bi-house-fill"></i> Home
+                </a>
             </div>
         </div>
 
@@ -1268,6 +1275,16 @@ function updateCamClock() {
 }
 updateCamClock();
 setInterval(updateCamClock, 1000);
+
+// ── Warn only if leaving without intentionally going home ─────────────────────
+let leavingIntentionally = false;
+document.querySelector('a[href*="sessions/index"], a.cam-switch-btn')?.addEventListener('click', () => {
+    leavingIntentionally = true;
+});
+// Stop camera stream cleanly when navigating away
+window.addEventListener('beforeunload', () => {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+});
 
 // ═══════════════════════════════════════════════════════
 //  QR CODE ATTENDANCE
