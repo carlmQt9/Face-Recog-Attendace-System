@@ -19,12 +19,17 @@
                     </small>
                 </div>
                 @if($session->isActive())
-                    <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST">
-                        @csrf
-                        <button class="btn btn-danger btn-sm" onclick="return confirm('End this session?')">
-                            <i class="bi bi-stop-circle-fill me-1"></i> End Session
-                        </button>
-                    </form>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('teacher.sessions.camera', $session) }}" class="btn btn-success btn-sm">
+                            <i class="bi bi-camera-video-fill me-1"></i> Open Camera
+                        </a>
+                        <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST">
+                            @csrf
+                            <button class="btn btn-danger btn-sm" onclick="return confirm('End this session?')">
+                                <i class="bi bi-stop-circle-fill me-1"></i> End Session
+                            </button>
+                        </form>
+                    </div>
                 @else
                     <span class="badge bg-secondary fs-6">Session Ended</span>
                 @endif

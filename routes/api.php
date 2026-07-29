@@ -1,14 +1,16 @@
 <?php
 
 use App\Http\Controllers\Api\FaceScanController;
+use App\Http\Controllers\Api\FaceDescriptorController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes — Face Recognition Camera Endpoints
 |--------------------------------------------------------------------------
-| These endpoints are called by the camera device / Python face-recognition
-| service to record scan events in real time.
 */
 
 Route::post('/face-scan', [FaceScanController::class, 'process']);
+
+// Returns registered face images for client-side matching
+Route::get('/face-descriptors', [FaceDescriptorController::class, 'index']);

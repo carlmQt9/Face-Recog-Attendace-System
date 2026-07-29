@@ -29,9 +29,11 @@ class FaceScanController extends Controller
     {
         $request->validate([
             'camera_id'        => 'required|exists:cameras,id',
-            'scan_result'      => 'required|in:success,error',
+            'scan_result'      => 'nullable|in:success,error',
             'student_id'       => 'nullable|exists:students,id',
             'confidence_score' => 'nullable|numeric|min:0|max:100',
+            'face_image'       => 'nullable|string',   // base64 from browser camera
+            'session_id'       => 'nullable|exists:class_sessions,id',
         ]);
 
         $camera = Camera::findOrFail($request->camera_id);

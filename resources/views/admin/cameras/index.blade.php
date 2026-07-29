@@ -13,7 +13,15 @@
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
             <thead class="table-light">
-                <tr><th>Name</th><th>Location</th><th>Type</th><th>Device ID</th><th>Status</th><th>Actions</th></tr>
+                <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                    <th>Device ID</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
             </thead>
             <tbody>
                 @forelse($cameras as $camera)
@@ -21,7 +29,18 @@
                         <td>{{ $camera->name }}</td>
                         <td>{{ $camera->location }}</td>
                         <td><span class="badge bg-secondary">{{ ucfirst($camera->type) }}</span></td>
-                        <td>{{ $camera->device_identifier ?? '—' }}</td>
+                        <td>
+                            @if($camera->is_local_device)
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-laptop me-1"></i>Local Device
+                                </span>
+                            @else
+                                <span class="badge bg-info text-dark">
+                                    <i class="bi bi-hdd-network me-1"></i>IP / Hardware
+                                </span>
+                            @endif
+                        </td>
+                        <td>{{ $camera->is_local_device ? '—' : ($camera->device_identifier ?? '—') }}</td>
                         <td>
                             @if($camera->is_active)
                                 <span class="badge bg-success"><i class="bi bi-circle-fill me-1"></i>Active</span>
@@ -45,7 +64,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="text-center text-muted py-4">No cameras added yet.</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">No cameras added yet.</td></tr>
                 @endforelse
             </tbody>
         </table>

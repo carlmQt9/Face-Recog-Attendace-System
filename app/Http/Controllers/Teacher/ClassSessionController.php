@@ -65,6 +65,21 @@ class ClassSessionController extends Controller
         return view('teacher.sessions.live', compact('session', 'attendance'));
     }
 
+    public function camera(ClassSession $session)
+    {
+        $this->authorizeTeacher($session);
+
+        $attendance = $session->attendanceRecords()
+            ->with('student.user')
+            ->orderBy('arrived_at')
+            ->get();
+
+        // All students for manual override dropdown
+        $students = \App\Models\Student::with('user')->orderBy('id')->get();
+
+        return view('teacher.sessions.camera', compact('session', 'attendance', 'students'));
+    }
+
     public function stop(ClassSession $session)
     {
         $this->authorizeTeacher($session);

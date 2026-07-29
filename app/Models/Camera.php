@@ -14,11 +14,13 @@ class Camera extends Model
         'location',
         'type',
         'is_active',
+        'is_local_device',
         'device_identifier',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'is_active'       => 'boolean',
+        'is_local_device' => 'boolean',
     ];
 
     public function classSessions()

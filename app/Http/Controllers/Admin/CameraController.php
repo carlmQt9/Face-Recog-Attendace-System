@@ -28,7 +28,10 @@ class CameraController extends Controller
             'device_identifier' => 'nullable|string|max:255',
         ]);
 
-        Camera::create($request->only('name', 'location', 'type', 'device_identifier'));
+        $data = $request->only('name', 'location', 'type', 'device_identifier');
+        $data['is_local_device'] = $request->boolean('is_local_device');
+
+        Camera::create($data);
 
         return redirect()->route('admin.cameras.index')
             ->with('success', 'Camera added successfully.');
@@ -48,7 +51,10 @@ class CameraController extends Controller
             'device_identifier' => 'nullable|string|max:255',
         ]);
 
-        $camera->update($request->only('name', 'location', 'type', 'device_identifier'));
+        $data = $request->only('name', 'location', 'type', 'device_identifier');
+        $data['is_local_device'] = $request->boolean('is_local_device');
+
+        $camera->update($data);
 
         return redirect()->route('admin.cameras.index')
             ->with('success', 'Camera updated successfully.');
