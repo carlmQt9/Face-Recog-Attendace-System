@@ -771,6 +771,10 @@ function setMode(mode) {
     stopAutoScan();
     stopQrScan();
 
+    // Clear face detection canvas when switching modes
+    drawNoFace();
+    updateConfidence(0);
+
     if (mode === 'auto') {
         if (scanBtn) scanBtn.style.display = 'none';
         if (!inCooldown && IS_ACTIVE) startAutoScan();
@@ -814,6 +818,10 @@ function stopQrScan() {
 
 async function runQrScan() {
     if (inCooldown || !stream || !video.videoWidth) return;
+
+    // Always clear face detection canvas in QR mode
+    drawNoFace();
+    updateConfidence(0);
 
     // Grab frame into an offscreen canvas
     const c   = document.createElement('canvas');
@@ -921,6 +929,7 @@ function manualScan() {
 // ═══════════════════════════════════════════════════════
 async function runScan() {
     if (inCooldown || !stream || !video.videoWidth) return;
+    if (scanMode === 'qr') return;   // QR mode — don't run face detection
     if (!modelsLoaded || !faceMatcher) {
         setStatus('⚠️ Face matcher not ready', 'error');
         return;
@@ -935,7 +944,10 @@ async function runScan() {
 
         if (!detection) {
             drawNoFace();
-            setStatus('🔍 No face detected — look at the camera', 'info');
+            // Only show "no face" status in face recognition modes
+            if (scanMode !== 'qr') {
+                setStatus('🔍 No face detected — look at the camera', 'info');
+            }
             updateConfidence(0);
             return;
         }
