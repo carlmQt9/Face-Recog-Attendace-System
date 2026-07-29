@@ -1,0 +1,133 @@
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+    <!-- START -->
+    <mxCell id="2" value="START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#4f46e5;fontColor=#ffffff;strokeColor=#4f46e5;fontSize=13;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="330" y="20" width="120" height="50" as="geometry"/></mxCell>
+
+    <!-- LOGIN -->
+    <mxCell id="3" value="Admin Logs In" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="305" y="110" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="e12" edge="1" source="2" target="3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- OPEN DASHBOARD -->
+    <mxCell id="4" value="Open Admin Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e293b;fontColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1"><mxGeometry x="295" y="200" width="190" height="50" as="geometry"/></mxCell>
+    <mxCell id="e23" edge="1" source="3" target="4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- CHOOSE SECTION -->
+    <mxCell id="5" value="Choose Section" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="305" y="290" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="e34" edge="1" source="4" target="5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- MANAGE USERS? -->
+    <mxCell id="d1" value="Manage Users?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f59e0b;fontColor=#ffffff;strokeColor=#d97706;" vertex="1" parent="1"><mxGeometry x="298" y="380" width="184" height="70" as="geometry"/></mxCell>
+    <mxCell id="e5d1" edge="1" source="5" target="d1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- MANAGE USERS YES -->
+    <mxCell id="u1" value="Create, Edit or Delete Users" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e293b;fontColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1"><mxGeometry x="80" y="380" width="170" height="70" as="geometry"/></mxCell>
+    <mxCell id="ed1u1" edge="1" source="d1" target="u1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="ld1u1" value="Yes" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed1u1"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="u2" value="Show: User Saved Successfully" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="80" y="500" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="eu1u2" edge="1" source="u1" target="u2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- MANAGE PARENTS? -->
+    <mxCell id="d2" value="Manage Parents?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f59e0b;fontColor=#ffffff;strokeColor=#d97706;" vertex="1" parent="1"><mxGeometry x="298" y="500" width="184" height="70" as="geometry"/></mxCell>
+    <mxCell id="ed1d2" edge="1" source="d1" target="d2" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="482" y="415"/><mxPoint x="482" y="535"/></Array></mxGeometry></mxCell>
+    <mxCell id="ld1d2" value="No" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed1d2"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <!-- MANAGE PARENTS YES -->
+    <mxCell id="p1" value="Add, Edit or Remove Parent Contacts" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e293b;fontColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1"><mxGeometry x="80" y="610" width="170" height="60" as="geometry"/></mxCell>
+    <mxCell id="ed2p1" edge="1" source="d2" target="p1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="ld2p1" value="Yes" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed2p1"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="p2" value="Show: Parent Linked Successfully" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="80" y="730" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="ep1p2" edge="1" source="p1" target="p2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- FACE REGISTRATION? -->
+    <mxCell id="d3" value="Face Registration?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f59e0b;fontColor=#ffffff;strokeColor=#d97706;" vertex="1" parent="1"><mxGeometry x="298" y="620" width="184" height="70" as="geometry"/></mxCell>
+    <mxCell id="ed2d3" edge="1" source="d2" target="d3" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="482" y="535"/><mxPoint x="482" y="655"/></Array></mxGeometry></mxCell>
+    <mxCell id="ld2d3" value="No" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed2d3"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <!-- FACE REGISTRATION YES -->
+    <mxCell id="f1" value="Capture Face via Webcam" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e293b;fontColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1"><mxGeometry x="530" y="500" width="160" height="50" as="geometry"/></mxCell>
+    <mxCell id="ed3f1" edge="1" source="d3" target="f1" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="482" y="655"/><mxPoint x="610" y="655"/><mxPoint x="610" y="550"/></Array></mxGeometry></mxCell>
+    <mxCell id="ld3f1" value="Yes" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed3f1"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="f2" value="Liveness Passed?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f59e0b;fontColor=#ffffff;strokeColor=#d97706;" vertex="1" parent="1"><mxGeometry x="523" y="600" width="174" height="70" as="geometry"/></mxCell>
+    <mxCell id="ef1f2" edge="1" source="f1" target="f2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="f3" value="Show: Verification Failed" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="740" y="600" width="150" height="70" as="geometry"/></mxCell>
+    <mxCell id="ef2f3" edge="1" source="f2" target="f3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="lf2f3" value="No" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ef2f3"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+    <mxCell id="ef3f1" edge="1" source="f3" target="f1" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="890" y="635"/><mxPoint x="910" y="635"/><mxPoint x="910" y="525"/><mxPoint x="690" y="525"/></Array></mxGeometry></mxCell>
+
+    <mxCell id="f4" value="Save Face Images and Set face_registered = true" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e293b;fontColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1"><mxGeometry x="523" y="730" width="174" height="60" as="geometry"/></mxCell>
+    <mxCell id="ef2f4" edge="1" source="f2" target="f4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="lf2f4" value="Yes" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ef2f4"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="f5" value="Show: Face Registered Successfully" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="523" y="850" width="174" height="50" as="geometry"/></mxCell>
+    <mxCell id="ef4f5" edge="1" source="f4" target="f5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- MANAGE CAMERAS? -->
+    <mxCell id="d4" value="Manage Cameras?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f59e0b;fontColor=#ffffff;strokeColor=#d97706;" vertex="1" parent="1"><mxGeometry x="298" y="740" width="184" height="70" as="geometry"/></mxCell>
+    <mxCell id="ed3d4" edge="1" source="d3" target="d4" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="482" y="655"/><mxPoint x="482" y="775"/></Array></mxGeometry></mxCell>
+    <mxCell id="ld3d4" value="No" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed3d4"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <!-- MANAGE CAMERAS YES -->
+    <mxCell id="c1" value="Add, Edit, Toggle or Remove Cameras" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e293b;fontColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1"><mxGeometry x="80" y="850" width="170" height="60" as="geometry"/></mxCell>
+    <mxCell id="ed4c1" edge="1" source="d4" target="c1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="ld4c1" value="Yes" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed4c1"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="c2" value="Show: Camera Saved Successfully" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="80" y="970" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="ec1c2" edge="1" source="c1" target="c2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- SYSTEM SETTINGS? -->
+    <mxCell id="d5" value="System Settings?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f59e0b;fontColor=#ffffff;strokeColor=#d97706;" vertex="1" parent="1"><mxGeometry x="298" y="860" width="184" height="70" as="geometry"/></mxCell>
+    <mxCell id="ed4d5" edge="1" source="d4" target="d5" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="482" y="775"/><mxPoint x="482" y="895"/></Array></mxGeometry></mxCell>
+    <mxCell id="ld4d5" value="No" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed4d5"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <!-- SYSTEM SETTINGS YES -->
+    <mxCell id="s1" value="Set Cooldown Seconds and Speaker Volume" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="530" y="970" width="170" height="60" as="geometry"/></mxCell>
+    <mxCell id="ed5s1" edge="1" source="d5" target="s1" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="482" y="895"/><mxPoint x="615" y="895"/><mxPoint x="615" y="970"/></Array></mxGeometry></mxCell>
+    <mxCell id="ld5s1" value="Yes" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed5s1"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="s2" value="Save Settings" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1e293b;fontColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1"><mxGeometry x="530" y="1090" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="es1s2" edge="1" source="s1" target="s2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="s3" value="Show: Settings Saved" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="530" y="1190" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="es2s3" edge="1" source="s2" target="s3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <!-- ATTENDANCE ARCHIVE? -->
+    <mxCell id="d6" value="Attendance Archive?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f59e0b;fontColor=#ffffff;strokeColor=#d97706;" vertex="1" parent="1"><mxGeometry x="298" y="980" width="184" height="70" as="geometry"/></mxCell>
+    <mxCell id="ed5d6" edge="1" source="d5" target="d6" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="482" y="895"/><mxPoint x="482" y="1015"/></Array></mxGeometry></mxCell>
+    <mxCell id="ld5d6" value="No" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed5d6"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <!-- ATTENDANCE ARCHIVE YES -->
+    <mxCell id="r1" value="Filter Records by Date, Student, Camera" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="80" y="1090" width="170" height="60" as="geometry"/></mxCell>
+    <mxCell id="ed6r1" edge="1" source="d6" target="r1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="ld6r1" value="Yes" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed6r1"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="r2" value="Export CSV?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f59e0b;fontColor=#ffffff;strokeColor=#d97706;" vertex="1" parent="1"><mxGeometry x="80" y="1210" width="170" height="70" as="geometry"/></mxCell>
+    <mxCell id="er1r2" edge="1" source="r1" target="r2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="r3" value="Download CSV File" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fillColor=#0e7490;fontColor=#ffffff;strokeColor=#0e7490;" vertex="1" parent="1"><mxGeometry x="80" y="1340" width="170" height="50" as="geometry"/></mxCell>
+    <mxCell id="er2r3" edge="1" source="r2" target="r3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+    <mxCell id="lr2r3" value="Yes" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="er2r3"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="er2back" edge="1" source="r2" target="r1" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="250" y="1245"/><mxPoint x="280" y="1245"/><mxPoint x="280" y="1120"/><mxPoint x="250" y="1120"/></Array></mxGeometry></mxCell>
+    <mxCell id="lr2back" value="No" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="er2back"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <!-- END -->
+    <mxCell id="99" value="END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#4f46e5;fontColor=#ffffff;strokeColor=#4f46e5;fontSize=13;fontStyle=1;" vertex="1" parent="1"><mxGeometry x="330" y="1120" width="120" height="50" as="geometry"/></mxCell>
+
+    <mxCell id="ed6end" edge="1" source="d6" target="99" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="482" y="1015"/><mxPoint x="482" y="1145"/></Array></mxGeometry></mxCell>
+    <mxCell id="ld6end" value="No" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="ed6end"><mxGeometry x="-0.3" relative="1" as="geometry"/></mxCell>
+
+    <mxCell id="eu2end" edge="1" source="u2" target="99" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="165" y="1095"/><mxPoint x="390" y="1095"/></Array></mxGeometry></mxCell>
+    <mxCell id="ep2end" edge="1" source="p2" target="99" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="165" y="1095"/><mxPoint x="390" y="1095"/></Array></mxGeometry></mxCell>
+    <mxCell id="ef5end" edge="1" source="f5" target="99" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="610" y="925"/><mxPoint x="390" y="925"/><mxPoint x="390" y="1120"/></Array></mxGeometry></mxCell>
+    <mxCell id="ec2end" edge="1" source="c2" target="99" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="165" y="1095"/><mxPoint x="390" y="1095"/></Array></mxGeometry></mxCell>
+    <mxCell id="es3end" edge="1" source="s3" target="99" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="615" y="1260"/><mxPoint x="390" y="1260"/><mxPoint x="390" y="1170"/></Array></mxGeometry></mxCell>
+    <mxCell id="er3end" edge="1" source="r3" target="99" parent="1"><mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="165" y="1410"/><mxPoint x="390" y="1410"/><mxPoint x="390" y="1170"/></Array></mxGeometry></mxCell>
+
+  </root>
+</mxGraphModel>
