@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Mail\AttendanceAlert;
+use App\Mail\AttendanceTimeIn;
+use App\Mail\AttendanceTimeOut;
 use App\Models\AttendanceRecord;
 use App\Models\ClassSession;
 use App\Models\Student;
@@ -23,6 +25,7 @@ class QrAttendanceController extends Controller
         $request->validate([
             'session_id' => 'required|exists:class_sessions,id',
             'camera_id'  => 'required|exists:cameras,id',
+            'scan_type'  => 'nullable|in:time_in,time_out',
         ]);
 
         $student = Student::with(['user', 'parent'])
@@ -30,58 +33,95 @@ class QrAttendanceController extends Controller
             ->first();
 
         if (!$student) {
-            return response()->json([
-                'result'  => 'error',
-                'message' => 'QR code not recognised.',
-            ], 404);
+            return response()->json(['result' => 'error', 'message' => 'QR code not recognised.'], 404);
         }
 
-        $session = ClassSession::findOrFail($request->session_id);
+        $session  = ClassSession::findOrFail($request->session_id);
+        $scanType = $request->input('scan_type', 'time_in');
 
         if (!$session->isActive()) {
-            return response()->json([
-                'result'  => 'error',
-                'message' => 'Session is no longer active.',
-            ], 422);
+            return response()->json(['result' => 'error', 'message' => 'Session is no longer active.'], 422);
         }
 
-        // Prevent duplicate mark within the same session
-        $alreadyMarked = AttendanceRecord::where('student_id', $student->id)
-            ->where('class_session_id', $session->id)
-            ->exists();
+        // ── TIME OUT via QR ───────────────────────────────────────────────────
+        if ($scanType === 'time_out') {
+            $record = AttendanceRecord::where('student_id', $student->id)
+                ->where('scan_type', 'time_in')
+                ->whereNull('time_out')
+                ->whereDate('arrived_at', today())
+                ->where('class_session_id', $session->id)
+                ->latest('arrived_at')
+                ->first();
 
-        if ($alreadyMarked) {
+            if (!$record) {
+                return response()->json([
+                    'result'       => 'error',
+                    'student_name' => $student->user->name,
+                    'message'      => "{$student->user->name} has no open time-in record for this session.",
+                ]);
+            }
+
+            $record->update(['time_out' => now()]);
+            $record->refresh();
+
+            if ($student->parent && !$record->time_out_notification_sent) {
+                Mail::to($student->parent->gmail)->send(new AttendanceTimeOut($record));
+                $record->update(['time_out_notification_sent' => true]);
+            }
+
             return response()->json([
-                'result'       => 'cooldown',
+                'result'       => 'success',
+                'scan_type'    => 'time_out',
+                'student_id'   => $student->id,
                 'student_name' => $student->user->name,
-                'message'      => "{$student->user->name} is already marked present.",
+                'arrived_at'   => $record->arrived_at->format('h:i A'),
+                'time_out'     => $record->time_out->format('h:i A'),
+                'duration'     => $record->durationLabel(),
+                'method'       => 'qr_code',
+                'message'      => "{$student->user->name} timed out ({$record->durationLabel()}). Parent notified.",
             ]);
         }
 
-        // Record attendance
+        // ── TIME IN via QR ────────────────────────────────────────────────────
+        $alreadyIn = AttendanceRecord::where('student_id', $student->id)
+            ->where('class_session_id', $session->id)
+            ->where('scan_type', 'time_in')
+            ->whereNull('time_out')
+            ->whereDate('arrived_at', today())
+            ->exists();
+
+        if ($alreadyIn) {
+            return response()->json([
+                'result'       => 'already_in',
+                'student_name' => $student->user->name,
+                'message'      => "{$student->user->name} already timed in. Switch to Time-Out mode.",
+            ]);
+        }
+
         $record = AttendanceRecord::create([
             'student_id'       => $student->id,
             'class_session_id' => $session->id,
             'camera_id'        => $request->camera_id,
             'scan_result'      => 'success',
+            'scan_type'        => 'time_in',
             'method'           => 'qr_code',
             'confidence_score' => null,
             'arrived_at'       => now(),
         ]);
 
-        // Notify parent
         if ($student->parent) {
-            Mail::to($student->parent->gmail)->send(new AttendanceAlert($record));
+            Mail::to($student->parent->gmail)->send(new AttendanceTimeIn($record));
             $record->update(['notification_sent' => true]);
         }
 
         return response()->json([
             'result'       => 'success',
+            'scan_type'    => 'time_in',
             'student_id'   => $student->id,
             'student_name' => $student->user->name,
             'arrived_at'   => $record->arrived_at->format('h:i A'),
             'method'       => 'qr_code',
-            'message'      => "{$student->user->name} marked present via QR.",
+            'message'      => "{$student->user->name} timed in via QR. Parent notified.",
         ]);
     }
 

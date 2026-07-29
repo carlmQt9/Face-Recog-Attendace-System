@@ -152,6 +152,19 @@ body { background:#0a0a0f; }
 }
 .mode-btn.active{background:linear-gradient(135deg,#4f46e5,#06b6d4);color:#fff;}
 
+/* ── Scan type toggle (Time-In / Time-Out) ─────────── */
+.scantype-toggle{
+    display:flex;gap:4px;background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:4px;
+}
+.scantype-btn{
+    font-size:12px;font-weight:700;border:none;border-radius:9px;
+    padding:6px 16px;cursor:pointer;transition:all .2s;color:rgba(255,255,255,.5);background:transparent;
+    display:flex;align-items:center;gap:5px;
+}
+.scantype-btn.in.active  {background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;}
+.scantype-btn.out.active {background:linear-gradient(135deg,#dc2626,#f87171);color:#fff;}
+
 .scan-btn{
     background:linear-gradient(135deg,#4f46e5,#06b6d4);color:#fff;
     border:none;border-radius:12px;padding:9px 22px;font-size:13px;font-weight:700;
@@ -257,9 +270,22 @@ body { background:#0a0a0f; }
                     @if($session->camera->is_local_device)
                         &nbsp;<span class="badge bg-primary"><i class="bi bi-laptop me-1"></i>Local Device</span>
                     @endif
+                    &nbsp;
+                    @if($session->session_type === 'afternoon_out')
+                        <span class="badge" style="background:#7f1d1d;color:#fca5a5;">🌇 Afternoon — Time Out</span>
+                    @else
+                        <span class="badge" style="background:#14532d;color:#86efac;">🌅 Morning — Time In</span>
+                    @endif
                 </small>
             </div>
-            <div class="d-flex gap-2 flex-wrap">
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                {{-- Live PH clock --}}
+                <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+                            border-radius:10px;padding:5px 12px;text-align:center;min-width:100px;">
+                    <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">PST</div>
+                    <div style="font-size:14px;font-weight:700;color:#4ade80;font-family:monospace;"
+                         id="camPhTime">--:-- --</div>
+                </div>
                 @if($session->camera->is_local_device)
                 <button class="cam-switch-btn" onclick="switchCamera()" title="Toggle front/rear">
                     <i class="bi bi-arrow-repeat"></i> Switch
@@ -276,13 +302,23 @@ body { background:#0a0a0f; }
                         <i class="bi bi-qr-code-scan me-1"></i>QR
                     </button>
                 </div>
+                {{-- Scan type: Time In / Time Out --}}
+                @if($session->isActive())
+                <div class="scantype-toggle">
+                    <button class="scantype-btn in active" id="scanTypeIn" onclick="setScanType('time_in')" title="Mark student arrival">
+                        <i class="bi bi-box-arrow-in-right"></i> In
+                    </button>
+                    <button class="scantype-btn out" id="scanTypeOut" onclick="setScanType('time_out')" title="Mark student departure">
+                        <i class="bi bi-box-arrow-right"></i> Out
+                    </button>
+                </div>
+                @endif
                 {{-- QR attendance button --}}
                 @if($session->isActive())
                 <button class="cam-switch-btn" onclick="openQr()" title="QR Code Attendance">
                     <i class="bi bi-qr-code"></i> QR
                 </button>
-                @endif
-                @if($session->isActive())
+                @endif                @if($session->isActive())
                 <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST" class="d-inline">
                     @csrf
                     <button class="btn btn-sm btn-danger" style="border-radius:10px;padding:7px 14px;"
@@ -476,6 +512,7 @@ const IS_LOCAL          = {{ $session->camera->is_local_device ? 'true' : 'false
 const SESSION_ID        = {{ $session->id }};
 const CAMERA_ID         = {{ $session->camera_id }};
 const IS_ACTIVE         = {{ $session->isActive() ? 'true' : 'false' }};
+const DEFAULT_SCAN_TYPE = '{{ $session->defaultScanType() }}';  // from session_type
 
 // ═══════════════════════════════════════════════════════
 //  STATE
@@ -487,7 +524,8 @@ let faceMatcher         = null;   // faceapi.FaceMatcher built from registered s
 let studentMap          = {};     // studentId -> { name, student_id }
 let modelsLoaded        = false;
 let autoScanInterval    = null;
-let scanMode            = 'auto'; // 'auto' | 'manual'
+let scanMode            = 'auto'; // 'auto' | 'manual' | 'qr'
+let scanType            = DEFAULT_SCAN_TYPE;  // auto-set from session type
 let inCooldown          = false;
 let rosterCount         = {{ $attendance->count() }};
 // Track which students are already marked in this session (client-side dedup)
@@ -512,6 +550,9 @@ const confWrap    = document.getElementById('confWrap');
 //  INIT
 // ═══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async () => {
+    // Apply session type to UI immediately
+    setScanType(DEFAULT_SCAN_TYPE);
+
     setLoading('Starting camera…');
     await startCamera();
 
@@ -698,8 +739,21 @@ function switchToDevice(deviceId) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  SCAN MODE
+//  SCAN TYPE — Time In / Time Out
 // ═══════════════════════════════════════════════════════
+function setScanType(type) {
+    scanType = type;
+    document.getElementById('scanTypeIn').classList.toggle('active',  type === 'time_in');
+    document.getElementById('scanTypeOut').classList.toggle('active', type === 'time_out');
+
+    const isOut = type === 'time_out';
+    // Update camera border tint to hint the mode
+    wrapper.style.setProperty('--scan-tint', isOut ? 'rgba(220,38,38,.3)' : 'rgba(22,163,74,.3)');
+    setStatus(
+        isOut ? '🚪 Time-Out mode — scan to log student departure' : '🏫 Time-In mode — scan to log student arrival',
+        isOut ? 'wait' : 'info'
+    );
+}
 function setMode(mode) {
     scanMode = mode;
     document.getElementById('modeAuto').classList.toggle('active', mode === 'auto');
@@ -805,6 +859,7 @@ async function runQrScan() {
             body: JSON.stringify({
                 session_id: SESSION_ID,
                 camera_id:  CAMERA_ID,
+                scan_type:  scanType,
             }),
         });
 
@@ -813,11 +868,22 @@ async function runQrScan() {
         if (data.result === 'success') {
             playBeep('success');
             wrapper.className = 'camera-wrapper matched';
-            addToRoster(data.student_name, 'qr_code', data.arrived_at);
-            showMatchPopup(data.student_name, `QR Scan · ${data.arrived_at}`);
-            setStatus(`✅ ${data.student_name} — Present (QR)`, 'ok');
-            markedIds.add(data.student_id);
+            addToRoster(data.student_name, 'qr_code', data.arrived_at, data.scan_type, data.time_out, data.duration);
+            const sub = data.scan_type === 'time_out'
+                ? `QR Time Out · ${data.time_out} · stayed ${data.duration}`
+                : `QR Time In · ${data.arrived_at}`;
+            showMatchPopup(data.student_name, sub, data.scan_type);
+            setStatus(`✅ ${data.student_name} — ${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'} (QR)`, 'ok');
+            if (data.student_id) markedIds.add(data.student_id);
             await nextPersonCooldown(NEXT_PERSON_SECS);
+
+        } else if (data.result === 'already_in') {
+            playBeep('error');
+            wrapper.className = 'camera-wrapper cooldown';
+            setStatus(`ℹ️ ${data.student_name} already timed in — switch to Time-Out mode`, 'wait');
+            setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 2000);
+            lastQrToken = null;
+            resumeAfter(2);
 
         } else if (data.result === 'cooldown') {
             playBeep('error');
@@ -924,6 +990,7 @@ async function recordAttendance(studentId, confidence, frame) {
                 session_id:       SESSION_ID,
                 student_id:       studentId,
                 scan_result:      'success',
+                scan_type:        scanType,
                 confidence_score: confidence,
                 face_image:       frame,
             }),
@@ -935,10 +1002,20 @@ async function recordAttendance(studentId, confidence, frame) {
             markedIds.add(studentId);
             playBeep('success');
             wrapper.className = 'camera-wrapper matched';
-            addToRoster(data.student_name, 'face', data.arrived_at);
-            showMatchPopup(data.student_name, `${confidence}% match · ${data.arrived_at}`);
-            setStatus(`✅ ${data.student_name} — Present`, 'ok');
+            addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration);
+            const sub = data.scan_type === 'time_out'
+                ? `Time Out: ${data.time_out} · stayed ${data.duration}`
+                : `Time In: ${data.arrived_at}`;
+            showMatchPopup(data.student_name, sub, data.scan_type);
+            setStatus(`✅ ${data.student_name} — ${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'}`, 'ok');
             await nextPersonCooldown(NEXT_PERSON_SECS);
+
+        } else if (data.result === 'already_in') {
+            playBeep('error');
+            wrapper.className = 'camera-wrapper cooldown';
+            setStatus(`ℹ️ ${data.student_name} already timed in — switch to Time-Out mode`, 'wait');
+            setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 2000);
+            resumeAfter(2);
 
         } else if (data.result === 'cooldown') {
             setStatus('⏳ Already scanned recently', 'wait');
@@ -960,9 +1037,11 @@ async function recordAttendance(studentId, confidence, frame) {
 // ═══════════════════════════════════════════════════════
 //  MATCH POPUP + COUNTDOWN
 // ═══════════════════════════════════════════════════════
-function showMatchPopup(name, sub) {
+function showMatchPopup(name, sub, type) {
     document.getElementById('matchName').textContent = name;
     document.getElementById('matchSub').textContent  = sub;
+    document.querySelector('#matchPopup .match-icon').textContent =
+        type === 'time_out' ? '🏠' : '✅';
     matchPopup.style.display = 'block';
 }
 
@@ -1080,17 +1159,34 @@ function updateConfidence(pct) {
 // ═══════════════════════════════════════════════════════
 //  ROSTER
 // ═══════════════════════════════════════════════════════
-function addToRoster(name, method, time) {
+function addToRoster(name, method, timeIn, type, timeOut, duration) {
     document.getElementById('emptyRoster')?.remove();
     rosterCount++;
     document.getElementById('rosterCount').textContent = rosterCount;
+
+    const badgeClass = method === 'manual' ? 'badge-manual'
+                     : method === 'qr_code' ? 'badge-qr'
+                     : 'badge-face';
+    const badgeLabel = method === 'manual' ? 'Manual'
+                     : method === 'qr_code' ? 'QR'
+                     : 'Face';
+
+    const typePill = type === 'time_out'
+        ? `<span style="font-size:10px;background:rgba(220,38,38,.15);color:#f87171;border-radius:5px;padding:2px 7px;font-weight:700;">OUT ${timeOut ?? ''}</span>`
+        : `<span style="font-size:10px;background:rgba(22,163,74,.15);color:#4ade80;border-radius:5px;padding:2px 7px;font-weight:700;">IN ${timeIn}</span>`;
+
+    const durLabel = duration ? `<span style="font-size:11px;color:#64748b;margin-left:4px;">${duration}</span>` : '';
+
     const item = document.createElement('div');
     item.className = 'roster-item';
-    const badgeClass = method === 'manual' ? 'badge-manual' : method === 'qr_code' ? 'badge-qr' : 'badge-face';
-    const badgeLabel = method === 'manual' ? 'Manual' : method === 'qr_code' ? 'QR' : 'Face';
     item.innerHTML = `
         <div class="roster-avatar">👤</div>
-        <div><div class="roster-name">${name}</div><div class="roster-time">${time}</div></div>
+        <div style="flex:1;min-width:0;">
+            <div class="roster-name">${name}</div>
+            <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+                ${typePill}${durLabel}
+            </div>
+        </div>
         <span class="roster-badge ${badgeClass}">${badgeLabel}</span>`;
     document.getElementById('rosterList').prepend(item);
 }
@@ -1136,6 +1232,17 @@ document.addEventListener('keydown', e => {
         if (scanMode === 'manual' && !inCooldown) manualScan();
     }
 });
+
+// ── Live PH clock in camera view ──────────────────────────────────────────────
+function updateCamClock() {
+    const el = document.getElementById('camPhTime');
+    if (!el) return;
+    el.textContent = new Date().toLocaleTimeString('en-PH', {
+        timeZone: 'Asia/Manila', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+    });
+}
+updateCamClock();
+setInterval(updateCamClock, 1000);
 
 // ═══════════════════════════════════════════════════════
 //  QR CODE ATTENDANCE

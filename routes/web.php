@@ -20,21 +20,14 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// ─── ROOT / LANDING PAGE ──────────────────────────────────────────────────────
+// ─── ROOT / LANDING PAGE — always show landing, never auto-redirect ───────────
 Route::get('/', function () {
-    if (auth()->check()) {
-        return match (auth()->user()->role) {
-            'admin'   => redirect()->route('admin.dashboard'),
-            'teacher' => redirect()->route('teacher.sessions.index'),
-            'student' => redirect()->route('student.attendance.index'),
-            default   => view('landing'),
-        };
-    }
     return view('landing');
 })->name('landing');
 
 // ─── AUTH ROUTES ──────────────────────────────────────────────────────────────
-Route::get('/login',  [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
+// No guest middleware on GET /login — always show the form even if authenticated
+Route::get('/login',  [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post')->middleware('guest');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 

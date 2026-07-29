@@ -14,6 +14,7 @@ class ClassSession extends Model
         'camera_id',
         'subject',
         'section',
+        'session_type',
         'started_at',
         'ended_at',
         'status',
@@ -23,6 +24,22 @@ class ClassSession extends Model
         'started_at' => 'datetime',
         'ended_at'   => 'datetime',
     ];
+
+    /** Human-readable label for the session type */
+    public function sessionTypeLabel(): string
+    {
+        return match($this->session_type) {
+            'morning_in'    => '🌅 Morning — Time In',
+            'afternoon_out' => '🌇 Afternoon — Time Out',
+            default         => ucfirst($this->session_type ?? ''),
+        };
+    }
+
+    /** Which scan_type this session defaults to */
+    public function defaultScanType(): string
+    {
+        return $this->session_type === 'afternoon_out' ? 'time_out' : 'time_in';
+    }
 
     public function teacher()
     {

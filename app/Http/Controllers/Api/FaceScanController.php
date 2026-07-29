@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Mail\AttendanceAlert;
+use App\Mail\AttendanceTimeIn;
+use App\Mail\AttendanceTimeOut;
 use App\Models\AttendanceRecord;
 use App\Models\Camera;
 use App\Models\ClassSession;
@@ -15,14 +16,16 @@ use Illuminate\Support\Facades\Mail;
 class FaceScanController extends Controller
 {
     /**
-     * Process an incoming face scan event from a camera device.
+     * Process a face/QR scan — handles both time_in and time_out.
      *
-     * Expected JSON payload:
+     * Payload:
      * {
      *   "camera_id": 1,
-     *   "student_id": 5,          // resolved by Python face-recognition service
+     *   "student_id": 5,
+     *   "scan_type": "time_in"|"time_out",   // default: time_in
+     *   "session_id": 2,
      *   "confidence_score": 94.5,
-     *   "scan_result": "success"  // "success" or "error"
+     *   "face_image": "base64..."
      * }
      */
     public function process(Request $request)
@@ -30,9 +33,10 @@ class FaceScanController extends Controller
         $request->validate([
             'camera_id'        => 'required|exists:cameras,id',
             'scan_result'      => 'nullable|in:success,error',
+            'scan_type'        => 'nullable|in:time_in,time_out',
             'student_id'       => 'nullable|exists:students,id',
             'confidence_score' => 'nullable|numeric|min:0|max:100',
-            'face_image'       => 'nullable|string',   // base64 from browser camera
+            'face_image'       => 'nullable|string',
             'session_id'       => 'nullable|exists:class_sessions,id',
         ]);
 
@@ -42,28 +46,57 @@ class FaceScanController extends Controller
             return response()->json(['message' => 'Camera is not active.'], 422);
         }
 
-        // If scan failed (unrecognized), log the error event and return 2-beep signal
+        // Unrecognised face
         if ($request->scan_result === 'error' || !$request->student_id) {
             return response()->json([
                 'result'  => 'error',
                 'signal'  => 'double_beep',
-                'message' => 'Face not recognized. Please adjust position or ask teacher for help.',
+                'message' => 'Face not recognized.',
             ]);
         }
 
-        $student = Student::with(['user', 'parent'])->findOrFail($request->student_id);
+        $student  = Student::with(['user', 'parent'])->findOrFail($request->student_id);
+        $scanType = $request->input('scan_type', 'time_in');
 
-        // Find the active class session for this camera
-        $session = ClassSession::where('camera_id', $camera->id)
-            ->where('status', 'active')
-            ->latest()
-            ->first();
+        // Find the active class session
+        $session = $request->session_id
+            ? ClassSession::find($request->session_id)
+            : ClassSession::where('camera_id', $camera->id)->where('status', 'active')->latest()->first();
 
-        // Enforce cool-down: prevent duplicate scan within the configured window
+        // ── TIME OUT ─────────────────────────────────────────────────────────
+        if ($scanType === 'time_out') {
+            return $this->handleTimeOut($student, $session, $camera, $request);
+        }
+
+        // ── TIME IN ──────────────────────────────────────────────────────────
+        return $this->handleTimeIn($student, $session, $camera, $request);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function handleTimeIn($student, $session, $camera, $request)
+    {
         $cooldown = (int) SystemSetting::get('cooldown_seconds', 5);
 
-        $recentScan = AttendanceRecord::where('student_id', $student->id)
+        // Check if already timed-in today in this session (no time-out yet)
+        $existing = AttendanceRecord::where('student_id', $student->id)
             ->when($session, fn($q) => $q->where('class_session_id', $session->id))
+            ->where('scan_type', 'time_in')
+            ->whereNull('time_out')
+            ->whereDate('arrived_at', today())
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'result'       => 'already_in',
+                'student_name' => $student->user->name,
+                'arrived_at'   => $existing->arrived_at->format('h:i A'),
+                'message'      => "{$student->user->name} already timed in at {$existing->arrived_at->format('h:i A')}. Use Time-Out mode to log departure.",
+            ]);
+        }
+
+        // Cooldown check (prevent double-tap within seconds)
+        $recentScan = AttendanceRecord::where('student_id', $student->id)
             ->where('arrived_at', '>=', now()->subSeconds($cooldown))
             ->exists();
 
@@ -71,33 +104,77 @@ class FaceScanController extends Controller
             return response()->json([
                 'result'  => 'cooldown',
                 'signal'  => 'double_beep',
-                'message' => "System is in cool-down. Please wait {$cooldown} seconds.",
+                'message' => "Cool-down active. Please wait {$cooldown} seconds.",
             ]);
         }
 
-        // Record attendance
         $record = AttendanceRecord::create([
             'student_id'        => $student->id,
             'class_session_id'  => $session?->id,
             'camera_id'         => $camera->id,
             'scan_result'       => 'success',
+            'scan_type'         => 'time_in',
             'method'            => 'face_scan',
             'confidence_score'  => $request->confidence_score,
             'arrived_at'        => now(),
         ]);
 
-        // Send parent email notification
+        // Notify parent — time in
         if ($student->parent) {
-            Mail::to($student->parent->gmail)->send(new AttendanceAlert($record));
+            Mail::to($student->parent->gmail)->send(new AttendanceTimeIn($record));
             $record->update(['notification_sent' => true]);
         }
 
         return response()->json([
             'result'       => 'success',
+            'scan_type'    => 'time_in',
             'signal'       => 'single_beep',
             'student_name' => $student->user->name,
             'arrived_at'   => $record->arrived_at->format('h:i A'),
-            'message'      => "{$student->user->name} has been marked present. Parent notified.",
+            'message'      => "{$student->user->name} timed in at {$record->arrived_at->format('h:i A')}. Parent notified.",
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function handleTimeOut($student, $session, $camera, $request)
+    {
+        // Find the most recent open time-in record for today
+        $record = AttendanceRecord::where('student_id', $student->id)
+            ->where('scan_type', 'time_in')
+            ->whereNull('time_out')
+            ->whereDate('arrived_at', today())
+            ->when($session, fn($q) => $q->where('class_session_id', $session->id))
+            ->latest('arrived_at')
+            ->first();
+
+        if (!$record) {
+            return response()->json([
+                'result'       => 'error',
+                'student_name' => $student->user->name,
+                'message'      => "{$student->user->name} has no open time-in record today. Please time in first.",
+            ]);
+        }
+
+        // Record time-out on the existing record
+        $record->update(['time_out' => now()]);
+        $record->refresh();
+
+        // Notify parent — time out
+        if ($student->parent && !$record->time_out_notification_sent) {
+            Mail::to($student->parent->gmail)->send(new AttendanceTimeOut($record));
+            $record->update(['time_out_notification_sent' => true]);
+        }
+
+        return response()->json([
+            'result'       => 'success',
+            'scan_type'    => 'time_out',
+            'signal'       => 'single_beep',
+            'student_name' => $student->user->name,
+            'arrived_at'   => $record->arrived_at->format('h:i A'),
+            'time_out'     => $record->time_out->format('h:i A'),
+            'duration'     => $record->durationLabel(),
+            'message'      => "{$student->user->name} timed out at {$record->time_out->format('h:i A')} (stayed {$record->durationLabel()}). Parent notified.",
         ]);
     }
 }

@@ -15,18 +15,10 @@ class AttendanceArchiveController extends Controller
         $query = AttendanceRecord::with(['student.user', 'camera', 'classSession'])
             ->orderBy('arrived_at', 'desc');
 
-        // Filters
-        if ($request->filled('date')) {
-            $query->whereDate('arrived_at', $request->date);
-        }
-
-        if ($request->filled('student_id')) {
-            $query->where('student_id', $request->student_id);
-        }
-
-        if ($request->filled('camera_id')) {
-            $query->where('camera_id', $request->camera_id);
-        }
+        if ($request->filled('date'))       $query->whereDate('arrived_at', $request->date);
+        if ($request->filled('student_id')) $query->where('student_id', $request->student_id);
+        if ($request->filled('camera_id'))  $query->where('camera_id', $request->camera_id);
+        if ($request->filled('scan_type'))  $query->where('scan_type', $request->scan_type);
 
         $records  = $query->paginate(30)->withQueryString();
         $students = Student::with('user')->orderBy('id')->get();
@@ -41,21 +33,23 @@ class AttendanceArchiveController extends Controller
             ->where('scan_result', 'success')
             ->orderBy('arrived_at', 'desc');
 
-        if ($request->filled('date')) {
-            $query->whereDate('arrived_at', $request->date);
-        }
+        if ($request->filled('date'))      $query->whereDate('arrived_at', $request->date);
+        if ($request->filled('scan_type')) $query->where('scan_type', $request->scan_type);
 
         $records = $query->get();
 
-        $csv = "Student Name,Student ID,Camera/Location,Arrived At,Method\n";
+        $csv  = "Student Name,Student ID,Location,Method,Scan Type,Time In,Time Out,Duration\n";
 
-        foreach ($records as $record) {
+        foreach ($records as $r) {
             $csv .= implode(',', [
-                '"' . $record->student->user->name . '"',
-                $record->student->student_id,
-                '"' . $record->camera->location . '"',
-                $record->arrived_at->format('Y-m-d H:i:s'),
-                $record->method,
+                '"' . $r->student->user->name . '"',
+                $r->student->student_id,
+                '"' . $r->camera->location . '"',
+                $r->method,
+                $r->scan_type ?? 'time_in',
+                $r->arrived_at->format('Y-m-d H:i:s'),
+                $r->time_out ? $r->time_out->format('Y-m-d H:i:s') : '',
+                $r->durationLabel(),
             ]) . "\n";
         }
 

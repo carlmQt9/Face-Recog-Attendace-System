@@ -25,9 +25,10 @@ class ClassSessionController extends Controller
     public function start(Request $request)
     {
         $request->validate([
-            'camera_id' => 'required|exists:cameras,id',
-            'subject'   => 'required|string|max:255',
-            'section'   => 'required|string|max:100',
+            'camera_id'    => 'required|exists:cameras,id',
+            'subject'      => 'required|string|max:255',
+            'section'      => 'required|string|max:100',
+            'session_type' => 'required|in:morning_in,afternoon_out',
         ]);
 
         $teacher = auth()->user()->teacher;
@@ -38,19 +39,19 @@ class ClassSessionController extends Controller
             ->update(['status' => 'ended', 'ended_at' => now()]);
 
         $session = ClassSession::create([
-            'teacher_id' => $teacher->id,
-            'camera_id'  => $request->camera_id,
-            'subject'    => $request->subject,
-            'section'    => $request->section,
-            'started_at' => now(),
-            'status'     => 'active',
+            'teacher_id'   => $teacher->id,
+            'camera_id'    => $request->camera_id,
+            'subject'      => $request->subject,
+            'section'      => $request->section,
+            'session_type' => $request->session_type,
+            'started_at'   => now(),
+            'status'       => 'active',
         ]);
 
-        // Activate the selected camera
         $session->camera->update(['is_active' => true]);
 
-        return redirect()->route('teacher.sessions.live', $session->id)
-            ->with('success', 'Class session started. Camera is now tracking attendance.');
+        return redirect()->route('teacher.sessions.camera', $session->id)
+            ->with('success', 'Session started — ' . $session->sessionTypeLabel());
     }
 
     public function live(ClassSession $session)
@@ -62,7 +63,9 @@ class ClassSessionController extends Controller
             ->orderBy('arrived_at')
             ->get();
 
-        return view('teacher.sessions.live', compact('session', 'attendance'));
+        $students = \App\Models\Student::with('user')->orderBy('id')->get();
+
+        return view('teacher.sessions.live', compact('session', 'attendance', 'students'));
     }
 
     public function camera(ClassSession $session)
