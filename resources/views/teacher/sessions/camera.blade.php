@@ -174,13 +174,32 @@ body { background:#0a0a0f; }
 .scan-btn:hover{opacity:.85;transform:translateY(-1px);}
 .scan-btn:disabled{opacity:.35;cursor:not-allowed;}
 
-/* ── Camera switch ─────────────────────────────────── */
+/* ── Camera switch / icon buttons ──────────────────── */
 .cam-switch-btn{
     background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);
     color:#fff;border-radius:10px;padding:7px 13px;font-size:13px;
     cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px;
 }
 .cam-switch-btn:hover{background:rgba(255,255,255,.16);}
+
+/* Compact icon-only button */
+.cam-icon-btn{
+    background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);
+    color:#fff;border-radius:9px;padding:6px 10px;font-size:14px;
+    cursor:pointer;transition:background .2s, transform .1s;
+    display:inline-flex;align-items:center;justify-content:center;
+    text-decoration:none;line-height:1;
+}
+.cam-icon-btn:hover { background:rgba(255,255,255,.18); color:#fff; }
+.cam-icon-btn.danger { background:rgba(220,38,38,.2); border-color:rgba(220,38,38,.4); color:#f87171; }
+.cam-icon-btn.danger:hover { background:rgba(220,38,38,.35); }
+
+/* Small PST clock pill */
+.cam-pill {
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+    border-radius:9px;padding:5px 10px;font-size:13px;font-weight:700;
+    display:inline-flex;align-items:center;
+}
 
 /* ── Confidence bar ────────────────────────────────── */
 .conf-bar-wrap{height:4px;background:rgba(255,255,255,.08);border-radius:50px;overflow:hidden;width:80px;}
@@ -278,61 +297,66 @@ body { background:#0a0a0f; }
                     @endif
                 </small>
             </div>
-            <div class="d-flex gap-2 flex-wrap align-items-center">
-                {{-- Live PH clock --}}
-                <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-                            border-radius:10px;padding:5px 12px;text-align:center;min-width:100px;">
-                    <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.05em;">PST</div>
-                    <div style="font-size:14px;font-weight:700;color:#4ade80;font-family:monospace;"
-                         id="camPhTime">--:-- --</div>
-                </div>
+            <div class="d-flex gap-1 align-items-center flex-wrap">
+                {{-- Compact PST clock --}}
+                <span class="cam-pill" style="font-family:monospace;color:#4ade80;min-width:76px;text-align:center;" id="camPhTime">--:-- --</span>
+
+                {{-- Divider --}}
+                <span style="color:rgba(255,255,255,.15);font-size:18px;">|</span>
+
                 @if($session->camera->is_local_device)
-                <button class="cam-switch-btn" onclick="switchCamera()" title="Toggle front/rear">
-                    <i class="bi bi-arrow-repeat"></i> Switch
+                <button class="cam-icon-btn" onclick="switchCamera()" title="Switch front/rear camera">
+                    <i class="bi bi-arrow-repeat"></i>
                 </button>
                 @endif
+
+                {{-- Scan mode: Auto / Manual / QR --}}
                 <div class="mode-toggle">
-                    <button class="mode-btn active" id="modeAuto" onclick="setMode('auto')">
-                        <i class="bi bi-magic me-1"></i>Auto
+                    <button class="mode-btn active" id="modeAuto" onclick="setMode('auto')" title="Auto face scan">
+                        <i class="bi bi-magic"></i><span class="d-none d-md-inline ms-1">Auto</span>
                     </button>
-                    <button class="mode-btn" id="modeManual" onclick="setMode('manual')">
-                        <i class="bi bi-hand-index me-1"></i>Manual
+                    <button class="mode-btn" id="modeManual" onclick="setMode('manual')" title="Manual scan">
+                        <i class="bi bi-hand-index"></i><span class="d-none d-md-inline ms-1">Manual</span>
                     </button>
-                    <button class="mode-btn" id="modeQr" onclick="setMode('qr')">
-                        <i class="bi bi-qr-code-scan me-1"></i>QR
+                    <button class="mode-btn" id="modeQr" onclick="setMode('qr')" title="QR code scan">
+                        <i class="bi bi-qr-code-scan"></i><span class="d-none d-md-inline ms-1">QR</span>
                     </button>
                 </div>
-                {{-- Scan type: Time In / Time Out --}}
+
+                {{-- Divider --}}
+                <span style="color:rgba(255,255,255,.15);font-size:18px;">|</span>
+
+                {{-- Scan type: In / Out --}}
                 @if($session->isActive())
                 <div class="scantype-toggle">
-                    <button class="scantype-btn in active" id="scanTypeIn" onclick="setScanType('time_in')" title="Mark student arrival">
+                    <button class="scantype-btn in active" id="scanTypeIn" onclick="setScanType('time_in')" title="Time In">
                         <i class="bi bi-box-arrow-in-right"></i> In
                     </button>
-                    <button class="scantype-btn out" id="scanTypeOut" onclick="setScanType('time_out')" title="Mark student departure">
+                    <button class="scantype-btn out" id="scanTypeOut" onclick="setScanType('time_out')" title="Time Out">
                         <i class="bi bi-box-arrow-right"></i> Out
                     </button>
                 </div>
                 @endif
-                {{-- QR attendance button --}}
+
+                {{-- Divider --}}
+                <span style="color:rgba(255,255,255,.15);font-size:18px;">|</span>
+
+                {{-- QR modal, End, Home --}}
                 @if($session->isActive())
-                <button class="cam-switch-btn" onclick="openQr()" title="QR Code Attendance">
-                    <i class="bi bi-qr-code"></i> QR
+                <button class="cam-icon-btn" onclick="openQr()" title="Show session QR code">
+                    <i class="bi bi-qr-code"></i>
                 </button>
-                @endif                @if($session->isActive())
                 <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST" class="d-inline">
                     @csrf
-                    <button class="btn btn-sm btn-danger" style="border-radius:10px;padding:7px 14px;"
+                    <button class="cam-icon-btn danger" title="End session"
                             onclick="return confirm('End this session?')">
-                        <i class="bi bi-stop-circle-fill me-1"></i>End
+                        <i class="bi bi-stop-circle-fill"></i>
                     </button>
                 </form>
                 @endif
-                {{-- Go back without stopping the session --}}
-                <a href="{{ route('teacher.sessions.index') }}"
-                   class="cam-switch-btn"
-                   style="text-decoration:none;"
-                   title="Return to Sessions — session stays active">
-                    <i class="bi bi-house-fill"></i> Home
+                <a href="{{ route('teacher.sessions.index') }}" class="cam-icon-btn"
+                   style="text-decoration:none;" title="Back to My Sessions (session stays active)">
+                    <i class="bi bi-house-fill"></i>
                 </a>
             </div>
         </div>
