@@ -1,0 +1,307 @@
+@extends('layouts.app')
+@section('title', 'My Students')
+@section('page-title', 'My Students')
+
+@push('styles')
+<style>
+.avatar {
+    width:36px; height:36px; border-radius:10px; flex-shrink:0;
+    background:linear-gradient(135deg,#4f46e5,#06b6d4);
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; color:#fff; font-weight:700;
+}
+</style>
+@endpush
+
+@section('content')
+
+{{-- Flash messages --}}
+@foreach(['success','warning','error'] as $t)
+    @if(session($t))
+        <div class="alert alert-{{ $t === 'error' ? 'danger' : $t }} alert-dismissible fade show">
+            {{ session($t) }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+@endforeach
+
+<div class="row g-4">
+
+    {{-- ── LEFT: My Students ── --}}
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white d-flex align-items-center justify-content-between">
+                <h6 class="mb-0">
+                    <i class="bi bi-people-fill text-primary me-2"></i>My Class
+                    <span class="badge bg-primary ms-2">{{ $students->count() }}</span>
+                </h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+                    <i class="bi bi-person-plus-fill me-1"></i> Add Student
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0" style="font-size:13px;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student</th>
+                            <th>ID</th>
+                            <th>Grade</th>
+                            <th>Section</th>
+                            <th>Face</th>
+                            <th>QR</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($students as $student)
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar">{{ strtoupper(substr($student->user->name,0,1)) }}</div>
+                                    <div>
+                                        <div class="fw-semibold">{{ $student->user->name }}</div>
+                                        <div class="text-muted" style="font-size:11px;">{{ $student->user->email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ $student->student_id }}</td>
+                            <td>{{ $student->grade_level ?? '—' }}</td>
+                            <td>{{ $student->section ?? '—' }}</td>
+                            <td>
+                                @if($student->face_registered)
+                                    <span class="badge bg-success"><i class="bi bi-shield-fill-check me-1"></i>Done</span>
+                                @else
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                @endif
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-info"
+                                        onclick="showQr('{{ addslashes($student->user->name) }}',
+                                                        '{{ $student->student_id }}',
+                                                        '{{ addslashes($student->grade_level ?? '') }}',
+                                                        '{{ addslashes($student->section ?? '') }}',
+                                                        '{{ $student->qrUrl() }}')"
+                                        title="View QR Card">
+                                    <i class="bi bi-qr-code"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <form action="{{ route('teacher.students.remove', $student) }}"
+                                      method="POST" class="d-inline"
+                                      onsubmit="return confirm('Remove {{ $student->user->name }} from your class?')">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" title="Remove from my class">
+                                        <i class="bi bi-person-dash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <i class="bi bi-people" style="font-size:32px;display:block;margin-bottom:8px;"></i>
+                                No students in your class yet. Click <strong>Add Student</strong> to get started.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Assign existing (unassigned) students --}}
+        @if($available->count() > 0)
+        <div class="card mt-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-person-check-fill text-success me-2"></i>
+                    Assign Existing Students
+                    <span class="text-muted fw-normal small ms-1">(students not yet in any class)</span>
+                </h6>
+            </div>
+            <div class="card-body">
+                <form action="{{ route('teacher.students.assign') }}" method="POST" class="d-flex gap-2">
+                    @csrf
+                    <select name="student_id" class="form-select" required>
+                        <option value="">— Select a student —</option>
+                        @foreach($available as $s)
+                            <option value="{{ $s->id }}">{{ $s->user->name }} ({{ $s->student_id }})</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-success" style="white-space:nowrap;">
+                        <i class="bi bi-plus-circle me-1"></i> Add to My Class
+                    </button>
+                </form>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    {{-- ── RIGHT: Info Panel ── --}}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle-fill text-primary me-2"></i>About This Feature</h6>
+                <p class="small text-muted mb-2">
+                    Students in <strong>My Class</strong> are the only ones who can be marked
+                    present in your sessions via face scan or QR code.
+                </p>
+                <p class="small text-muted mb-2">
+                    <i class="bi bi-shield-fill-check text-success me-1"></i>
+                    After adding a student, ask the admin to register their face so face scan works.
+                </p>
+                <p class="small text-muted mb-0">
+                    <i class="bi bi-qr-code text-info me-1"></i>
+                    Each student has a unique QR card — click the QR button to view and print it.
+                </p>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <div style="font-size:36px;">{{ $students->count() }}</div>
+                <div class="text-muted small">Students in your class</div>
+                <hr>
+                <div style="font-size:24px;color:#4ade80;">
+                    {{ $students->where('face_registered', true)->count() }}
+                </div>
+                <div class="text-muted small">Faces registered</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ── Add Student Modal ── --}}
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Add New Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('teacher.students.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" required placeholder="Juan dela Cruz">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" required placeholder="student@school.edu">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Student ID <span class="text-danger">*</span></label>
+                            <input type="text" name="student_id" class="form-control" required placeholder="2024-0001">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Grade Level</label>
+                            <input type="text" name="grade_level" class="form-control" placeholder="e.g. Grade 7">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Section</label>
+                            <input type="text" name="section" class="form-control" placeholder="e.g. Abakada">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password" class="form-control" required minlength="6" placeholder="At least 6 characters">
+                        </div>
+                    </div>
+
+                    @if($errors->any())
+                    <div class="alert alert-danger mt-3 mb-0 py-2 small">
+                        {{ $errors->first() }}
+                    </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-person-plus-fill me-1"></i> Add Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- ── QR Modal ── --}}
+<div class="modal fade" id="qrModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content" style="border-radius:20px;overflow:hidden;">
+            <div style="background:linear-gradient(135deg,#4f46e5,#06b6d4);padding:16px 20px;text-align:center;">
+                <div style="font-size:11px;font-weight:800;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.08em;">Face Attendance System</div>
+                <div style="font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Student QR Card</div>
+            </div>
+            <div class="modal-body text-center py-3">
+                <div style="display:inline-block;padding:10px;border:3px solid #e2e8f0;border-radius:14px;margin-bottom:12px;line-height:0;">
+                    <div id="qrDiv"></div>
+                </div>
+                <div id="qrStudentName" style="font-size:16px;font-weight:800;color:#0f172a;"></div>
+                <div id="qrStudentMeta" style="font-size:12px;color:#64748b;margin-top:2px;"></div>
+                <div id="qrStudentId"   style="display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:3px 14px;font-size:12px;font-weight:700;color:#334155;margin-top:6px;"></div>
+            </div>
+            <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:10px 16px;text-align:center;font-size:11px;color:#94a3b8;">
+                Show this QR to the camera to mark attendance
+            </div>
+            <div class="modal-footer justify-content-center py-2 gap-2">
+                <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-sm btn-primary" onclick="printQr()"><i class="bi bi-printer-fill me-1"></i>Print</button>
+                <button class="btn btn-sm btn-outline-success" onclick="downloadQr()"><i class="bi bi-download me-1"></i>Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+let currentQr = {};
+
+function showQr(name, sid, grade, section, url) {
+    currentQr = { name, sid, grade, section, url };
+    document.getElementById('qrStudentName').textContent = name;
+    document.getElementById('qrStudentId').textContent   = 'ID: ' + sid;
+    const meta = [grade ? 'Grade '+grade : '', section].filter(Boolean).join(' · ');
+    document.getElementById('qrStudentMeta').textContent = meta;
+
+    const div = document.getElementById('qrDiv');
+    div.innerHTML = '';
+    const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+    modal.show();
+
+    setTimeout(() => {
+        new QRCode(div, { text: url, width: 160, height: 160,
+            colorDark: '#0f172a', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.H });
+    }, 80);
+}
+
+function getQrDataUrl() {
+    const img = document.querySelector('#qrDiv img');
+    return img?.src || null;
+}
+
+function downloadQr() {
+    setTimeout(() => {
+        const url = getQrDataUrl();
+        if (!url) return;
+        const a = document.createElement('a'); a.download = `qr-${currentQr.sid}.png`; a.href = url; a.click();
+    }, 100);
+}
+
+function printQr() {
+    setTimeout(() => {
+        const url = getQrDataUrl();
+        if (!url) return;
+        const { name, sid, grade, section } = currentQr;
+        const meta = [grade ? 'Grade '+grade : '', section].filter(Boolean).join(' · ');
+        const card = `<div class="card"><div class="ch"><div class="s">Face Attendance System</div><div class="t">Student QR Card</div></div><div class="cb"><div class="qw"><img src="${url}"></div><div class="sn">${name}</div><div class="sm">${meta}</div><div class="si">ID: ${sid}</div></div><div class="cf">Show this QR to the camera to mark attendance</div></div>`;
+        const win = window.open('','_blank','width=640,height=500');
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR — ${name}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;font-family:sans-serif;}.grid{display:grid;grid-template-columns:repeat(2,260px);gap:16px;}.card{border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;}.ch{background:linear-gradient(135deg,#4f46e5,#06b6d4);padding:12px;text-align:center;}.s{font-size:10px;font-weight:800;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;}.t{font-size:9px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}.cb{padding:14px;text-align:center;}.qw{display:inline-block;padding:6px;border:2px solid #e2e8f0;border-radius:10px;margin-bottom:8px;}.qw img{display:block;width:130px;height:130px;}.sn{font-size:13px;font-weight:800;color:#0f172a;margin-bottom:2px;}.sm{font-size:11px;color:#64748b;}.si{display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:2px 10px;font-size:10px;font-weight:700;color:#334155;margin-top:4px;}.cf{background:#f8fafc;border-top:1px solid #e2e8f0;padding:7px;text-align:center;font-size:9px;color:#94a3b8;}@media print{body{padding:0;}@page{margin:8mm;}}</style></head><body><div class="grid">${card}${card}</div><script>window.onload=()=>setTimeout(()=>window.print(),150);<\/script></body></html>`);
+        win.document.close();
+    }, 100);
+}
+</script>
+@endpush

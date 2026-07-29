@@ -605,7 +605,7 @@ async function loadModels() {
 async function buildMatcher() {
     if (!modelsLoaded) return;
     try {
-        const resp = await fetch('/api/face-descriptors', { headers: { Accept: 'application/json' } });
+        const resp = await fetch('/api/face-descriptors?session_id=' + SESSION_ID, { headers: { Accept: 'application/json' } });
         const data = await resp.json();
 
         if (!data.students || data.students.length === 0) {

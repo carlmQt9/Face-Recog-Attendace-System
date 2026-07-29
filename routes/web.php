@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Student\AttendanceHistoryController;
 use App\Http\Controllers\Teacher\ClassSessionController;
 use App\Http\Controllers\Teacher\ManualAttendanceController;
+use App\Http\Controllers\Teacher\StudentController as TeacherStudentController;
 use App\Http\Controllers\QrAttendanceController;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,12 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'role:teacher'])
     // Manual attendance within a session
     Route::post('/sessions/{session}/manual-attend', [ManualAttendanceController::class, 'store'])
         ->name('sessions.manual-attend');
+
+    // Teacher's own student list
+    Route::get('/students',                        [TeacherStudentController::class, 'index'])->name('students.index');
+    Route::post('/students',                       [TeacherStudentController::class, 'store'])->name('students.store');
+    Route::post('/students/assign',                [TeacherStudentController::class, 'assign'])->name('students.assign');
+    Route::delete('/students/{student}/remove',    [TeacherStudentController::class, 'remove'])->name('students.remove');
 });
 
 // ─── STUDENT ROUTES ───────────────────────────────────────────────────────────

@@ -43,6 +43,14 @@ class QrAttendanceController extends Controller
             return response()->json(['result' => 'error', 'message' => 'Session is no longer active.'], 422);
         }
 
+        // ── Enforce: student must belong to the session's teacher ─────────────
+        if ($student->teacher_id !== null && $student->teacher_id !== $session->teacher_id) {
+            return response()->json([
+                'result'  => 'error',
+                'message' => "{$student->user->name} is not enrolled in this teacher's class.",
+            ], 403);
+        }
+
         // ── TIME OUT via QR ───────────────────────────────────────────────────
         if ($scanType === 'time_out') {
             $record = AttendanceRecord::where('student_id', $student->id)

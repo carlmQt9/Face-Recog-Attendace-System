@@ -63,7 +63,10 @@ class ClassSessionController extends Controller
             ->orderBy('arrived_at')
             ->get();
 
-        $students = \App\Models\Student::with('user')->orderBy('id')->get();
+        // Only show the teacher's own students in the manual mark dropdown
+        $students = \App\Models\Student::with('user')
+            ->where('teacher_id', $session->teacher_id)
+            ->orderBy('id')->get();
 
         return view('teacher.sessions.live', compact('session', 'attendance', 'students'));
     }
@@ -77,8 +80,10 @@ class ClassSessionController extends Controller
             ->orderBy('arrived_at')
             ->get();
 
-        // All students for manual override dropdown
-        $students = \App\Models\Student::with('user')->orderBy('id')->get();
+        // Only the teacher's own students for manual override dropdown
+        $students = \App\Models\Student::with('user')
+            ->where('teacher_id', $session->teacher_id)
+            ->orderBy('id')->get();
 
         return view('teacher.sessions.camera', compact('session', 'attendance', 'students'));
     }

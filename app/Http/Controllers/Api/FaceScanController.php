@@ -63,6 +63,15 @@ class FaceScanController extends Controller
             ? ClassSession::find($request->session_id)
             : ClassSession::where('camera_id', $camera->id)->where('status', 'active')->latest()->first();
 
+        // ── Enforce: student must belong to the session's teacher ─────────────
+        if ($session && $student->teacher_id !== null && $student->teacher_id !== $session->teacher_id) {
+            return response()->json([
+                'result'  => 'error',
+                'signal'  => 'double_beep',
+                'message' => "{$student->user->name} is not enrolled in this teacher's class.",
+            ]);
+        }
+
         // ── TIME OUT ─────────────────────────────────────────────────────────
         if ($scanType === 'time_out') {
             return $this->handleTimeOut($student, $session, $camera, $request);

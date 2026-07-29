@@ -58,8 +58,11 @@
                     </a>
 
                 @elseif(auth()->user()->isTeacher())
-                    <a href="{{ route('teacher.sessions.index') }}" class="nav-link {{ request()->is('teacher*') ? 'active' : '' }}">
+                    <a href="{{ route('teacher.sessions.index') }}" class="nav-link {{ request()->is('teacher/sessions*') ? 'active' : '' }}">
                         <i class="bi bi-camera-video-fill"></i> My Sessions
+                    </a>
+                    <a href="{{ route('teacher.students.index') }}" class="nav-link {{ request()->is('teacher/students*') ? 'active' : '' }}">
+                        <i class="bi bi-people-fill"></i> My Students
                     </a>
 
                 @elseif(auth()->user()->isStudent())

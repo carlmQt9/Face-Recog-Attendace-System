@@ -23,6 +23,11 @@ class ManualAttendanceController extends Controller
         $scanType = $request->input('scan_type', 'time_in');
         $student  = Student::with(['user', 'parent'])->findOrFail($request->student_id);
 
+        // Only allow the teacher's own students
+        if ($student->teacher_id !== null && $student->teacher_id !== $session->teacher_id) {
+            return back()->with('error', "{$student->user->name} is not in your class.");
+        }
+
         // ── TIME OUT ──────────────────────────────────────────────────────────
         if ($scanType === 'time_out') {
             $record = AttendanceRecord::where('student_id', $student->id)
