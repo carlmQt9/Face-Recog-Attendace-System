@@ -22,6 +22,21 @@
             .sidebar { display: none; }
             .main-content { margin-left: 0; }
         }
+
+        /* ── Pagination ── */
+        .pagination { flex-wrap:wrap; gap:4px; }
+        .pagination .page-link {
+            border-radius:8px !important;
+            border-color:#e2e8f0;
+            color:#475569;
+            font-size:13px;
+            padding:6px 12px;
+        }
+        .pagination .page-item.active .page-link {
+            background:#4f46e5;
+            border-color:#4f46e5;
+        }
+        .pagination .page-item.disabled .page-link { color:#cbd5e1; }
     </style>
     @stack('styles')
 </head>
@@ -118,6 +133,96 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
+
+    <!-- ══════════ GLOBAL IMAGE LIGHTBOX ══════════ -->
+    <style>
+        #imgLightbox {
+            position:fixed; inset:0; z-index:99999;
+            background:rgba(0,0,0,0.88);
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center; gap:14px;
+            opacity:0; pointer-events:none;
+            transition:opacity .22s ease;
+            cursor:zoom-out;
+        }
+        #imgLightbox.show { opacity:1; pointer-events:all; }
+        #imgLightboxImg {
+            max-width:min(90vw,520px);
+            max-height:75vh;
+            border-radius:18px;
+            box-shadow:0 32px 80px rgba(0,0,0,.7);
+            object-fit:contain;
+            transform:scale(0.85);
+            transition:transform .28s cubic-bezier(.34,1.56,.64,1);
+            display:block;
+        }
+        #imgLightbox.show #imgLightboxImg { transform:scale(1); }
+        #imgLightboxCaption {
+            color:#e2e8f0; font-size:15px; font-weight:700;
+            text-align:center; letter-spacing:.01em;
+        }
+        #imgLightboxSub {
+            color:#64748b; font-size:13px; text-align:center; margin-top:-8px;
+        }
+        #imgLightboxClose {
+            position:fixed; top:18px; right:20px;
+            width:40px; height:40px; border-radius:50%;
+            background:rgba(255,255,255,.12); border:none;
+            color:#fff; font-size:20px; cursor:pointer;
+            display:flex; align-items:center; justify-content:center;
+            transition:background .18s;
+        }
+        #imgLightboxClose:hover { background:rgba(255,255,255,.25); }
+
+        /* Make any element with data-lightbox clickable */
+        [data-lightbox] {
+            cursor:zoom-in !important;
+            transition:transform .18s, box-shadow .18s;
+        }
+        [data-lightbox]:hover {
+            transform:scale(1.07) !important;
+            box-shadow:0 0 0 3px rgba(99,102,241,.6) !important;
+        }
+    </style>
+
+    <div id="imgLightbox" onclick="closeLightbox()">
+        <button id="imgLightboxClose" onclick="closeLightbox()" title="Close (Esc)">✕</button>
+        <img id="imgLightboxImg" src="" alt="">
+        <div id="imgLightboxCaption"></div>
+        <div id="imgLightboxSub"></div>
+    </div>
+
+    <script>
+    function openLightbox(src, caption, sub) {
+        document.getElementById('imgLightboxImg').src        = src;
+        document.getElementById('imgLightboxCaption').textContent = caption || '';
+        document.getElementById('imgLightboxSub').textContent     = sub     || '';
+        document.getElementById('imgLightbox').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+        document.getElementById('imgLightbox').classList.remove('show');
+        document.body.style.overflow = '';
+        setTimeout(() => { document.getElementById('imgLightboxImg').src = ''; }, 250);
+    }
+    // Close on Escape
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && document.getElementById('imgLightbox').classList.contains('show')) {
+            closeLightbox();
+        }
+    });
+    // Auto-wire all [data-lightbox] images on click
+    document.addEventListener('click', e => {
+        const el = e.target.closest('[data-lightbox]');
+        if (!el) return;
+        e.stopPropagation();
+        openLightbox(
+            el.dataset.lightbox,
+            el.dataset.lightboxCaption || '',
+            el.dataset.lightboxSub     || ''
+        );
+    });
+    </script>
 
     <!-- ══════════ GLOBAL FLOATING CONFIRM MODAL ══════════ -->
     <style>

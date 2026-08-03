@@ -12,6 +12,7 @@ use App\Models\Student;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class FaceScanController extends Controller
 {
@@ -125,6 +126,7 @@ class FaceScanController extends Controller
             'scan_type'         => 'time_in',
             'method'            => 'face_scan',
             'confidence_score'  => $request->confidence_score,
+            'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'in'),
             'arrived_at'        => now(),
         ]);
 
@@ -144,6 +146,7 @@ class FaceScanController extends Controller
             'signal'       => 'single_beep',
             'student_name' => $student->user->name,
             'arrived_at'   => $record->arrived_at->format('h:i A'),
+            'snapshot_url' => $record->snapshotUrl(),
             'message'      => "{$student->user->name} timed in at {$record->arrived_at->format('h:i A')}.",
         ]);
     }
@@ -200,8 +203,16 @@ class FaceScanController extends Controller
                 'scan_type'         => 'time_in',
                 'method'            => 'face_scan',
                 'confidence_score'  => $request->confidence_score,
+                'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'out'),
                 'arrived_at'        => now()->subMinutes(1),
             ]);
+        } else {
+            // Update snapshot on the existing record if not already set
+            if (!$record->snapshot_path && $request->face_image) {
+                $record->update([
+                    'snapshot_path' => $this->saveSnapshot($request->face_image, $student->id, 'out'),
+                ]);
+            }
         }
 
         // ── Record time-out ───────────────────────────────────────────────────
@@ -225,7 +236,30 @@ class FaceScanController extends Controller
             'arrived_at'   => $record->arrived_at->format('h:i A'),
             'time_out'     => $record->time_out->format('h:i A'),
             'duration'     => $record->durationLabel(),
+            'snapshot_url' => $record->snapshotUrl(),
             'message'      => "{$student->user->name} timed out at {$record->time_out->format('h:i A')} (stayed {$record->durationLabel()}).",
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Save base64 face_image to storage and return path
+    // ─────────────────────────────────────────────────────────────────────────
+    private function saveSnapshot(?string $base64, int $studentId, string $type): ?string
+    {
+        if (!$base64 || strlen($base64) < 100) return null;
+
+        try {
+            $data    = preg_replace('/^data:image\/[a-zA-Z+]+;base64,/', '', $base64);
+            $data    = str_replace([' ', "\n", "\r"], ['+', '', ''], $data);
+            $decoded = base64_decode($data, strict: true);
+            if ($decoded === false) return null;
+
+            $path = 'snapshots/student_' . $studentId . '_' . $type . '_' . time() . '.jpg';
+            Storage::disk('public')->put($path, $decoded);
+            return $path;
+        } catch (\Exception $e) {
+            \Log::warning('Snapshot save failed: ' . $e->getMessage());
+            return null;
+        }
     }
 }

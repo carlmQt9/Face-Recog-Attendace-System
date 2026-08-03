@@ -60,26 +60,90 @@
 
 {{-- Detail Table --}}
 <div class="card">
-    <div class="card-header bg-white">
-        <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Arrival Details</h6>
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="bi bi-list-ul me-2"></i>Arrival Details
+            <span id="attendanceLive" class="ms-2 badge bg-success" style="font-size:10px;vertical-align:middle;">● Live</span>
+        </h6>
+        <span id="attendanceCount" class="text-muted small">{{ $records->count() }} records</span>
     </div>
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
             <thead class="table-light">
-                <tr><th>Date</th><th>Arrived At</th><th>Location</th></tr>
+                <tr><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th><th>Location</th></tr>
             </thead>
-            <tbody>
+            <tbody id="attendanceTableBody">
                 @forelse($records as $record)
                     <tr>
                         <td>{{ $record->arrived_at->format('D, M j') }}</td>
                         <td><span class="fw-semibold text-success">{{ $record->arrived_at->format('h:i A') }}</span></td>
+                        <td>
+                            @if($record->time_out)
+                                <span class="fw-semibold text-danger">{{ $record->time_out->format('h:i A') }}</span>
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
+                        <td><span class="text-muted small">{{ $record->durationLabel() }}</span></td>
                         <td>{{ $record->camera->location }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="3" class="text-center text-muted py-4">No attendance records this month.</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted py-4">No attendance records this month.</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+const ATTENDANCE_URL = '{{ route('student.attendance.index') }}?month={{ $month }}&year={{ $year }}';
+
+async function pollAttendance() {
+    // Only poll if viewing current month
+    const now = new Date();
+    if ({{ $month }} !== now.getMonth() + 1 || {{ $year }} !== now.getFullYear()) return;
+
+    try {
+        const resp = await fetch(ATTENDANCE_URL, {
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+
+        document.getElementById('attendanceCount').textContent = data.total + ' records';
+
+        const tbody = document.getElementById('attendanceTableBody');
+        if (!tbody) return;
+
+        if (!data.records.length) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No attendance records this month.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.records.map(r => `
+            <tr>
+                <td>${r.date}</td>
+                <td><span class="fw-semibold text-success">${r.time_in}</span></td>
+                <td>${r.time_out !== '—' ? `<span class="fw-semibold text-danger">${r.time_out}</span>` : '<span class="text-muted">—</span>'}</td>
+                <td><span class="text-muted small">${r.duration}</span></td>
+                <td>${r.camera}</td>
+            </tr>`).join('');
+
+        // Flash indicator
+        const ind = document.getElementById('attendanceLive');
+        if (ind) {
+            ind.classList.replace('bg-success', 'bg-warning');
+            setTimeout(() => ind.classList.replace('bg-warning', 'bg-success'), 800);
+        }
+    } catch(e) { console.warn('Attendance poll failed:', e); }
+}
+
+// Poll every 15 seconds (student page doesn't need as fast as teacher)
+setInterval(pollAttendance, 15000);
+</script>
+@endpush

@@ -37,7 +37,26 @@
                     <tbody>
                         @forelse($students as $student)
                             <tr>
-                                <td class="fw-semibold">{{ $student->user->name }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
+                                            <img src="{{ Storage::url($student->face_encoding) }}"
+                                                 alt="{{ $student->user->name }}"
+                                                 data-lightbox="{{ Storage::url($student->face_encoding) }}"
+                                                 data-lightbox-caption="{{ $student->user->name }}"
+                                                 data-lightbox-sub="Registered Face"
+                                                 style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;cursor:zoom-in;">
+                                        @else
+                                            <div style="width:36px;height:36px;border-radius:8px;flex-shrink:0;
+                                                        background:linear-gradient(135deg,#4f46e5,#06b6d4);
+                                                        display:flex;align-items:center;justify-content:center;
+                                                        font-size:15px;color:#fff;font-weight:700;">
+                                                {{ strtoupper(substr($student->user->name, 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <span class="fw-semibold">{{ $student->user->name }}</span>
+                                    </div>
+                                </td>
                                 <td class="text-muted">{{ $student->student_id }}</td>
                                 <td>
                                     @if($student->face_registered)
@@ -87,7 +106,26 @@
                     <tbody>
                         @forelse($teachers as $teacher)
                             <tr>
-                                <td class="fw-semibold">{{ $teacher->user->name }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if($teacher->face_registered && $teacher->face_encoding && Storage::disk('public')->exists($teacher->face_encoding))
+                                            <img src="{{ Storage::url($teacher->face_encoding) }}"
+                                                 alt="{{ $teacher->user->name }}"
+                                                 data-lightbox="{{ Storage::url($teacher->face_encoding) }}"
+                                                 data-lightbox-caption="{{ $teacher->user->name }}"
+                                                 data-lightbox-sub="Registered Face — Teacher"
+                                                 style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;cursor:zoom-in;">
+                                        @else
+                                            <div style="width:36px;height:36px;border-radius:8px;flex-shrink:0;
+                                                        background:linear-gradient(135deg,#059669,#10b981);
+                                                        display:flex;align-items:center;justify-content:center;
+                                                        font-size:15px;color:#fff;font-weight:700;">
+                                                {{ strtoupper(substr($teacher->user->name, 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <span class="fw-semibold">{{ $teacher->user->name }}</span>
+                                    </div>
+                                </td>
                                 <td class="text-muted">{{ $teacher->employee_id }}</td>
                                 <td>
                                     @if($teacher->face_registered)

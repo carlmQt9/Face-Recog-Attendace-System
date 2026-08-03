@@ -5,10 +5,14 @@
 @push('styles')
 <style>
 .avatar {
-    width:36px; height:36px; border-radius:10px; flex-shrink:0;
+    width:44px; height:44px; border-radius:10px; flex-shrink:0;
     background:linear-gradient(135deg,#4f46e5,#06b6d4);
     display:flex; align-items:center; justify-content:center;
-    font-size:15px; color:#fff; font-weight:700;
+    font-size:17px; color:#fff; font-weight:700;
+    overflow:hidden;
+}
+.avatar img {
+    width:100%; height:100%; object-fit:cover; display:block;
 }
 </style>
 @endpush
@@ -46,7 +50,20 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar">{{ strtoupper(substr($student->user->name,0,1)) }}</div>
+                                    @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
+                                        <div class="avatar"
+                                             data-lightbox="{{ Storage::url($student->face_encoding) }}"
+                                             data-lightbox-caption="{{ $student->user->name }}"
+                                             data-lightbox-sub="Registered Face · {{ $student->student_id }}"
+                                             style="cursor:zoom-in;">
+                                            <img src="{{ Storage::url($student->face_encoding) }}"
+                                                 alt="{{ $student->user->name }}">
+                                        </div>
+                                    @else
+                                        <div class="avatar">
+                                            {{ strtoupper(substr($student->user->name, 0, 1)) }}
+                                        </div>
+                                    @endif
                                     <div>
                                         <div class="fw-semibold">{{ $student->user->name }}</div>
                                         <div class="text-muted" style="font-size:11px;">{{ $student->user->email }}</div>

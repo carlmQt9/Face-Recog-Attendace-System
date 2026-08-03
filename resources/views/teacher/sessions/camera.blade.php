@@ -360,10 +360,12 @@ body { background:#0a0a0f; }
                 {{-- Scan type: In / Out --}}
                 @if($session->isActive())
                 <div class="scantype-toggle">
-                    <button class="scantype-btn in active" id="scanTypeIn" onclick="setScanType('time_in')" title="Time In">
+                    <button class="scantype-btn in active" id="scanTypeIn"
+                            onclick="confirmScanType('time_in')" title="Time In">
                         <i class="bi bi-box-arrow-in-right"></i> In
                     </button>
-                    <button class="scantype-btn out" id="scanTypeOut" onclick="setScanType('time_out')" title="Time Out">
+                    <button class="scantype-btn out" id="scanTypeOut"
+                            onclick="confirmScanType('time_out')" title="Time Out">
                         <i class="bi bi-box-arrow-right"></i> Out
                     </button>
                 </div>
@@ -508,9 +510,19 @@ body { background:#0a0a0f; }
             <div id="rosterList">
                 @forelse($attendance as $record)
                 <div class="roster-item">
-                    @if($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding))
-                        <img src="{{ Storage::url($record->student->face_encoding) }}"
+                    @php
+                        $snapUrl = $record->snapshotUrl()
+                            ?? ($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding)
+                                ? Storage::url($record->student->face_encoding)
+                                : null);
+                        $snapSub = ($record->scan_type === 'time_out' ? 'Timed Out' : 'Timed In') . ' · ' . $record->arrived_at->format('h:i A');
+                    @endphp
+                    @if($snapUrl)
+                        <img src="{{ $snapUrl }}"
                              alt="{{ $record->student->user->name }}"
+                             data-lightbox="{{ $snapUrl }}"
+                             data-lightbox-caption="{{ $record->student->user->name }}"
+                             data-lightbox-sub="{{ $snapSub }}"
                              style="width:40px;height:40px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.15);">
                     @else
                         <div class="roster-avatar">👤</div>
@@ -828,6 +840,27 @@ function switchToDevice(deviceId) {
 // ═══════════════════════════════════════════════════════
 //  SCAN TYPE — Time In / Time Out
 // ═══════════════════════════════════════════════════════
+
+// Called by the buttons — shows confirmation before switching
+async function confirmScanType(type) {
+    // If already on this type, do nothing
+    if (scanType === type) return;
+
+    const toOut = type === 'time_out';
+
+    const confirmed = await showConfirm({
+        title:   toOut ? 'Switch to Time-Out Mode' : 'Switch to Time-In Mode',
+        message: toOut
+            ? 'You are switching to Time-Out mode. Students who scan next will have their departure logged. Are you sure?'
+            : 'You are switching to Time-In mode. Students who scan next will be marked as arrived. Are you sure?',
+        okText:  toOut ? 'Switch to Out' : 'Switch to In',
+        okType:  toOut ? 'danger' : 'success',
+        icon:    toOut ? '🚪' : '🏫',
+    });
+
+    if (confirmed) setScanType(type);
+}
+
 function setScanType(type) {
     scanType = type;
     document.getElementById('scanTypeIn').classList.toggle('active',  type === 'time_in');
@@ -1174,7 +1207,9 @@ async function recordAttendance(studentId, confidence, frame) {
             markedIds.add(`${studentId}:${data.scan_type}`);
             playBeep('success');
             wrapper.className = 'camera-wrapper matched';
-            addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration, frame);
+            // Use server-saved snapshot URL if available, else fall back to raw frame
+            const snapshot = data.snapshot_url || frame;
+            addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration, snapshot);
             const sub = data.scan_type === 'time_out'
                 ? `Time Out: ${data.time_out} · stayed ${data.duration}`
                 : `Time In: ${data.arrived_at}`;
@@ -1360,7 +1395,12 @@ function addToRoster(name, method, timeIn, type, timeOut, duration, snapshot) {
 
     // Avatar — show captured snapshot if available, else gradient icon
     const avatarHtml = snapshot
-        ? `<img src="${snapshot}" alt="${name}" style="width:40px;height:40px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.15);">`
+        ? `<img src="${snapshot}"
+                alt="${name}"
+                data-lightbox="${snapshot}"
+                data-lightbox-caption="${name}"
+                data-lightbox-sub="${type === 'time_out' ? 'Timed Out' : 'Timed In'} · ${timeIn || timeOut}"
+                style="width:40px;height:40px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.15);">`
         : `<div class="roster-avatar">👤</div>`;
 
     const item = document.createElement('div');

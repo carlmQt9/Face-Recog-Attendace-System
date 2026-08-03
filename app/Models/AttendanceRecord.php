@@ -18,6 +18,7 @@ class AttendanceRecord extends Model
         'method',
         'marked_by',
         'confidence_score',
+        'snapshot_path',
         'arrived_at',
         'time_out',
         'notification_sent',
@@ -48,6 +49,15 @@ class AttendanceRecord extends Model
         if ($mins === null) return '—';
         if ($mins < 60)    return "{$mins}m";
         return floor($mins / 60) . 'h ' . ($mins % 60) . 'm';
+    }
+
+    /** Returns the public URL of the scan-time snapshot, or null */
+    public function snapshotUrl(): ?string
+    {
+        if (!$this->snapshot_path) return null;
+        return \Storage::disk('public')->exists($this->snapshot_path)
+            ? \Storage::url($this->snapshot_path)
+            : null;
     }
 
     // ── Relationships ─────────────────────────────────────────────────────────

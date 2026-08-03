@@ -13,10 +13,14 @@
                     <h6 class="mb-0">
                         <i class="bi bi-people-fill text-primary me-2"></i>
                         {{ $session->subject }} — {{ $session->section }}
+                        @if($session->isActive())
+                            <span id="livePill" class="ms-2 badge bg-success" style="font-size:10px;vertical-align:middle;">● Live</span>
+                        @endif
                     </h6>
                     <small class="text-muted">
                         📍 {{ $session->camera->location }}
                         &nbsp;|&nbsp; Started: {{ $session->started_at?->format('h:i A') }}
+                        &nbsp;|&nbsp; <span id="rosterCount">{{ $attendance->count() }}</span> scanned
                         &nbsp;|&nbsp;
                         @if($session->session_type === 'afternoon_out')
                             <span class="badge" style="background:#fee2e2;color:#991b1b;">🌇 Afternoon — Time Out</span>
@@ -52,25 +56,32 @@
                             <th>#</th>
                             <th>Student</th>
                             <th>Method</th>
-                            <th>
-                                <span class="text-success">Time In</span>
-                            </th>
-                            <th>
-                                <span class="text-danger">Time Out</span>
-                            </th>
+                            <th><span class="text-success">Time In</span></th>
+                            <th><span class="text-danger">Time Out</span></th>
                             <th>Duration</th>
                             <th>Notified</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="rosterTableBody">
                         @forelse($attendance as $i => $record)
                         <tr>
                             <td class="text-muted">{{ $i + 1 }}</td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    @if($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding))
-                                        <img src="{{ Storage::url($record->student->face_encoding) }}"
-                                             alt="{{ $record->student->user->name }}"
+                                    @php
+                                        $thumbUrl = $record->snapshotUrl()
+                                            ?? ($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding)
+                                                ? Storage::url($record->student->face_encoding)
+                                                : null);
+                                        $thumbCaption = $record->student->user->name;
+                                        $thumbSub = ($record->scan_type === 'time_out' ? 'Timed Out' : 'Timed In') . ' · ' . $record->arrived_at->format('h:i A');
+                                    @endphp
+                                    @if($thumbUrl)
+                                        <img src="{{ $thumbUrl }}"
+                                             alt="{{ $thumbCaption }}"
+                                             data-lightbox="{{ $thumbUrl }}"
+                                             data-lightbox-caption="{{ $thumbCaption }}"
+                                             data-lightbox-sub="{{ $thumbSub }}"
                                              style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
                                     @else
                                         <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -233,7 +244,43 @@ function filterStudents() {
 }
 
 @if($session->isActive())
-setTimeout(() => location.reload(), 8000);
+// Smart real-time refresh — only reloads if attendance count changed
+let lastCount = {{ $attendance->count() }};
+
+async function pollLiveRoster() {
+    try {
+        const resp = await fetch(window.location.href, {
+            headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (!resp.ok) return;
+        const html    = await resp.text();
+        const parser  = new DOMParser();
+        const doc     = parser.parseFromString(html, 'text/html');
+        const newBody = doc.getElementById('rosterTableBody');
+        const newCount = parseInt(doc.getElementById('rosterCount')?.textContent ?? lastCount);
+
+        if (newCount !== lastCount) {
+            lastCount = newCount;
+            const curBody = document.getElementById('rosterTableBody');
+            if (curBody && newBody) curBody.innerHTML = newBody.innerHTML;
+            const curCount = document.getElementById('rosterCount');
+            if (curCount) curCount.textContent = newCount;
+
+            // Flash live indicator
+            const pill = document.getElementById('livePill');
+            if (pill) {
+                pill.classList.replace('bg-success', 'bg-warning');
+                pill.textContent = '● Updated';
+                setTimeout(() => {
+                    pill.classList.replace('bg-warning', 'bg-success');
+                    pill.textContent = '● Live';
+                }, 1200);
+            }
+        }
+    } catch(e) { console.warn('Live roster poll failed:', e); }
+}
+
+setInterval(pollLiveRoster, 8000);
 @endif
 
 async function handleEndSessionLive() {

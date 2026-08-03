@@ -36,6 +36,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
 
     // Face Registration
     Route::prefix('face-registration')->name('face-registration.')->group(function () {
@@ -67,6 +68,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'role:teacher'])->group(function () {
 
     Route::get('/sessions', [ClassSessionController::class, 'index'])->name('sessions.index');
+    Route::get('/sessions/stats', [ClassSessionController::class, 'sessionStats'])->name('sessions.stats');
     Route::post('/sessions/start', [ClassSessionController::class, 'start'])->name('sessions.start');
     Route::get('/sessions/{session}/live', [ClassSessionController::class, 'live'])->name('sessions.live');
     Route::get('/sessions/{session}/camera', [ClassSessionController::class, 'camera'])->name('sessions.camera');

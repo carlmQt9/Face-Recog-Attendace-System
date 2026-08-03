@@ -84,7 +84,38 @@
             <tbody>
                 @forelse($users as $user)
                 <tr>
-                    <td class="fw-semibold">{{ $user->name }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            @php
+                                $faceUrl = null;
+                                if ($user->role === 'student' && $user->student?->face_registered && $user->student?->face_encoding) {
+                                    if (Storage::disk('public')->exists($user->student->face_encoding)) {
+                                        $faceUrl = Storage::url($user->student->face_encoding);
+                                    }
+                                } elseif ($user->role === 'teacher' && $user->teacher?->face_registered && $user->teacher?->face_encoding) {
+                                    if (Storage::disk('public')->exists($user->teacher->face_encoding)) {
+                                        $faceUrl = Storage::url($user->teacher->face_encoding);
+                                    }
+                                }
+                            @endphp
+                            @if($faceUrl)
+                                <img src="{{ $faceUrl }}"
+                                     alt="{{ $user->name }}"
+                                     data-lightbox="{{ $faceUrl }}"
+                                     data-lightbox-caption="{{ $user->name }}"
+                                     data-lightbox-sub="{{ ucfirst($user->role) }}"
+                                     style="width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;cursor:zoom-in;">
+                            @else
+                                <div style="width:38px;height:38px;border-radius:9px;flex-shrink:0;
+                                            background:linear-gradient(135deg,#4f46e5,#06b6d4);
+                                            display:flex;align-items:center;justify-content:center;
+                                            font-size:15px;color:#fff;font-weight:700;">
+                                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                                </div>
+                            @endif
+                            <span class="fw-semibold">{{ $user->name }}</span>
+                        </div>
+                    </td>
                     <td class="text-muted">{{ $user->email }}</td>
                     <td>
                         <span class="badge bg-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'teacher' ? 'success' : 'primary') }}">

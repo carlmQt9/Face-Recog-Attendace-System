@@ -32,4 +32,33 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact('stats', 'recentAttendance'));
     }
+
+    /** Real-time polling endpoint — returns latest stats + recent attendance as JSON */
+    public function stats()
+    {
+        $stats = [
+            'total_students'   => Student::count(),
+            'total_teachers'   => Teacher::count(),
+            'total_cameras'    => Camera::count(),
+            'active_cameras'   => Camera::where('is_active', true)->count(),
+            'today_attendance' => AttendanceRecord::whereDate('arrived_at', today())
+                                      ->where('scan_result', 'success')
+                                      ->count(),
+        ];
+
+        $recent = AttendanceRecord::with(['student.user', 'camera'])
+            ->where('scan_result', 'success')
+            ->latest('arrived_at')
+            ->take(10)
+            ->get()
+            ->map(fn($r) => [
+                'name'     => $r->student->user->name,
+                'camera'   => $r->camera->location,
+                'method'   => ucfirst(str_replace('_', ' ', $r->method)),
+                'time'     => $r->arrived_at->format('h:i A'),
+                'notified' => (bool) $r->notification_sent,
+            ]);
+
+        return response()->json(compact('stats', 'recent'));
+    }
 }

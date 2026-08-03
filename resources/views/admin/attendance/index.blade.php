@@ -73,9 +73,18 @@
                 <tr>
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            @if($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding))
-                                <img src="{{ Storage::url($record->student->face_encoding) }}"
+                            @php
+                                $thumbUrl = $record->snapshotUrl()
+                                    ?? ($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding)
+                                        ? Storage::url($record->student->face_encoding)
+                                        : null);
+                            @endphp
+                            @if($thumbUrl)
+                                <img src="{{ $thumbUrl }}"
                                      alt="{{ $record->student->user->name }}"
+                                     data-lightbox="{{ $thumbUrl }}"
+                                     data-lightbox-caption="{{ $record->student->user->name }}"
+                                     data-lightbox-sub="{{ $record->student->student_id }}"
                                      style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
                             @else
                                 <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;flex-shrink:0;">

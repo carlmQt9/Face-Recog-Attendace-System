@@ -26,6 +26,20 @@ class AttendanceHistoryController extends Controller
         // Group by date for calendar display
         $calendar = $records->groupBy(fn($r) => $r->arrived_at->toDateString());
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'total'   => $records->count(),
+                'records' => $records->map(fn($r) => [
+                    'date'      => $r->arrived_at->format('D, M j'),
+                    'time_in'   => $r->arrived_at->format('h:i A'),
+                    'time_out'  => $r->time_out?->format('h:i A') ?? '—',
+                    'duration'  => $r->durationLabel(),
+                    'camera'    => $r->camera->location,
+                    'scan_type' => $r->scan_type,
+                ]),
+            ]);
+        }
+
         return view('student.attendance-history', compact('records', 'calendar', 'month', 'year'));
     }
 }

@@ -22,6 +22,34 @@ class ClassSessionController extends Controller
         return view('teacher.sessions.index', compact('sessions', 'cameras'));
     }
 
+    /** Real-time polling — returns latest sessions list as JSON */
+    public function sessionStats()
+    {
+        $teacher  = auth()->user()->teacher;
+        $sessions = ClassSession::with('camera')
+            ->where('teacher_id', $teacher->id)
+            ->latest()
+            ->take(15)
+            ->get()
+            ->map(fn($s) => [
+                'id'              => $s->id,
+                'subject'         => $s->subject,
+                'section'         => $s->section,
+                'session_type'    => $s->session_type,
+                'status'          => $s->status,
+                'started_at'      => $s->started_at?->format('M d, h:i A') ?? '—',
+                'ended_at'        => $s->ended_at?->format('h:i A') ?? '—',
+                'scheduled_start' => $s->scheduled_start ? \Carbon\Carbon::parse($s->scheduled_start)->format('h:i A') : null,
+                'scheduled_end'   => $s->scheduled_end   ? \Carbon\Carbon::parse($s->scheduled_end)->format('h:i A')   : null,
+                'camera'          => $s->camera->location,
+                'is_local'        => $s->camera->is_local_device,
+                'camera_route'    => $s->status === 'active' ? route('teacher.sessions.camera', $s->id) : null,
+                'live_route'      => route('teacher.sessions.live', $s->id),
+            ]);
+
+        return response()->json(['sessions' => $sessions]);
+    }
+
     public function start(Request $request)
     {
         $request->validate([
