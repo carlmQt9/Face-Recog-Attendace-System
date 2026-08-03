@@ -112,7 +112,13 @@
 
                         @if(auth()->id() !== $user->id)
                         <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                              class="d-inline" onsubmit="return confirm('Delete this user?')">
+                              class="d-inline"
+                              onsubmit="return false"
+                              data-confirm-title="Delete User"
+                              data-confirm-message="Are you sure you want to permanently delete {{ $user->name }}? All their data will be removed."
+                              data-confirm-ok="Delete"
+                              data-confirm-type="danger"
+                              data-confirm-icon="🗑️">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger">Delete</button>
                         </form>

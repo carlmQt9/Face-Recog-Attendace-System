@@ -72,9 +72,11 @@
                 @endif
 
                 <hr style="border-color:rgba(255,255,255,0.1);">
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" id="logoutForm">
                     @csrf
-                    <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">
+                    <button type="button"
+                            class="nav-link border-0 bg-transparent w-100 text-start"
+                            onclick="handleLogout()">
                         <i class="bi bi-box-arrow-left"></i> Logout
                     </button>
                 </form>
@@ -116,5 +118,171 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
+
+    <!-- ══════════ GLOBAL FLOATING CONFIRM MODAL ══════════ -->
+    <style>
+        #confirmModalBackdrop {
+            position: fixed; inset: 0; z-index: 9999;
+            background: rgba(0,0,0,0.55);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity .22s ease;
+        }
+        #confirmModalBackdrop.show { opacity: 1; pointer-events: all; }
+        #confirmModalBox {
+            background: #fff;
+            border-radius: 18px;
+            padding: 32px 28px 24px;
+            min-width: 320px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.25), 0 4px 16px rgba(0,0,0,0.12);
+            transform: scale(0.88) translateY(16px);
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .22s ease;
+            opacity: 0;
+        }
+        #confirmModalBackdrop.show #confirmModalBox {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        #confirmModalIcon {
+            font-size: 38px;
+            margin-bottom: 12px;
+            display: block;
+            text-align: center;
+        }
+        #confirmModalTitle {
+            font-size: 17px;
+            font-weight: 800;
+            color: #0f172a;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        #confirmModalMessage {
+            font-size: 14px;
+            color: #64748b;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        .confirm-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        #confirmModalCancel {
+            flex: 1;
+            padding: 10px 0;
+            border-radius: 10px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            color: #475569;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .15s, border-color .15s;
+        }
+        #confirmModalCancel:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        #confirmModalOk {
+            flex: 1;
+            padding: 10px 0;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity .15s, transform .1s;
+        }
+        #confirmModalOk:hover { opacity: .88; transform: translateY(-1px); }
+        #confirmModalOk.danger  { background: linear-gradient(135deg,#dc2626,#f87171); color:#fff; }
+        #confirmModalOk.warning { background: linear-gradient(135deg,#d97706,#fbbf24); color:#fff; }
+        #confirmModalOk.primary { background: linear-gradient(135deg,#4f46e5,#818cf8); color:#fff; }
+        #confirmModalOk.success { background: linear-gradient(135deg,#059669,#34d399); color:#fff; }
+    </style>
+
+    <!-- Modal HTML -->
+    <div id="confirmModalBackdrop">
+        <div id="confirmModalBox">
+            <span id="confirmModalIcon">⚠️</span>
+            <div id="confirmModalTitle">Are you sure?</div>
+            <div id="confirmModalMessage">This action cannot be undone.</div>
+            <div class="confirm-modal-actions">
+                <button id="confirmModalCancel" onclick="confirmModalResolve(false)">Cancel</button>
+                <button id="confirmModalOk"     onclick="confirmModalResolve(true)">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let confirmModalResolve = null;
+
+    /**
+     * showConfirm({ title, message, okText, okType, icon })
+     * okType: 'danger' | 'warning' | 'primary' | 'success'
+     * Returns a Promise<boolean>
+     */
+    function showConfirm({ title = 'Are you sure?', message = 'This action cannot be undone.', okText = 'Confirm', okType = 'danger', icon = '⚠️' } = {}) {
+        document.getElementById('confirmModalTitle').textContent   = title;
+        document.getElementById('confirmModalMessage').textContent = message;
+        document.getElementById('confirmModalIcon').textContent    = icon;
+        document.getElementById('confirmModalOk').textContent      = okText;
+        document.getElementById('confirmModalOk').className        = okType;
+
+        const backdrop = document.getElementById('confirmModalBackdrop');
+        backdrop.classList.add('show');
+
+        return new Promise(resolve => {
+            confirmModalResolve = (result) => {
+                backdrop.classList.remove('show');
+                resolve(result);
+            };
+        });
+    }
+
+    // Close on backdrop click
+    document.getElementById('confirmModalBackdrop').addEventListener('click', function(e) {
+        if (e.target === this) confirmModalResolve(false);
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('confirmModalBackdrop').classList.contains('show')) {
+            confirmModalResolve(false);
+        }
+    });
+    // ── Logout confirmation ──
+    async function handleLogout() {
+        const confirmed = await showConfirm({
+            title:   'Log Out',
+            message: 'Are you sure you want to log out of your account?',
+            okText:  'Log Out',
+            okType:  'primary',
+            icon:    '👋'
+        });
+        if (confirmed) {
+            document.getElementById('logoutForm').submit();
+        }
+    }
+
+    // Global handler for all data-confirm forms (delete buttons)
+    document.addEventListener('click', async function(e) {
+        const btn = e.target.closest('button[type="submit"], button:not([type])');
+        if (!btn) return;
+        const form = btn.closest('form[data-confirm-title]');
+        if (!form) return;
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        const confirmed = await showConfirm({
+            title:   form.dataset.confirmTitle   || 'Are you sure?',
+            message: form.dataset.confirmMessage || 'This action cannot be undone.',
+            okText:  form.dataset.confirmOk      || 'Confirm',
+            okType:  form.dataset.confirmType    || 'danger',
+            icon:    form.dataset.confirmIcon    || '⚠️',
+        });
+        if (confirmed) form.submit();
+    });
+    </script>
 </body>
 </html>

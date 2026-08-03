@@ -57,7 +57,12 @@
                             </form>
                             <a href="{{ route('admin.cameras.edit', $camera) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                             <form action="{{ route('admin.cameras.destroy', $camera) }}" method="POST" class="d-inline"
-                                  onsubmit="return confirm('Delete this camera?')">
+                                  onsubmit="return false"
+                                  data-confirm-title="Delete Camera"
+                                  data-confirm-message="Are you sure you want to delete &quot;{{ $camera->name }}&quot;? This cannot be undone."
+                                  data-confirm-ok="Delete"
+                                  data-confirm-type="danger"
+                                  data-confirm-icon="🗑️">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger">Delete</button>
                             </form>

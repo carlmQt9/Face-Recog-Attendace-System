@@ -25,7 +25,12 @@
                         <td>
                             <a href="{{ route('admin.parents.edit', $parent) }}" class="btn btn-sm btn-outline-primary">Edit</a>
                             <form action="{{ route('admin.parents.destroy', $parent) }}" method="POST" class="d-inline"
-                                  onsubmit="return confirm('Remove this parent record?')">
+                                  onsubmit="return false"
+                                  data-confirm-title="Remove Parent Record"
+                                  data-confirm-message="Are you sure you want to remove {{ $parent->parent_name }}? The linked student will lose their parent contact."
+                                  data-confirm-ok="Remove"
+                                  data-confirm-type="danger"
+                                  data-confirm-icon="👨‍👩‍👧">
                                 @csrf @method('DELETE')
                                 <button class="btn btn-sm btn-outline-danger">Remove</button>
                             </form>

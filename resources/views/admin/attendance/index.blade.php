@@ -71,7 +71,20 @@
             <tbody>
                 @forelse($records as $record)
                 <tr>
-                    <td class="fw-semibold">{{ $record->student->user->name }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            @if($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding))
+                                <img src="{{ Storage::url($record->student->face_encoding) }}"
+                                     alt="{{ $record->student->user->name }}"
+                                     style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
+                            @else
+                                <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <i class="bi bi-person-fill text-white" style="font-size:16px;"></i>
+                                </div>
+                            @endif
+                            <span class="fw-semibold">{{ $record->student->user->name }}</span>
+                        </div>
+                    </td>
                     <td class="text-muted">{{ $record->student->student_id }}</td>
                     <td>{{ $record->camera->location }}</td>
                     <td>

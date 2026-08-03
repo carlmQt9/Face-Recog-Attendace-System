@@ -219,15 +219,39 @@ body { background:#0a0a0f; }
 .qr-frame {
     position:absolute; top:50%; left:50%;
     transform:translate(-50%,-55%);
-    width:46%; aspect-ratio:1;
+    width:54%; aspect-ratio:1;
     border:3px solid #06b6d4;
     border-radius:16px;
-    box-shadow:0 0 0 3000px rgba(0,0,0,.45), 0 0 24px rgba(6,182,212,.5);
+    box-shadow:0 0 0 3000px rgba(0,0,0,.55), 0 0 32px rgba(6,182,212,.8);
     display:none; pointer-events:none;
-    animation:qrPulse 2s ease-in-out infinite;
+    animation:qrPulse 1.4s ease-in-out infinite;
+    transition:border-color .2s, box-shadow .2s;
 }
-.qr-frame.active { display:block; }
-@keyframes qrPulse{0%,100%{border-color:#06b6d4;box-shadow:0 0 0 3000px rgba(0,0,0,.45),0 0 16px rgba(6,182,212,.4)} 50%{border-color:#4ade80;box-shadow:0 0 0 3000px rgba(0,0,0,.45),0 0 28px rgba(74,222,128,.6)}}
+.qr-frame.active   { display:block; }
+.qr-frame.detected {
+    border-color:#4ade80;
+    box-shadow:0 0 0 3000px rgba(0,0,0,.55), 0 0 48px rgba(74,222,128,1);
+    animation:none;
+}
+@keyframes qrPulse{
+    0%,100%{border-color:#06b6d4;box-shadow:0 0 0 3000px rgba(0,0,0,.55),0 0 24px rgba(6,182,212,.6)}
+    50%{border-color:#818cf8;box-shadow:0 0 0 3000px rgba(0,0,0,.55),0 0 40px rgba(129,140,248,.9)}
+}
+
+/* Corner accent marks on QR frame */
+.qr-frame .qc { position:absolute; width:20px; height:20px; border-color:inherit; border-style:solid; }
+.qr-frame .qc.tl { top:-1px;    left:-1px;    border-width:4px 0 0 4px; border-radius:4px 0 0 0; }
+.qr-frame .qc.tr { top:-1px;    right:-1px;   border-width:4px 4px 0 0; border-radius:0 4px 0 0; }
+.qr-frame .qc.bl { bottom:-1px; left:-1px;    border-width:0 0 4px 4px; border-radius:0 0 0 4px; }
+.qr-frame .qc.br { bottom:-1px; right:-1px;   border-width:0 4px 4px 0; border-radius:0 0 4px 0; }
+
+/* QR hint label inside frame */
+.qr-hint {
+    position:absolute; bottom:-36px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,.75); color:#fff; font-size:12px; font-weight:700;
+    padding:4px 14px; border-radius:50px; white-space:nowrap;
+    border:1px solid rgba(255,255,255,.15);
+}
 
 /* ── QR modal ──────────────────────────────────────── */
 .qr-modal-backdrop{
@@ -349,7 +373,7 @@ body { background:#0a0a0f; }
                 <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST" class="d-inline">
                     @csrf
                     <button class="cam-icon-btn danger" title="End session"
-                            onclick="return confirm('End this session?')">
+                            onclick="handleEndSession(this)">
                         <i class="bi bi-stop-circle-fill"></i>
                     </button>
                 </form>
@@ -385,7 +409,13 @@ body { background:#0a0a0f; }
             <div class="corner-mark cm-br"></div>
 
             {{-- QR mode frame (shown when mode=qr) --}}
-            <div class="qr-frame" id="qrFrame"></div>
+            <div class="qr-frame" id="qrFrame">
+                <div class="qc tl"></div>
+                <div class="qc tr"></div>
+                <div class="qc bl"></div>
+                <div class="qc br"></div>
+                <div class="qr-hint" id="qrHint">Hold QR card here</div>
+            </div>
 
             {{-- Top bar --}}
             <div class="cam-topbar">
@@ -471,10 +501,26 @@ body { background:#0a0a0f; }
             <div id="rosterList">
                 @forelse($attendance as $record)
                 <div class="roster-item">
-                    <div class="roster-avatar">👤</div>
+                    @if($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding))
+                        <img src="{{ Storage::url($record->student->face_encoding) }}"
+                             alt="{{ $record->student->user->name }}"
+                             style="width:40px;height:40px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.15);">
+                    @else
+                        <div class="roster-avatar">👤</div>
+                    @endif
                     <div>
                         <div class="roster-name">{{ $record->student->user->name }}</div>
-                        <div class="roster-time">{{ $record->arrived_at->format('h:i A') }}</div>
+                        <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+                            @if($record->scan_type === 'time_out')
+                                <span style="font-size:10px;background:rgba(220,38,38,.15);color:#f87171;border-radius:5px;padding:2px 7px;font-weight:700;">
+                                    OUT {{ $record->time_out?->format('h:i A') }}
+                                </span>
+                            @else
+                                <span style="font-size:10px;background:rgba(22,163,74,.15);color:#4ade80;border-radius:5px;padding:2px 7px;font-weight:700;">
+                                    IN {{ $record->arrived_at->format('h:i A') }}
+                                </span>
+                            @endif
+                        </div>
                     </div>
                     <span class="roster-badge
                         {{ $record->method==='manual' ? 'badge-manual' : ($record->method==='qr_code' ? 'badge-qr' : 'badge-face') }}">
@@ -840,7 +886,7 @@ let lastQrToken     = null;   // debounce same token
 
 function startQrScan() {
     stopQrScan();
-    qrScanInterval = setInterval(runQrScan, 250);   // 4fps is plenty for QR
+    qrScanInterval = setInterval(runQrScan, 120);   // ~8fps — faster detection
 }
 
 function stopQrScan() {
@@ -854,18 +900,77 @@ async function runQrScan() {
     drawNoFace();
     updateConfidence(0);
 
-    // Grab frame into an offscreen canvas
-    const c   = document.createElement('canvas');
-    c.width   = video.videoWidth;
-    c.height  = video.videoHeight;
-    const ctx = c.getContext('2d');
-    ctx.drawImage(video, 0, 0);
-    const imgData = ctx.getImageData(0, 0, c.width, c.height);
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
 
-    // Decode with jsQR
-    const code = jsQR(imgData.data, imgData.width, imgData.height, {
-        inversionAttempts: 'dontInvert'
+    // ── Strategy 1: Full frame at native res ─────────────────
+    const fullCanvas = document.createElement('canvas');
+    fullCanvas.width  = vw;
+    fullCanvas.height = vh;
+    const fullCtx = fullCanvas.getContext('2d', { willReadFrequently: true });
+
+    // Mirror-compensate: if video is CSS-mirrored, flip the canvas draw so
+    // the QR data orientation is correct for jsQR
+    if (video.style.transform === 'scaleX(-1)') {
+        fullCtx.translate(vw, 0);
+        fullCtx.scale(-1, 1);
+    }
+    fullCtx.drawImage(video, 0, 0);
+
+    // ── Contrast boost — helps low-light QR codes ────────────
+    fullCtx.filter = 'contrast(1.6) brightness(1.15)';
+    fullCtx.drawImage(fullCanvas, 0, 0);
+    fullCtx.filter = 'none';
+
+    let code = null;
+
+    // Try 1: full frame, normal
+    const fullData = fullCtx.getImageData(0, 0, vw, vh);
+    code = jsQR(fullData.data, fullData.width, fullData.height, {
+        inversionAttempts: 'attemptBoth'   // handles dark-on-light AND light-on-dark
     });
+
+    // Try 2: center crop (640×640 max) — faster + focuses on QR frame overlay area
+    if (!code) {
+        const cropSize = Math.min(vw, vh, 640);
+        const cx = Math.floor((vw - cropSize) / 2);
+        const cy = Math.floor((vh - cropSize) / 2);
+        const cropData = fullCtx.getImageData(cx, cy, cropSize, cropSize);
+        code = jsQR(cropData.data, cropData.width, cropData.height, {
+            inversionAttempts: 'attemptBoth'
+        });
+    }
+
+    // Try 3: downscaled version — helps with high-res blurry cameras
+    if (!code) {
+        const scaleCanvas = document.createElement('canvas');
+        scaleCanvas.width  = Math.round(vw * 0.5);
+        scaleCanvas.height = Math.round(vh * 0.5);
+        const scaleCtx = scaleCanvas.getContext('2d', { willReadFrequently: true });
+        scaleCtx.drawImage(fullCanvas, 0, 0, scaleCanvas.width, scaleCanvas.height);
+        const scaleData = scaleCtx.getImageData(0, 0, scaleCanvas.width, scaleCanvas.height);
+        code = jsQR(scaleData.data, scaleData.width, scaleData.height, {
+            inversionAttempts: 'attemptBoth'
+        });
+    }
+
+    // Try 4: grayscale + threshold — helps in poor lighting
+    if (!code) {
+        const grayCanvas = document.createElement('canvas');
+        grayCanvas.width  = vw;
+        grayCanvas.height = vh;
+        const grayCtx = grayCanvas.getContext('2d', { willReadFrequently: true });
+        grayCtx.drawImage(video, 0, 0);
+        const grayData = grayCtx.getImageData(0, 0, vw, vh);
+        const d = grayData.data;
+        for (let i = 0; i < d.length; i += 4) {
+            const gray = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+            const bin  = gray > 128 ? 255 : 0;   // hard threshold binarize
+            d[i] = d[i+1] = d[i+2] = bin;
+        }
+        grayCtx.putImageData(grayData, 0, 0);
+        code = jsQR(grayData.data, vw, vh, { inversionAttempts: 'attemptBoth' });
+    }
 
     if (!code) {
         setStatus('📷 Hold student QR card up to the camera', 'info');
@@ -885,6 +990,18 @@ async function runQrScan() {
     // Debounce — don't re-submit same token within cooldown
     if (token === lastQrToken) return;
     lastQrToken = token;
+
+    // Flash QR frame green to give instant visual feedback
+    const qrFrame = document.getElementById('qrFrame');
+    if (qrFrame) {
+        qrFrame.classList.add('detected');
+        const hint = document.getElementById('qrHint');
+        if (hint) hint.textContent = '✅ QR Detected!';
+        setTimeout(() => {
+            qrFrame.classList.remove('detected');
+            if (hint) hint.textContent = 'Hold QR card here';
+        }, 1200);
+    }
 
     setStatus('⏳ QR detected — marking attendance…', 'wait');
     stopQrScan();
@@ -910,7 +1027,8 @@ async function runQrScan() {
         if (data.result === 'success') {
             playBeep('success');
             wrapper.className = 'camera-wrapper matched';
-            addToRoster(data.student_name, 'qr_code', data.arrived_at, data.scan_type, data.time_out, data.duration);
+            const qrSnapshot = captureFrame();
+            addToRoster(data.student_name, 'qr_code', data.arrived_at, data.scan_type, data.time_out, data.duration, qrSnapshot);
             const sub = data.scan_type === 'time_out'
                 ? `QR Time Out · ${data.time_out} · stayed ${data.duration}`
                 : `QR Time In · ${data.arrived_at}`;
@@ -1049,7 +1167,7 @@ async function recordAttendance(studentId, confidence, frame) {
             markedIds.add(`${studentId}:${data.scan_type}`);
             playBeep('success');
             wrapper.className = 'camera-wrapper matched';
-            addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration);
+            addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration, frame);
             const sub = data.scan_type === 'time_out'
                 ? `Time Out: ${data.time_out} · stayed ${data.duration}`
                 : `Time In: ${data.arrived_at}`;
@@ -1215,7 +1333,7 @@ function updateConfidence(pct) {
 // ═══════════════════════════════════════════════════════
 //  ROSTER
 // ═══════════════════════════════════════════════════════
-function addToRoster(name, method, timeIn, type, timeOut, duration) {
+function addToRoster(name, method, timeIn, type, timeOut, duration, snapshot) {
     document.getElementById('emptyRoster')?.remove();
     rosterCount++;
     document.getElementById('rosterCount').textContent = rosterCount;
@@ -1233,10 +1351,15 @@ function addToRoster(name, method, timeIn, type, timeOut, duration) {
 
     const durLabel = duration ? `<span style="font-size:11px;color:#64748b;margin-left:4px;">${duration}</span>` : '';
 
+    // Avatar — show captured snapshot if available, else gradient icon
+    const avatarHtml = snapshot
+        ? `<img src="${snapshot}" alt="${name}" style="width:40px;height:40px;border-radius:10px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.15);">`
+        : `<div class="roster-avatar">👤</div>`;
+
     const item = document.createElement('div');
     item.className = 'roster-item';
     item.innerHTML = `
-        <div class="roster-avatar">👤</div>
+        ${avatarHtml}
         <div style="flex:1;min-width:0;">
             <div class="roster-name">${name}</div>
             <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
@@ -1355,6 +1478,20 @@ function downloadQr() {
     link.download = `qr-attendance-{{ $session->subject }}-{{ $session->id }}.png`;
     link.href      = canvas.toDataURL('image/png');
     link.click();
+}
+
+// ── End Session confirmation ──
+async function handleEndSession(btn) {
+    const confirmed = await showConfirm({
+        title:   'End Class Session',
+        message: 'Are you sure you want to end this session for {{ $session->subject }} ({{ $session->section }})? The camera will be stopped and no more scans will be recorded.',
+        okText:  'End Session',
+        okType:  'danger',
+        icon:    '🛑'
+    });
+    if (confirmed) {
+        btn.closest('form').submit();
+    }
 }
 </script>
 @endpush

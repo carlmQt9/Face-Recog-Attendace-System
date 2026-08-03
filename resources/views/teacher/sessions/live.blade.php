@@ -31,10 +31,11 @@
                            class="btn btn-success btn-sm">
                             <i class="bi bi-camera-video-fill me-1"></i> Open Camera
                         </a>
-                        <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST">
+                        <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST" id="endSessionForm">
                             @csrf
                             <button class="btn btn-danger btn-sm"
-                                    onclick="return confirm('End this session?')">
+                                    type="button"
+                                    onclick="handleEndSessionLive()">
                                 <i class="bi bi-stop-circle-fill me-1"></i> End Session
                             </button>
                         </form>
@@ -66,8 +67,18 @@
                         <tr>
                             <td class="text-muted">{{ $i + 1 }}</td>
                             <td>
-                                <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                <strong>{{ $record->student->user->name }}</strong>
+                                <div class="d-flex align-items-center gap-2">
+                                    @if($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding))
+                                        <img src="{{ Storage::url($record->student->face_encoding) }}"
+                                             alt="{{ $record->student->user->name }}"
+                                             style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
+                                    @else
+                                        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="bi bi-person-fill text-white" style="font-size:16px;"></i>
+                                        </div>
+                                    @endif
+                                    <strong>{{ $record->student->user->name }}</strong>
+                                </div>
                             </td>
                             <td>
                                 @php
@@ -224,5 +235,18 @@ function filterStudents() {
 @if($session->isActive())
 setTimeout(() => location.reload(), 8000);
 @endif
+
+async function handleEndSessionLive() {
+    const confirmed = await showConfirm({
+        title:   'End Class Session',
+        message: 'Are you sure you want to end this session for {{ $session->subject }} ({{ $session->section }})? No more attendance will be recorded.',
+        okText:  'End Session',
+        okType:  'danger',
+        icon:    '🛑'
+    });
+    if (confirmed) {
+        document.getElementById('endSessionForm').submit();
+    }
+}
 </script>
 @endpush

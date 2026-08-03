@@ -77,7 +77,12 @@
                             <td>
                                 <form action="{{ route('teacher.students.remove', $student) }}"
                                       method="POST" class="d-inline"
-                                      onsubmit="return confirm('Remove {{ $student->user->name }} from your class?')">
+                                      onsubmit="return false"
+                                      data-confirm-title="Remove Student"
+                                      data-confirm-message="Remove {{ $student->user->name }} from your class? They will be unassigned but their account will not be deleted."
+                                      data-confirm-ok="Remove"
+                                      data-confirm-type="warning"
+                                      data-confirm-icon="👤">
                                     @csrf @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger" title="Remove from my class">
                                         <i class="bi bi-person-dash-fill"></i>
