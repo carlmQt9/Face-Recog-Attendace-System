@@ -15,6 +15,8 @@ class ClassSession extends Model
         'subject',
         'section',
         'session_type',
+        'scheduled_start',
+        'scheduled_end',
         'started_at',
         'ended_at',
         'status',

@@ -125,6 +125,27 @@
                     </div>
                 </div>
 
+                <!-- Schedule (optional) -->
+                <div class="col-md-3">
+                    <label class="form-label">
+                        Schedule <span class="text-muted" style="font-size:11px;">(optional — auto-ends at end time)</span>
+                    </label>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="time" name="scheduled_start"
+                               class="form-control form-control-sm @error('scheduled_start') is-invalid @enderror"
+                               value="{{ old('scheduled_start') }}"
+                               placeholder="Start">
+                        <span class="text-muted fw-bold">–</span>
+                        <input type="time" name="scheduled_end"
+                               class="form-control form-control-sm @error('scheduled_end') is-invalid @enderror"
+                               value="{{ old('scheduled_end') }}"
+                               placeholder="End">
+                    </div>
+                    @error('scheduled_end')
+                        <div class="text-danger" style="font-size:12px;">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 <div class="col-md-1 d-flex align-items-end">
                     <button type="submit" class="btn btn-success w-100">
                         <i class="bi bi-play-fill"></i> Start
@@ -160,7 +181,7 @@
         <table class="table table-hover mb-0" style="font-size:13px;">
             <thead class="table-light">
                 <tr>
-                    <th>Subject</th><th>Section</th><th>Type</th><th>Camera</th>
+                    <th>Subject</th><th>Section</th><th>Type</th><th>Schedule</th><th>Camera</th>
                     <th>Started</th><th>Ended</th><th>Status</th><th></th>
                 </tr>
             </thead>
@@ -174,6 +195,17 @@
                             <span class="badge badge-afternoon">🌇 Afternoon</span>
                         @else
                             <span class="badge badge-morning">🌅 Morning</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if($session->scheduled_start && $session->scheduled_end)
+                            <span class="text-muted small">
+                                {{ \Carbon\Carbon::parse($session->scheduled_start)->format('h:i A') }}
+                                –
+                                {{ \Carbon\Carbon::parse($session->scheduled_end)->format('h:i A') }}
+                            </span>
+                        @else
+                            <span class="text-muted small">—</span>
                         @endif
                     </td>
                     <td>

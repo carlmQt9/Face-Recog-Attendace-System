@@ -10,6 +10,7 @@ use App\Models\ClassSession;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class QrAttendanceController extends Controller
 {
@@ -86,6 +87,7 @@ class QrAttendanceController extends Controller
                 'time_out'     => $record->time_out->format('h:i A'),
                 'duration'     => $record->durationLabel(),
                 'method'       => 'qr_code',
+                'face_image'   => $this->faceUrl($student),
                 'message'      => "{$student->user->name} timed out ({$record->durationLabel()}). Parent notified.",
             ]);
         }
@@ -129,8 +131,17 @@ class QrAttendanceController extends Controller
             'student_name' => $student->user->name,
             'arrived_at'   => $record->arrived_at->format('h:i A'),
             'method'       => 'qr_code',
+            'face_image'   => $this->faceUrl($student),
             'message'      => "{$student->user->name} timed in via QR. Parent notified.",
         ]);
+    }
+
+    /** Return the public URL of the student's registered face image, or null */
+    private function faceUrl(Student $student): ?string
+    {
+        if (!$student->face_encoding) return null;
+        if (!Storage::disk('public')->exists($student->face_encoding)) return null;
+        return Storage::url($student->face_encoding);
     }
 
     /**

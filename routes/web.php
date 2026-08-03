@@ -71,6 +71,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'role:teacher'])
     Route::get('/sessions/{session}/live', [ClassSessionController::class, 'live'])->name('sessions.live');
     Route::get('/sessions/{session}/camera', [ClassSessionController::class, 'camera'])->name('sessions.camera');
     Route::post('/sessions/{session}/stop', [ClassSessionController::class, 'stop'])->name('sessions.stop');
+    Route::get('/sessions/{session}/check-schedule', [ClassSessionController::class, 'checkSchedule'])->name('sessions.check-schedule');
 
     // Manual attendance within a session
     Route::post('/sessions/{session}/manual-attend', [ManualAttendanceController::class, 'store'])

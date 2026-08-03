@@ -25,10 +25,12 @@ class ClassSessionController extends Controller
     public function start(Request $request)
     {
         $request->validate([
-            'camera_id'    => 'required|exists:cameras,id',
-            'subject'      => 'required|string|max:255',
-            'section'      => 'required|string|max:100',
-            'session_type' => 'required|in:morning_in,afternoon_out',
+            'camera_id'        => 'required|exists:cameras,id',
+            'subject'          => 'required|string|max:255',
+            'section'          => 'required|string|max:100',
+            'session_type'     => 'required|in:morning_in,afternoon_out',
+            'scheduled_start'  => 'nullable|date_format:H:i',
+            'scheduled_end'    => 'nullable|date_format:H:i|after:scheduled_start',
         ]);
 
         $teacher = auth()->user()->teacher;
@@ -39,19 +41,47 @@ class ClassSessionController extends Controller
             ->update(['status' => 'ended', 'ended_at' => now()]);
 
         $session = ClassSession::create([
-            'teacher_id'   => $teacher->id,
-            'camera_id'    => $request->camera_id,
-            'subject'      => $request->subject,
-            'section'      => $request->section,
-            'session_type' => $request->session_type,
-            'started_at'   => now(),
-            'status'       => 'active',
+            'teacher_id'      => $teacher->id,
+            'camera_id'       => $request->camera_id,
+            'subject'         => $request->subject,
+            'section'         => $request->section,
+            'session_type'    => $request->session_type,
+            'scheduled_start' => $request->scheduled_start ?: null,
+            'scheduled_end'   => $request->scheduled_end   ?: null,
+            'started_at'      => now(),
+            'status'          => 'active',
         ]);
 
         $session->camera->update(['is_active' => true]);
 
         return redirect()->route('teacher.sessions.camera', $session->id)
             ->with('success', 'Session started — ' . $session->sessionTypeLabel());
+    }
+
+    /**
+     * Called by the camera page via JS polling to check if the session
+     * has passed its scheduled end time and should auto-end.
+     */
+    public function checkSchedule(ClassSession $session)
+    {
+        $this->authorizeTeacher($session);
+
+        if (
+            $session->isActive()
+            && $session->scheduled_end
+            && now()->format('H:i') >= $session->scheduled_end
+        ) {
+            $session->update(['status' => 'ended', 'ended_at' => now()]);
+            $session->camera->update(['is_active' => false]);
+
+            return response()->json(['auto_ended' => true]);
+        }
+
+        return response()->json([
+            'auto_ended'     => false,
+            'scheduled_end'  => $session->scheduled_end,
+            'server_time'    => now()->format('H:i'),
+        ]);
     }
 
     public function live(ClassSession $session)

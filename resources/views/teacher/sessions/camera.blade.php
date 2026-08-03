@@ -319,6 +319,13 @@ body { background:#0a0a0f; }
                     @else
                         <span class="badge" style="background:#14532d;color:#86efac;">🌅 Morning — Time In</span>
                     @endif
+                    @if($session->scheduled_start && $session->scheduled_end)
+                        &nbsp;<span class="badge" style="background:#1e3a5f;color:#93c5fd;">
+                            ⏰ {{ \Carbon\Carbon::parse($session->scheduled_start)->format('h:i A') }}
+                            – {{ \Carbon\Carbon::parse($session->scheduled_end)->format('h:i A') }}
+                        </span>
+                        &nbsp;<span id="autoEndCountdown" style="font-size:11px;color:#facc15;font-weight:700;"></span>
+                    @endif
                 </small>
             </div>
             <div class="d-flex gap-1 align-items-center flex-wrap">
@@ -1027,7 +1034,7 @@ async function runQrScan() {
         if (data.result === 'success') {
             playBeep('success');
             wrapper.className = 'camera-wrapper matched';
-            const qrSnapshot = captureFrame();
+            const qrSnapshot = data.face_image || captureFrame();
             addToRoster(data.student_name, 'qr_code', data.arrived_at, data.scan_type, data.time_out, data.duration, qrSnapshot);
             const sub = data.scan_type === 'time_out'
                 ? `QR Time Out · ${data.time_out} · stayed ${data.duration}`
@@ -1493,5 +1500,82 @@ async function handleEndSession(btn) {
         btn.closest('form').submit();
     }
 }
+
+// ══════════════════════════════════════════════════════
+//  AUTO-END: check schedule every 30 seconds
+// ══════════════════════════════════════════════════════
+@if($session->isActive() && $session->scheduled_end)
+const SCHEDULED_END = '{{ $session->scheduled_end }}'; // "HH:MM"
+const CHECK_URL     = '{{ route('teacher.sessions.check-schedule', $session) }}';
+
+function getMinutesLeft() {
+    const now   = new Date();
+    const [eh, em] = SCHEDULED_END.split(':').map(Number);
+    const endMin = eh * 60 + em;
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    return endMin - nowMin;
+}
+
+function updateCountdown() {
+    const el = document.getElementById('autoEndCountdown');
+    if (!el) return;
+    const mins = getMinutesLeft();
+    if (mins > 0) {
+        el.textContent = `(ends in ${mins}m)`;
+        el.style.color = mins <= 5 ? '#f87171' : '#facc15';
+    } else if (mins === 0) {
+        el.textContent = '(ending now…)';
+        el.style.color = '#f87171';
+    } else {
+        el.textContent = '(overdue)';
+        el.style.color = '#f87171';
+    }
+}
+
+async function checkAutoEnd() {
+    try {
+        const resp = await fetch(CHECK_URL, {
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json',
+            }
+        });
+        const data = await resp.json();
+
+        if (data.auto_ended) {
+            // Session auto-ended — stop scanning and notify teacher
+            stopAutoScan();
+            stopQrScan();
+            inCooldown = true;
+            if (scanBtn) scanBtn.disabled = true;
+
+            setStatus('⏰ Session automatically ended — scheduled time reached', 'error');
+            wrapper.className = 'camera-wrapper no-match';
+
+            // Show floating alert then redirect
+            const confirmed = await showConfirm({
+                title:   'Session Auto-Ended',
+                message: 'This session has reached its scheduled end time ({{ \Carbon\Carbon::parse($session->scheduled_end)->format('h:i A') }}) and has been automatically ended.',
+                okText:  'Go to Sessions',
+                okType:  'primary',
+                icon:    '⏰'
+            });
+            window.location.href = '{{ route('teacher.sessions.index') }}';
+        } else {
+            updateCountdown();
+        }
+    } catch(e) {
+        console.warn('Schedule check failed:', e);
+    }
+}
+
+// Run immediately on load, then every 30 seconds
+document.addEventListener('DOMContentLoaded', () => {
+    updateCountdown();
+    checkAutoEnd();
+    setInterval(checkAutoEnd, 30000);
+    setInterval(updateCountdown, 60000);
+});
+@endif
 </script>
 @endpush
