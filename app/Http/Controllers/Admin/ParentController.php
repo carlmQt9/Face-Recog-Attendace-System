@@ -11,8 +11,9 @@ class ParentController extends Controller
 {
     public function index()
     {
-        $parents = ParentContact::with('student.user')->paginate(20);
-        return view('admin.parents.index', compact('parents'));
+        $parents  = ParentContact::with('student.user')->paginate(20);
+        $students = \App\Models\Student::with('user')->whereDoesntHave('parent')->get();
+        return view('admin.parents.index', compact('parents', 'students'));
     }
 
     public function create()

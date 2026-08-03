@@ -30,10 +30,42 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'recentAttendance'));
+        // ── Chart 1: Last 7 days attendance (bar) ──────────────────────────
+        $last7 = collect(range(6, 0))->map(function ($daysAgo) {
+            $date = now()->subDays($daysAgo)->toDateString();
+            return [
+                'label' => now()->subDays($daysAgo)->format('D'),
+                'date'  => $date,
+                'count' => AttendanceRecord::whereDate('arrived_at', $date)
+                               ->where('scan_result', 'success')
+                               ->count(),
+            ];
+        });
+
+        // ── Chart 2: Method breakdown today (doughnut) ─────────────────────
+        $methodBreakdown = AttendanceRecord::whereDate('arrived_at', today())
+            ->where('scan_result', 'success')
+            ->selectRaw('method, count(*) as total')
+            ->groupBy('method')
+            ->pluck('total', 'method');
+
+        // ── Chart 3: Attendance by hour today (line) ───────────────────────
+        $byHour = AttendanceRecord::whereDate('arrived_at', today())
+            ->where('scan_result', 'success')
+            ->selectRaw('HOUR(arrived_at) as hour, count(*) as total')
+            ->groupBy('hour')
+            ->orderBy('hour')
+            ->pluck('total', 'hour');
+
+        $hourLabels = collect(range(6, 22))->map(fn($h) => ($h % 12 ?: 12) . ($h < 12 ? 'AM' : 'PM'));
+        $hourData   = collect(range(6, 22))->map(fn($h) => $byHour->get($h, 0));
+
+        return view('admin.dashboard', compact(
+            'stats', 'recentAttendance', 'last7', 'methodBreakdown', 'hourLabels', 'hourData'
+        ));
     }
 
-    /** Real-time polling endpoint — returns latest stats + recent attendance as JSON */
+    /** Real-time polling endpoint */
     public function stats()
     {
         $stats = [
@@ -59,6 +91,21 @@ class DashboardController extends Controller
                 'notified' => (bool) $r->notification_sent,
             ]);
 
-        return response()->json(compact('stats', 'recent'));
+        // Live chart data for today
+        $byHour = AttendanceRecord::whereDate('arrived_at', today())
+            ->where('scan_result', 'success')
+            ->selectRaw('HOUR(arrived_at) as hour, count(*) as total')
+            ->groupBy('hour')
+            ->orderBy('hour')
+            ->pluck('total', 'hour');
+        $hourData = collect(range(6, 22))->map(fn($h) => $byHour->get($h, 0));
+
+        $methodBreakdown = AttendanceRecord::whereDate('arrived_at', today())
+            ->where('scan_result', 'success')
+            ->selectRaw('method, count(*) as total')
+            ->groupBy('method')
+            ->pluck('total', 'method');
+
+        return response()->json(compact('stats', 'recent', 'hourData', 'methodBreakdown'));
     }
 }

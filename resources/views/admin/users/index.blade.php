@@ -64,9 +64,9 @@
 @section('content')
 
 <div class="d-flex justify-content-end mb-3">
-    <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
         <i class="bi bi-person-plus-fill me-1"></i> Add User
-    </a>
+    </button>
 </div>
 
 <div class="card">
@@ -164,6 +164,122 @@
     </div>
 </div>
 {{ $users->links() }}
+
+{{-- ── Add User Modal ── --}}
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#06b6d4);border:none;">
+                <h5 class="modal-title text-white fw-bold" id="addUserModalLabel">
+                    <i class="bi bi-person-plus-fill me-2"></i>Add New User
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                @if($errors->any())
+                    <div class="alert alert-danger py-2 small mb-3">
+                        <strong>Please fix the following:</strong>
+                        <ul class="mb-0 mt-1">
+                            @foreach($errors->all() as $e)
+                                <li>{{ $e }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                <form action="{{ route('admin.users.store') }}" method="POST" id="addUserForm">
+                    @csrf
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name"
+                                   class="form-control @error('name') is-invalid @enderror"
+                                   value="{{ old('name') }}" placeholder="e.g. Juan dela Cruz">
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email"
+                                   class="form-control @error('email') is-invalid @enderror"
+                                   value="{{ old('email') }}" placeholder="user@school.edu">
+                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password"
+                                   class="form-control @error('password') is-invalid @enderror"
+                                   placeholder="Min. 8 characters">
+                            @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" name="password_confirmation"
+                                   class="form-control" placeholder="Repeat password">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
+                            <select name="role" id="modalRoleSelect"
+                                    class="form-select @error('role') is-invalid @enderror"
+                                    onchange="toggleModalFields()">
+                                <option value="">— Select Role —</option>
+                                <option value="admin"   {{ old('role') === 'admin'   ? 'selected' : '' }}>Admin</option>
+                                <option value="teacher" {{ old('role') === 'teacher' ? 'selected' : '' }}>Teacher</option>
+                                <option value="student" {{ old('role') === 'student' ? 'selected' : '' }}>Student</option>
+                            </select>
+                            @error('role')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        {{-- Teacher fields --}}
+                        <div id="modalTeacherFields" class="col-12 d-none">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Employee ID <span class="text-danger">*</span></label>
+                                    <input type="text" name="employee_id"
+                                           class="form-control @error('employee_id') is-invalid @enderror"
+                                           value="{{ old('employee_id') }}" placeholder="EMP-001">
+                                    @error('employee_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Department</label>
+                                    <input type="text" name="department" class="form-control"
+                                           value="{{ old('department') }}" placeholder="e.g. Science">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Student fields --}}
+                        <div id="modalStudentFields" class="col-12 d-none">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Student ID <span class="text-danger">*</span></label>
+                                    <input type="text" name="student_id"
+                                           class="form-control @error('student_id') is-invalid @enderror"
+                                           value="{{ old('student_id') }}" placeholder="2024-0001">
+                                    @error('student_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Grade Level</label>
+                                    <input type="text" name="grade_level" class="form-control"
+                                           value="{{ old('grade_level') }}" placeholder="e.g. Grade 7">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Section</label>
+                                    <input type="text" name="section" class="form-control"
+                                           value="{{ old('section') }}" placeholder="e.g. Abakada">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid #e2e8f0;padding:14px 24px;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="addUserForm" class="btn btn-primary px-4">
+                    <i class="bi bi-person-plus-fill me-1"></i> Create User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 {{-- ── QR Modal ── --}}
 <div class="qr-backdrop" id="qrBackdrop" onclick="closeQrOutside(event)">
@@ -348,5 +464,23 @@ body{background:#fff;display:flex;align-items:center;justify-content:center;
             @json($nq['qr_url'])
         ), 400);
     });
-@endif</script>
+@endif
+
+// ── Add User modal role toggle ────────────────────────────────────────────────
+function toggleModalFields() {
+    const role = document.getElementById('modalRoleSelect').value;
+    document.getElementById('modalTeacherFields').classList.toggle('d-none', role !== 'teacher');
+    document.getElementById('modalStudentFields').classList.toggle('d-none', role !== 'student');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Re-run toggle on load for old() values
+    toggleModalFields();
+
+    // Auto-open modal if validation errors exist (form was submitted with errors)
+    @if($errors->any())
+        const addModal = new bootstrap.Modal(document.getElementById('addUserModal'));
+        addModal.show();
+    @endif
+});</script>
 @endpush
