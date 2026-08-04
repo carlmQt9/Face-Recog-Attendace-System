@@ -147,6 +147,31 @@
             }
             .table-card-mobile td.td-hide { display: none; }
         }
+
+        /* ── Mobile-only flex list rows ── */
+        /* .mob-list  = visible only on mobile */
+        /* .desk-list = visible only on desktop */
+        .mob-list  { display: none; }
+        .desk-list { display: block; }
+        @media (max-width: 575.98px) {
+            .mob-list  { display: block; }
+            .desk-list { display: none !important; }
+        }
+
+        /* Item row used in mob-list sections */
+        .item-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 14px; border-bottom: 1px solid #f1f5f9; min-width: 0;
+        }
+        .item-row:last-child { border-bottom: none; }
+        .item-row .ir-icon    { flex-shrink: 0; }
+        .item-row .ir-info    { flex: 1; min-width: 0; }
+        .item-row .ir-name    { font-weight: 600; font-size: 14px; line-height: 1.3;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-row .ir-sub     { font-size: 11px; color: #64748b; white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; }
+        .item-row .ir-badges  { flex-shrink: 0; display: flex; gap: 4px; flex-wrap: wrap; }
+        .item-row .ir-actions { flex-shrink: 0; display: flex; gap: 5px; align-items: center; }
     </style>
     @stack('styles')
 </head>
@@ -329,6 +354,51 @@
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('confirmModalBackdrop').classList.contains('show'))confirmModalResolve(false);});
     async function handleLogout(){const c=await showConfirm({title:'Log Out',message:'Are you sure you want to log out?',okText:'Log Out',okType:'primary',icon:'👋'});if(c)document.getElementById('logoutForm').submit();}
     document.addEventListener('click',async function(e){const btn=e.target.closest('button[type="submit"],button:not([type])');if(!btn)return;const form=btn.closest('form[data-confirm-title]');if(!form)return;e.preventDefault();e.stopImmediatePropagation();const c=await showConfirm({title:form.dataset.confirmTitle||'Are you sure?',message:form.dataset.confirmMessage||'This cannot be undone.',okText:form.dataset.confirmOk||'Confirm',okType:form.dataset.confirmType||'danger',icon:form.dataset.confirmIcon||'⚠️'});if(c)form.submit();});
+
+    // ── Global modal form validation ──────────────────────────────────────────
+    // Intercepts submit-button clicks for forms that have data-validate="true"
+    // Skips fields inside .d-none containers (hidden role-conditional sections)
+    document.addEventListener('click', async function(e) {
+        const btn = e.target.closest('button[type="submit"][form]');
+        if (!btn) return;
+        const formId = btn.getAttribute('form');
+        if (!formId) return;
+        const form = document.getElementById(formId);
+        if (!form || !form.dataset.validate) return;
+
+        const missing = [];
+        form.querySelectorAll('[data-label]').forEach(el => {
+            // Skip fields inside hidden containers
+            if (el.closest('.d-none')) return;
+            const val = el.value?.trim();
+            if (!val) {
+                el.classList.add('is-invalid');
+                missing.push(el.dataset.label);
+            } else {
+                el.classList.remove('is-invalid');
+            }
+        });
+
+        if (missing.length) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            await showConfirm({
+                title:   'Missing Required Fields',
+                message: `Please fill in: ${missing.join(', ')}.`,
+                okText:  'Got it',
+                okType:  'warning',
+                icon:    '⚠️',
+            });
+        }
+    });
+
+    // Remove invalid highlight when user fixes a field
+    document.addEventListener('input', function(e) {
+        if (e.target.dataset.label) e.target.classList.remove('is-invalid');
+    });
+    document.addEventListener('change', function(e) {
+        if (e.target.dataset.label) e.target.classList.remove('is-invalid');
+    });
     </script>
 </body>
 </html>

@@ -40,17 +40,17 @@
 .qr-actions .btn { border-radius: 9px; font-size: 13px; font-weight: 600; padding: 7px 18px; }
 
 /* ── User table row — actions always right-aligned ── */
+/* Mobile only — shown via .mob-list / .desk-list in app.blade.php */
 .user-row {
     display: flex; align-items: center; gap: 10px;
-    padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
-    min-width: 0;
+    padding: 10px 14px; border-bottom: 1px solid #f1f5f9; min-width: 0;
 }
 .user-row:last-child { border-bottom: none; }
-.user-row .u-avatar { flex-shrink: 0; }
-.user-row .u-info   { flex: 1; min-width: 0; }
-.user-row .u-name   { font-weight: 600; font-size: 14px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-row .u-email  { font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-row .u-badge  { flex-shrink: 0; }
+.user-row .u-avatar  { flex-shrink: 0; }
+.user-row .u-info    { flex: 1; min-width: 0; }
+.user-row .u-name    { font-weight: 600; font-size: 14px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-row .u-email   { font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-row .u-badge   { flex-shrink: 0; }
 .user-row .u-actions { flex-shrink: 0; display: flex; gap: 5px; align-items: center; }
 </style>
 @endpush
@@ -65,85 +65,108 @@
 
 <div class="card">
     <div class="card-body p-0">
-        {{-- Use flex rows instead of a table so actions stay right-aligned on ALL screen sizes --}}
-        @forelse($users as $user)
-        @php
-            $faceUrl = null;
-            if ($user->role === 'student' && $user->student?->face_registered && $user->student?->face_encoding) {
-                if (Storage::disk('public')->exists($user->student->face_encoding)) {
-                    $faceUrl = Storage::url($user->student->face_encoding);
-                }
-            } elseif ($user->role === 'teacher' && $user->teacher?->face_registered && $user->teacher?->face_encoding) {
-                if (Storage::disk('public')->exists($user->teacher->face_encoding)) {
-                    $faceUrl = Storage::url($user->teacher->face_encoding);
-                }
-            }
-        @endphp
-        <div class="user-row">
-            {{-- Avatar --}}
-            <div class="u-avatar">
-                @if($faceUrl)
-                    <img src="{{ $faceUrl }}" alt="{{ $user->name }}"
-                         data-lightbox="{{ $faceUrl }}"
-                         data-lightbox-caption="{{ $user->name }}"
-                         data-lightbox-sub="{{ ucfirst($user->role) }}"
-                         style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid #dee2e6;cursor:zoom-in;">
-                @else
-                    <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;">
-                        {{ strtoupper(substr($user->name, 0, 1)) }}
-                    </div>
-                @endif
-            </div>
-            {{-- Name + email --}}
-            <div class="u-info">
-                <div class="u-name">{{ $user->name }}</div>
-                <div class="u-email">{{ $user->email }}</div>
-            </div>
-            {{-- Role badge --}}
-            <div class="u-badge">
-                <span class="badge bg-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'teacher' ? 'success' : 'primary') }}">
-                    {{ ucfirst($user->role) }}
-                </span>
-            </div>
-            {{-- Actions — pinned to right --}}
-            <div class="u-actions">
-                <button class="btn btn-sm btn-outline-primary" title="Edit"
-                        onclick="openEditModal(
-                            {{ $user->id }},
-                            '{{ addslashes($user->name) }}',
-                            '{{ addslashes($user->email) }}',
-                            '{{ $user->role }}',
-                            '{{ addslashes($user->student?->student_id ?? '') }}',
-                            '{{ addslashes($user->student?->grade_level ?? '') }}',
-                            '{{ addslashes($user->student?->section ?? '') }}',
-                            '{{ addslashes($user->teacher?->employee_id ?? '') }}',
-                            '{{ addslashes($user->teacher?->department ?? '') }}'
-                        )">
-                    <i class="bi bi-pencil-fill"></i>
-                </button>
-                @if($user->role === 'student' && $user->student?->qr_token)
-                    <button class="btn btn-sm btn-outline-info" title="QR Card"
-                            onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level ?? '') }}','{{ addslashes($user->student->section ?? '') }}','{{ $user->student->qrUrl() }}')">
-                        <i class="bi bi-qr-code"></i>
-                    </button>
-                @endif
-                @if(auth()->id() !== $user->id)
-                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline"
-                      onsubmit="return false"
-                      data-confirm-title="Delete User"
-                      data-confirm-message="Are you sure you want to permanently delete {{ $user->name }}? All their data will be removed."
-                      data-confirm-ok="Delete" data-confirm-type="danger" data-confirm-icon="🗑️">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-sm btn-outline-danger" title="Delete">
-                        <i class="bi bi-trash-fill"></i>
-                    </button>
-                </form>
-                @endif
-            </div>
+
+        {{-- ── DESKTOP: normal table ── --}}
+        <div class="desk-list table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:46px;"></th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th class="d-none d-md-table-cell">Created</th>
+                    <th style="width:1%;white-space:nowrap;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($users as $user)
+                @php
+                    $faceUrl = null;
+                    if ($user->role === 'student' && $user->student?->face_registered && $user->student?->face_encoding) {
+                        if (Storage::disk('public')->exists($user->student->face_encoding)) $faceUrl = Storage::url($user->student->face_encoding);
+                    } elseif ($user->role === 'teacher' && $user->teacher?->face_registered && $user->teacher?->face_encoding) {
+                        if (Storage::disk('public')->exists($user->teacher->face_encoding)) $faceUrl = Storage::url($user->teacher->face_encoding);
+                    }
+                @endphp
+                <tr>
+                    <td>
+                        @if($faceUrl)
+                            <img src="{{ $faceUrl }}" alt="{{ $user->name }}" data-lightbox="{{ $faceUrl }}" data-lightbox-caption="{{ $user->name }}" data-lightbox-sub="{{ ucfirst($user->role) }}" style="width:38px;height:38px;border-radius:9px;object-fit:cover;border:1px solid #dee2e6;cursor:zoom-in;">
+                        @else
+                            <div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">{{ strtoupper(substr($user->name,0,1)) }}</div>
+                        @endif
+                    </td>
+                    <td class="fw-semibold">{{ $user->name }}</td>
+                    <td class="text-muted small">{{ $user->email }}</td>
+                    <td><span class="badge bg-{{ $user->role==='admin'?'danger':($user->role==='teacher'?'success':'primary') }}">{{ ucfirst($user->role) }}</span></td>
+                    <td class="d-none d-md-table-cell text-muted small">{{ $user->created_at->format('M d, Y') }}</td>
+                    <td>
+                        <div class="d-flex gap-1" style="white-space:nowrap;">
+                            <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="openEditModal({{ $user->id }},'{{ addslashes($user->name) }}','{{ addslashes($user->email) }}','{{ $user->role }}','{{ addslashes($user->student?->student_id??'') }}','{{ addslashes($user->student?->grade_level??'') }}','{{ addslashes($user->student?->section??'') }}','{{ addslashes($user->teacher?->employee_id??'') }}','{{ addslashes($user->teacher?->department??'') }}')"><i class="bi bi-pencil-fill"></i></button>
+                            @if($user->role==='student'&&$user->student?->qr_token)
+                                <button class="btn btn-sm btn-outline-info" title="QR Card" onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level??'') }}','{{ addslashes($user->student->section??'') }}','{{ $user->student->qrUrl() }}')"><i class="bi bi-qr-code"></i></button>
+                            @endif
+                            @if(auth()->id()!==$user->id)
+                            <form action="{{ route('admin.users.destroy',$user) }}" method="POST" class="d-inline" onsubmit="return false" data-confirm-title="Delete User" data-confirm-message="Permanently delete {{ $user->name }}? All data will be removed." data-confirm-ok="Delete" data-confirm-type="danger" data-confirm-icon="🗑️">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                            </form>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="text-center text-muted py-4">No users found.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
         </div>
-        @empty
-        <div class="text-center text-muted py-5">No users found.</div>
-        @endforelse
+
+        {{-- ── MOBILE: flex card rows ── --}}
+        <div class="mob-list">
+            @forelse($users as $user)
+            @php
+                $faceUrl = null;
+                if ($user->role === 'student' && $user->student?->face_registered && $user->student?->face_encoding) {
+                    if (Storage::disk('public')->exists($user->student->face_encoding)) $faceUrl = Storage::url($user->student->face_encoding);
+                } elseif ($user->role === 'teacher' && $user->teacher?->face_registered && $user->teacher?->face_encoding) {
+                    if (Storage::disk('public')->exists($user->teacher->face_encoding)) $faceUrl = Storage::url($user->teacher->face_encoding);
+                }
+            @endphp
+            <div class="user-row">
+                <div class="u-avatar">
+                    @if($faceUrl)
+                        <img src="{{ $faceUrl }}" alt="{{ $user->name }}" data-lightbox="{{ $faceUrl }}" data-lightbox-caption="{{ $user->name }}" data-lightbox-sub="{{ ucfirst($user->role) }}" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid #dee2e6;cursor:zoom-in;">
+                    @else
+                        <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;">{{ strtoupper(substr($user->name,0,1)) }}</div>
+                    @endif
+                </div>
+                <div class="u-info">
+                    <div class="u-name">{{ $user->name }}</div>
+                    <div class="u-email">{{ $user->email }}</div>
+                </div>
+                <div class="u-badge">
+                    <span class="badge bg-{{ $user->role==='admin'?'danger':($user->role==='teacher'?'success':'primary') }}">{{ ucfirst($user->role) }}</span>
+                </div>
+                <div class="u-actions">
+                    <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="openEditModal({{ $user->id }},'{{ addslashes($user->name) }}','{{ addslashes($user->email) }}','{{ $user->role }}','{{ addslashes($user->student?->student_id??'') }}','{{ addslashes($user->student?->grade_level??'') }}','{{ addslashes($user->student?->section??'') }}','{{ addslashes($user->teacher?->employee_id??'') }}','{{ addslashes($user->teacher?->department??'') }}')"><i class="bi bi-pencil-fill"></i></button>
+                    @if($user->role==='student'&&$user->student?->qr_token)
+                        <button class="btn btn-sm btn-outline-info" title="QR Card" onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level??'') }}','{{ addslashes($user->student->section??'') }}','{{ $user->student->qrUrl() }}')"><i class="bi bi-qr-code"></i></button>
+                    @endif
+                    @if(auth()->id()!==$user->id)
+                    <form action="{{ route('admin.users.destroy',$user) }}" method="POST" class="d-inline" onsubmit="return false" data-confirm-title="Delete User" data-confirm-message="Permanently delete {{ $user->name }}? All data will be removed." data-confirm-ok="Delete" data-confirm-type="danger" data-confirm-icon="🗑️">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                    </form>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="text-center text-muted py-5">No users found.</div>
+            @endforelse
+        </div>
+
     </div>
 </div>
 {{ $users->links() }}
@@ -169,38 +192,38 @@
                         </ul>
                     </div>
                 @endif
-                <form action="{{ route('admin.users.store') }}" method="POST" id="addUserForm">
+                <form action="{{ route('admin.users.store') }}" method="POST" id="addUserForm" data-validate="true">
                     @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
-                            <input type="text" name="name"
+                            <input type="text" name="name" data-label="Full Name"
                                    class="form-control @error('name') is-invalid @enderror"
                                    value="{{ old('name') }}" placeholder="e.g. Juan dela Cruz">
                             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-                            <input type="email" name="email"
+                            <input type="email" name="email" data-label="Email"
                                    class="form-control @error('email') is-invalid @enderror"
                                    value="{{ old('email') }}" placeholder="user@school.edu">
                             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
-                            <input type="password" name="password"
+                            <input type="password" name="password" data-label="Password"
                                    class="form-control @error('password') is-invalid @enderror"
                                    placeholder="Min. 8 characters">
                             @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
-                            <input type="password" name="password_confirmation"
+                            <input type="password" name="password_confirmation" data-label="Confirm Password"
                                    class="form-control" placeholder="Repeat password">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
-                            <select name="role" id="modalRoleSelect"
+                            <select name="role" id="modalRoleSelect" data-label="Role"
                                     class="form-select @error('role') is-invalid @enderror"
                                     onchange="toggleModalFields()">
                                 <option value="">— Select Role —</option>
@@ -216,7 +239,7 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold">Employee ID <span class="text-danger">*</span></label>
-                                    <input type="text" name="employee_id"
+                                    <input type="text" name="employee_id" data-label="Employee ID"
                                            class="form-control @error('employee_id') is-invalid @enderror"
                                            value="{{ old('employee_id') }}" placeholder="EMP-001">
                                     @error('employee_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -234,7 +257,7 @@
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold">Student ID <span class="text-danger">*</span></label>
-                                    <input type="text" name="student_id"
+                                    <input type="text" name="student_id" data-label="Student ID"
                                            class="form-control @error('student_id') is-invalid @enderror"
                                            value="{{ old('student_id') }}" placeholder="2024-0001">
                                     @error('student_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -275,18 +298,18 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <form id="editUserForm" method="POST">
+                <form id="editUserForm" method="POST" data-validate="true">
                     @csrf @method('PUT')
 
                     {{-- Name --}}
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" name="name" id="editName" class="form-control" required placeholder="e.g. Juan dela Cruz">
+                        <input type="text" name="name" id="editName" data-label="Full Name" class="form-control" required placeholder="e.g. Juan dela Cruz">
                     </div>
                     {{-- Email --}}
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" id="editEmail" class="form-control" required placeholder="user@school.edu">
+                        <input type="email" name="email" id="editEmail" data-label="Email" class="form-control" required placeholder="user@school.edu">
                     </div>
                     {{-- Password --}}
                     <div class="mb-3">

@@ -169,54 +169,94 @@
         </h6>
     </div>
     <div class="card-body p-0">
-        <div class="table-responsive">
-        <table class="table table-hover mb-0 table-card-mobile" style="font-size:13px;">
-            <thead class="table-light">
-                <tr>
-                    <th>Subject</th>
-                    <th class="d-none d-sm-table-cell">Section</th>
-                    <th>Type</th>
-                    <th class="d-none d-md-table-cell">Camera</th>
-                    <th>Started</th>
-                    <th class="d-none d-sm-table-cell">Ended</th>
-                    <th>Status</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="sessionsTableBody">
+        <div id="sessionsTableBody">
+            {{-- ── Desktop table ── --}}
+            <div class="desk-list table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Subject</th>
+                            <th>Section</th>
+                            <th>Type</th>
+                            <th>Camera</th>
+                            <th>Started</th>
+                            <th>Ended</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($sessions as $session)
+                        <tr>
+                            <td class="align-middle fw-semibold">{{ $session->subject }}</td>
+                            <td class="align-middle">{{ $session->section }}</td>
+                            <td class="align-middle">
+                                @if($session->session_type === 'afternoon_out')
+                                    <span class="badge badge-afternoon">🌇 PM</span>
+                                @else
+                                    <span class="badge badge-morning">🌅 AM</span>
+                                @endif
+                            </td>
+                            <td class="align-middle">
+                                {{ $session->camera->location }}
+                                @if($session->camera->is_local_device)<i class="bi bi-laptop ms-1 text-primary"></i>@endif
+                            </td>
+                            <td class="align-middle small">{{ $session->started_at?->format('M d, h:i A') ?? '—' }}</td>
+                            <td class="align-middle small">{{ $session->ended_at?->format('h:i A') ?? '—' }}</td>
+                            <td class="align-middle">
+                                @if($session->status === 'active')
+                                    <span class="badge bg-success">Active</span>
+                                @else
+                                    <span class="badge bg-secondary">Ended</span>
+                                @endif
+                            </td>
+                            <td class="align-middle text-end">
+                                <div class="d-flex gap-1 justify-content-end">
+                                    <button onclick="openDrawer('{{ route('teacher.sessions.live', $session) }}','{{ addslashes($session->subject) }} — {{ addslashes($session->section) }} Roster')"
+                                            class="btn btn-sm btn-outline-primary" title="View Roster">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </button>
+                                    @if($session->status === 'active')
+                                        <a href="{{ route('teacher.sessions.camera', $session) }}" class="btn btn-sm btn-success" title="Open Camera">
+                                            <i class="bi bi-camera-video-fill"></i>
+                                        </a>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-5">
+                                <i class="bi bi-clock-history" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4;"></i>
+                                No sessions yet.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- ── Mobile card rows ── --}}
+            <div class="mob-list">
                 @forelse($sessions as $session)
-                <tr>
-                    <td class="td-main">
-                        <div class="fw-semibold">{{ $session->subject }}</div>
-                        <div class="text-muted d-sm-none" style="font-size:11px;">{{ $session->section }}</div>
-                    </td>
-                    <td class="td-hide d-none d-sm-table-cell">{{ $session->section }}</td>
-                    <td class="td-badge">
-                        @if($session->session_type === 'afternoon_out')
-                            <span class="badge badge-afternoon">🌇</span>
-                        @else
-                            <span class="badge badge-morning">🌅</span>
-                        @endif
-                    </td>
-                    <td class="td-hide d-none d-lg-table-cell">
-                        @if($session->scheduled_start && $session->scheduled_end)
-                            <span class="text-muted small">{{ \Carbon\Carbon::parse($session->scheduled_start)->format('h:i A') }} – {{ \Carbon\Carbon::parse($session->scheduled_end)->format('h:i A') }}</span>
-                        @else
-                            <span class="text-muted small">—</span>
-                        @endif
-                    </td>
-                    <td class="td-hide d-none d-md-table-cell">
-                        @if($session->camera->is_local_device)<i class="bi bi-laptop text-primary me-1"></i>@endif
-                        {{ $session->camera->location }}
-                    </td>
-                    <td>{{ $session->started_at?->format('M d, h:i A') ?? '—' }}</td>
-                    <td class="td-hide d-none d-sm-table-cell">{{ $session->ended_at?->format('h:i A') ?? '—' }}</td>
-                    <td class="td-badge">
-                        <span class="badge bg-{{ $session->status === 'active' ? 'success' : 'secondary' }}">
+                <div class="session-row" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f1f5f9;min-width:0;">
+                    <div style="flex-shrink:0;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;background:{{ $session->session_type === 'afternoon_out' ? '#fee2e2' : '#fef9c3' }};">
+                        {{ $session->session_type === 'afternoon_out' ? '🌇' : '🌅' }}
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $session->subject }}</div>
+                        <div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                            {{ $session->section }}
+                            &middot; {{ $session->started_at?->format('M d, h:i A') ?? '—' }}
+                            @if($session->camera->is_local_device)<i class="bi bi-laptop ms-1"></i>@endif
+                        </div>
+                    </div>
+                    <div style="flex-shrink:0;">
+                        <span class="badge bg-{{ $session->status === 'active' ? 'success' : 'secondary' }}" style="font-size:10px;">
                             {{ ucfirst($session->status) }}
                         </span>
-                    </td>
-                    <td class="td-actions" style="white-space:nowrap;">
+                    </div>
+                    <div style="flex-shrink:0;display:flex;gap:5px;">
                         <button onclick="openDrawer('{{ route('teacher.sessions.live', $session) }}','{{ addslashes($session->subject) }} — {{ addslashes($session->section) }} Roster')"
                                 class="btn btn-sm btn-outline-primary" title="View Roster">
                             <i class="bi bi-eye-fill"></i>
@@ -226,13 +266,15 @@
                                 <i class="bi bi-camera-video-fill"></i>
                             </a>
                         @endif
-                    </td>
-                </tr>
+                    </div>
+                </div>
                 @empty
-                <tr><td colspan="9" class="text-center text-muted py-4">No sessions yet.</td></tr>
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-clock-history" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4;"></i>
+                    No sessions yet.
+                </div>
                 @endforelse
-            </tbody>
-        </table>
+            </div>
         </div>
     </div>
 </div>
@@ -272,14 +314,11 @@ function openDrawer(url, title) {
     document.getElementById('drawer').classList.add('open');
     document.body.style.overflow = 'hidden';
 
-    // Load the page inside the iframe
     const frame = document.getElementById('drawerFrame');
     frame.onload = function() {
         if (frame.src === 'about:blank') return;
         document.getElementById('drawerLoading').style.display = 'none';
         frame.style.display = 'block';
-
-        // Hide sidebar + topbar inside iframe so it looks clean
         try {
             const iDoc = frame.contentDocument;
             const style = iDoc.createElement('style');
@@ -294,13 +333,11 @@ function closeDrawer() {
     document.getElementById('drawerBackdrop').classList.remove('open');
     document.getElementById('drawer').classList.remove('open');
     document.body.style.overflow = '';
-    // Small delay then clear iframe to stop any auto-refresh inside
     setTimeout(() => {
         document.getElementById('drawerFrame').src = 'about:blank';
     }, 350);
 }
 
-// Close with Escape key
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeDrawer();
 });
@@ -341,16 +378,18 @@ function saveDeviceChoice(v) {
 document.addEventListener('DOMContentLoaded', () => {
     const sel = document.getElementById('cameraSelect');
     if (sel.value) handleCameraChange(sel);
-
-    // ── Auto-select session type based on current time ──────────────────────
     autoSelectSessionType();
-    // Re-evaluate every minute in case the page stays open across noon
     setInterval(autoSelectSessionType, 60000);
+
+    // Clear invalid highlight as soon as user fixes a field
+    document.querySelector('[name="subject"]').addEventListener('input', function() { this.classList.remove('is-invalid'); });
+    document.querySelector('[name="section"]').addEventListener('input', function() { this.classList.remove('is-invalid'); });
+    document.getElementById('cameraSelect').addEventListener('change', function() { this.classList.remove('is-invalid'); });
 });
 
 function autoSelectSessionType() {
-    const hour       = new Date().getHours();
-    const isAfternoon = hour >= 12;   // 12:00 PM and later = afternoon
+    const hour        = new Date().getHours();
+    const isAfternoon = hour >= 12;
 
     const morningRadio   = document.getElementById('stMorning');
     const afternoonRadio = document.getElementById('stAfternoon');
@@ -361,35 +400,21 @@ function autoSelectSessionType() {
     if (!morningRadio) return;
 
     if (isAfternoon) {
-        // Disable morning, force afternoon
         morningRadio.disabled = true;
         morningLabel.classList.add('disabled');
         morningLabel.title = 'Morning sessions are only available before 12:00 PM';
-
         afternoonRadio.disabled = false;
         afternoonLabel.classList.remove('disabled');
-
-        // Auto-select afternoon if morning was selected
-        if (morningRadio.checked) {
-            afternoonRadio.checked = true;
-        }
-
+        if (morningRadio.checked) { afternoonRadio.checked = true; }
         hint.innerHTML = '<i class="bi bi-clock text-warning me-1"></i>'
             + '<span style="color:#d97706;">Afternoon — Morning disabled.</span>';
     } else {
-        // Morning time — both available, morning pre-selected by default
         morningRadio.disabled = false;
         morningLabel.classList.remove('disabled');
         morningLabel.title = '';
-
         afternoonRadio.disabled = false;
         afternoonLabel.classList.remove('disabled');
-
-        // Pre-select morning if nothing chosen yet
-        if (!morningRadio.checked && !afternoonRadio.checked) {
-            morningRadio.checked = true;
-        }
-
+        if (!morningRadio.checked && !afternoonRadio.checked) { morningRadio.checked = true; }
         hint.innerHTML = '<i class="bi bi-clock text-success me-1"></i>'
             + '<span style="color:#16a34a;">Morning available.</span>';
     }
@@ -397,19 +422,16 @@ function autoSelectSessionType() {
 
 // ── Schedule input live hint ─────────────────────────────────────────────────
 function onScheduleInput() {
-    const start = document.getElementById('schedStart').value;
-    const end   = document.getElementById('schedEnd').value;
-    const hint  = document.getElementById('scheduleHint');
+    const start   = document.getElementById('schedStart').value;
+    const end     = document.getElementById('schedEnd').value;
+    const hint    = document.getElementById('scheduleHint');
     const startEl = document.getElementById('schedStart');
     const endEl   = document.getElementById('schedEnd');
 
     startEl.classList.remove('is-invalid', 'is-valid');
     endEl.classList.remove('is-invalid', 'is-valid');
 
-    if (!start && !end) {
-        hint.innerHTML = '';
-        return;
-    }
+    if (!start && !end) { hint.innerHTML = ''; return; }
     if (start && !end) {
         endEl.classList.add('is-invalid');
         hint.innerHTML = '<span style="color:#dc2626;">⚠ Please also set an end time.</span>';
@@ -439,91 +461,150 @@ function formatTime(val) {
 // ── Form submit validation ────────────────────────────────────────────────────
 async function validateSessionForm(e) {
     e.preventDefault();
+
+    // ── Required field checks ─────────────────────────────────────────────────
+    const subject  = document.querySelector('[name="subject"]').value.trim();
+    const section  = document.querySelector('[name="section"]').value.trim();
+    const cameraId = document.getElementById('cameraSelect').value;
+
+    const missing = [];
+    if (!subject)  missing.push('Subject');
+    if (!section)  missing.push('Section');
+    if (!cameraId) missing.push('Camera');
+
+    if (missing.length) {
+        // Highlight the empty fields
+        if (!subject)  document.querySelector('[name="subject"]').classList.add('is-invalid');
+        else           document.querySelector('[name="subject"]').classList.remove('is-invalid');
+        if (!section)  document.querySelector('[name="section"]').classList.add('is-invalid');
+        else           document.querySelector('[name="section"]').classList.remove('is-invalid');
+        if (!cameraId) document.getElementById('cameraSelect').classList.add('is-invalid');
+        else           document.getElementById('cameraSelect').classList.remove('is-invalid');
+
+        await showConfirm({
+            title:   'Missing Required Fields',
+            message: `Please fill in the following before starting: ${missing.join(', ')}.`,
+            okText:  'Got it',
+            okType:  'warning',
+            icon:    '⚠️',
+        });
+        return false;
+    }
+
+    // Clear any previous invalid state
+    document.querySelector('[name="subject"]').classList.remove('is-invalid');
+    document.querySelector('[name="section"]').classList.remove('is-invalid');
+    document.getElementById('cameraSelect').classList.remove('is-invalid');
+
+    // ── Schedule checks ───────────────────────────────────────────────────────
     const start = document.getElementById('schedStart').value;
     const end   = document.getElementById('schedEnd').value;
 
-    // Case 1: only one is filled — block and warn
     if ((start && !end) || (!start && end)) {
-        onScheduleInput(); // show inline error
+        onScheduleInput();
         await showConfirm({
-            title:   'Incomplete Schedule',
+            title: 'Incomplete Schedule',
             message: 'You only filled one time field. Please fill both Start and End times, or leave both empty to skip auto-end.',
-            okText:  'OK, I\'ll fix it',
-            okType:  'warning',
-            icon:    '⏰',
+            okText: 'OK, I\'ll fix it', okType: 'warning', icon: '⏰',
         });
         return false;
     }
-
-    // Case 2: end is not after start
     if (start && end && start >= end) {
         onScheduleInput();
         await showConfirm({
-            title:   'Invalid Schedule',
+            title: 'Invalid Schedule',
             message: 'End time must be after the start time. Please correct the schedule.',
-            okText:  'Fix Schedule',
-            okType:  'warning',
-            icon:    '⏰',
+            okText: 'Fix Schedule', okType: 'warning', icon: '⏰',
         });
         return false;
     }
-
-    // Case 3: both empty — warn that session won't auto-end, but allow proceed
     if (!start && !end) {
         const confirmed = await showConfirm({
-            title:   'No Schedule Set',
+            title: 'No Schedule Set',
             message: 'You have not set a schedule. This session will NOT automatically end — you will need to end it manually. Continue anyway?',
-            okText:  'Start Without Schedule',
-            okType:  'primary',
-            icon:    'ℹ️',
+            okText: 'Start Without Schedule', okType: 'primary', icon: 'ℹ️',
         });
         if (!confirmed) return false;
     }
-
-    // All good — submit
     document.getElementById('sessionForm').submit();
     return true;
 }
+
 const SESSIONS_STATS_URL = '{{ route('teacher.sessions.stats') }}';
 
 function renderSessions(sessions) {
-    const tbody = document.getElementById('sessionsTableBody');
-    if (!tbody) return;
+    const container = document.getElementById('sessionsTableBody');
+    if (!container) return;
+
     if (!sessions.length) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No sessions yet.</td></tr>';
+        const empty = `<i class="bi bi-clock-history" style="font-size:32px;display:block;margin-bottom:8px;opacity:.4;"></i>No sessions yet.`;
+        container.innerHTML =
+            `<div class="desk-list table-responsive"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>Subject</th><th>Section</th><th>Type</th><th>Camera</th><th>Started</th><th>Ended</th><th>Status</th><th></th></tr></thead><tbody><tr><td colspan="8" class="text-center text-muted py-5">${empty}</td></tr></tbody></table></div>` +
+            `<div class="mob-list"><div class="text-center text-muted py-5">${empty}</div></div>`;
         return;
     }
-    tbody.innerHTML = sessions.map(s => {
-        const typeBadge = s.session_type === 'afternoon_out'
-            ? '<span class="badge badge-afternoon">🌇</span>'
-            : '<span class="badge badge-morning">🌅</span>';
-        const statusBadge = s.status === 'active'
+
+    let desktopRows = '';
+    let mobileRows  = '';
+
+    sessions.forEach(s => {
+        const isAfternoon  = s.session_type === 'afternoon_out';
+        const typeBg       = isAfternoon ? '#fee2e2' : '#fef9c3';
+        const typeEmoji    = isAfternoon ? '🌇' : '🌅';
+        const typeBadge    = isAfternoon
+            ? '<span class="badge badge-afternoon">🌇 PM</span>'
+            : '<span class="badge badge-morning">🌅 AM</span>';
+        const statusBadge  = s.status === 'active'
             ? '<span class="badge bg-success">Active</span>'
             : '<span class="badge bg-secondary">Ended</span>';
-        const cameraBtn = s.status === 'active' && s.camera_route
+        const statusBadgeSm = s.status === 'active'
+            ? '<span class="badge bg-success" style="font-size:10px;">Active</span>'
+            : '<span class="badge bg-secondary" style="font-size:10px;">Ended</span>';
+        const cameraBtn    = s.status === 'active' && s.camera_route
             ? `<a href="${s.camera_route}" class="btn btn-sm btn-success" title="Open Camera"><i class="bi bi-camera-video-fill"></i></a>`
             : '';
-        const camIcon = s.is_local ? '<i class="bi bi-laptop text-primary me-1"></i>' : '';
-        return `<tr>
-            <td class="td-main">
-                <div class="fw-semibold">${s.subject}</div>
-                <div class="text-muted d-sm-none" style="font-size:11px;">${s.section}</div>
+        const localIcon    = s.is_local ? '<i class="bi bi-laptop ms-1 text-primary"></i>' : '';
+        const localIconSm  = s.is_local ? '<i class="bi bi-laptop ms-1"></i>' : '';
+
+        desktopRows += `<tr>
+            <td class="align-middle fw-semibold">${s.subject}</td>
+            <td class="align-middle">${s.section}</td>
+            <td class="align-middle">${typeBadge}</td>
+            <td class="align-middle">${s.camera}${localIcon}</td>
+            <td class="align-middle small">${s.started_at}</td>
+            <td class="align-middle small">${s.ended_at ?? '—'}</td>
+            <td class="align-middle">${statusBadge}</td>
+            <td class="align-middle text-end">
+                <div class="d-flex gap-1 justify-content-end">
+                    <button onclick="openDrawer('${s.live_route}','${s.subject} — ${s.section} Roster')"
+                            class="btn btn-sm btn-outline-primary" title="View Roster">
+                        <i class="bi bi-eye-fill"></i>
+                    </button>
+                    ${cameraBtn}
+                </div>
             </td>
-            <td class="td-hide d-none d-sm-table-cell">${s.section}</td>
-            <td class="td-badge">${typeBadge}</td>
-            <td class="td-hide d-none d-md-table-cell">${camIcon}${s.camera}</td>
-            <td>${s.started_at}</td>
-            <td class="td-hide d-none d-sm-table-cell">${s.ended_at}</td>
-            <td class="td-badge">${statusBadge}</td>
-            <td class="td-actions" style="white-space:nowrap;">
+        </tr>`;
+
+        mobileRows += `<div class="session-row" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f1f5f9;min-width:0;">
+            <div style="flex-shrink:0;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;background:${typeBg};">${typeEmoji}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.subject}</div>
+                <div style="font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.section} &middot; ${s.started_at}${localIconSm}</div>
+            </div>
+            <div style="flex-shrink:0;">${statusBadgeSm}</div>
+            <div style="flex-shrink:0;display:flex;gap:5px;">
                 <button onclick="openDrawer('${s.live_route}','${s.subject} — ${s.section} Roster')"
                         class="btn btn-sm btn-outline-primary" title="View Roster">
                     <i class="bi bi-eye-fill"></i>
                 </button>
                 ${cameraBtn}
-            </td>
-        </tr>`;
-    }).join('');
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML =
+        `<div class="desk-list table-responsive"><table class="table table-hover mb-0"><thead class="table-light"><tr><th>Subject</th><th>Section</th><th>Type</th><th>Camera</th><th>Started</th><th>Ended</th><th>Status</th><th></th></tr></thead><tbody>${desktopRows}</tbody></table></div>` +
+        `<div class="mob-list">${mobileRows}</div>`;
 }
 
 async function pollSessions() {

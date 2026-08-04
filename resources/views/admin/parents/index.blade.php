@@ -2,25 +2,6 @@
 @section('title', 'Parent Setup')
 @section('page-title', 'Parent / Guardian Setup')
 
-@push('styles')
-<style>
-.item-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px; border-bottom: 1px solid #f1f5f9; min-width: 0;
-}
-.item-row:last-child { border-bottom: none; }
-.item-row .ir-icon  { flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.item-row .ir-info  { flex: 1; min-width: 0; }
-.item-row .ir-name  { font-weight: 600; font-size: 14px; line-height: 1.3;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-row .ir-sub   { font-size: 11px; color: #64748b; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; }
-.item-row .ir-badge { flex-shrink: 0; }
-.item-row .ir-actions { flex-shrink: 0; display: flex; gap: 5px; align-items: center; }
-</style>
-@endpush
-
 @section('content')
 <div class="d-flex justify-content-end mb-3">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#linkParentModal">
@@ -30,46 +11,107 @@
 
 <div class="card">
     <div class="card-body p-0">
-        @forelse($parents as $parent)
-        <div class="item-row">
-            <div class="ir-icon" style="background:rgba(5,150,105,.1);color:#059669;">
-                <i class="bi bi-heart-fill"></i>
-            </div>
-            <div class="ir-info">
-                <div class="ir-name">{{ $parent->parent_name }}</div>
-                <div class="ir-sub">
-                    <span class="fw-semibold text-dark">{{ $parent->student->user->name }}</span>
-                    &middot; {{ $parent->gmail }}
-                    &middot; {{ ucfirst($parent->relationship) }}
+
+        {{-- ── Desktop table ── --}}
+        <div class="desk-list table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student</th>
+                        <th>Parent Name</th>
+                        <th>Gmail</th>
+                        <th>Relationship</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($parents as $parent)
+                    <tr>
+                        <td class="align-middle fw-semibold">{{ $parent->student->user->name }}</td>
+                        <td class="align-middle">{{ $parent->parent_name }}</td>
+                        <td class="align-middle">{{ $parent->gmail }}</td>
+                        <td class="align-middle">
+                            <span class="badge bg-secondary">{{ ucfirst($parent->relationship) }}</span>
+                        </td>
+                        <td class="align-middle text-end">
+                            <div class="d-flex gap-1 justify-content-end" style="white-space:nowrap;">
+                                <button class="btn btn-sm btn-outline-primary" title="Edit"
+                                        onclick="openEditParentModal(
+                                            {{ $parent->id }},
+                                            '{{ addslashes($parent->parent_name) }}',
+                                            '{{ addslashes($parent->gmail) }}',
+                                            '{{ $parent->relationship }}',
+                                            {{ $parent->student_id }},
+                                            '{{ addslashes($parent->student->user->name) }}'
+                                        )">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </button>
+                                <form action="{{ route('admin.parents.destroy', $parent) }}" method="POST" class="d-inline"
+                                      onsubmit="return false"
+                                      data-confirm-title="Remove Parent Record"
+                                      data-confirm-message="Remove {{ $parent->parent_name }}? The student will lose their parent contact."
+                                      data-confirm-ok="Remove" data-confirm-type="danger" data-confirm-icon="👨‍👩‍👧">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" title="Remove">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-5">No parent records yet.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- ── Mobile card rows ── --}}
+        <div class="mob-list">
+            @forelse($parents as $parent)
+            <div class="item-row">
+                <div class="ir-icon" style="background:rgba(5,150,105,.1);color:#059669;">
+                    <i class="bi bi-heart-fill"></i>
+                </div>
+                <div class="ir-info">
+                    <div class="ir-name">{{ $parent->parent_name }}</div>
+                    <div class="ir-sub">
+                        <span class="fw-semibold text-dark">{{ $parent->student->user->name }}</span>
+                        &middot; {{ $parent->gmail }}
+                        &middot; {{ ucfirst($parent->relationship) }}
+                    </div>
+                </div>
+                <div class="ir-actions">
+                    <button class="btn btn-sm btn-outline-primary" title="Edit"
+                            onclick="openEditParentModal(
+                                {{ $parent->id }},
+                                '{{ addslashes($parent->parent_name) }}',
+                                '{{ addslashes($parent->gmail) }}',
+                                '{{ $parent->relationship }}',
+                                {{ $parent->student_id }},
+                                '{{ addslashes($parent->student->user->name) }}'
+                            )">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <form action="{{ route('admin.parents.destroy', $parent) }}" method="POST" class="d-inline"
+                          onsubmit="return false"
+                          data-confirm-title="Remove Parent Record"
+                          data-confirm-message="Remove {{ $parent->parent_name }}? The student will lose their parent contact."
+                          data-confirm-ok="Remove" data-confirm-type="danger" data-confirm-icon="👨‍👩‍👧">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-sm btn-outline-danger" title="Remove">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
-            <div class="ir-actions">
-                <button class="btn btn-sm btn-outline-primary" title="Edit"
-                        onclick="openEditParentModal(
-                            {{ $parent->id }},
-                            '{{ addslashes($parent->parent_name) }}',
-                            '{{ addslashes($parent->gmail) }}',
-                            '{{ $parent->relationship }}',
-                            {{ $parent->student_id }},
-                            '{{ addslashes($parent->student->user->name) }}'
-                        )">
-                    <i class="bi bi-pencil-fill"></i>
-                </button>
-                <form action="{{ route('admin.parents.destroy', $parent) }}" method="POST" class="d-inline"
-                      onsubmit="return false"
-                      data-confirm-title="Remove Parent Record"
-                      data-confirm-message="Remove {{ $parent->parent_name }}? The student will lose their parent contact."
-                      data-confirm-ok="Remove" data-confirm-type="danger" data-confirm-icon="👨‍👩‍👧">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-sm btn-outline-danger" title="Remove">
-                        <i class="bi bi-trash-fill"></i>
-                    </button>
-                </form>
-            </div>
+            @empty
+            <div class="text-center text-muted py-5">No parent records yet.</div>
+            @endforelse
         </div>
-        @empty
-        <div class="text-center text-muted py-5">No parent records yet.</div>
-        @endforelse
+
     </div>
 </div>
 {{ $parents->links() }}
@@ -91,11 +133,11 @@
                         <ul class="mb-0 mt-1">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
                     </div>
                 @endif
-                <form action="{{ route('admin.parents.store') }}" method="POST" id="linkParentForm">
+                <form action="{{ route('admin.parents.store') }}" method="POST" id="linkParentForm" data-validate="true">
                     @csrf
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Student <span class="text-danger">*</span></label>
-                        <select name="student_id" class="form-select @error('student_id') is-invalid @enderror">
+                        <select name="student_id" data-label="Student" class="form-select @error('student_id') is-invalid @enderror">
                             <option value="">— Select Student —</option>
                             @foreach($students as $student)
                                 <option value="{{ $student->id }}" {{ old('student_id') == $student->id ? 'selected' : '' }}>
@@ -107,14 +149,14 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Parent / Guardian Name <span class="text-danger">*</span></label>
-                        <input type="text" name="parent_name"
+                        <input type="text" name="parent_name" data-label="Parent Name"
                                class="form-control @error('parent_name') is-invalid @enderror"
                                value="{{ old('parent_name') }}" placeholder="e.g. Maria Cruz">
                         @error('parent_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Gmail Address <span class="text-danger">*</span></label>
-                        <input type="email" name="gmail"
+                        <input type="email" name="gmail" data-label="Gmail"
                                class="form-control @error('gmail') is-invalid @enderror"
                                value="{{ old('gmail') }}" placeholder="parent@gmail.com">
                         @error('gmail')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -150,7 +192,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <form id="editParentForm" method="POST">
+                <form id="editParentForm" method="POST" data-validate="true">
                     @csrf @method('PUT')
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Student</label>
@@ -158,11 +200,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Parent / Guardian Name <span class="text-danger">*</span></label>
-                        <input type="text" name="parent_name" id="editParentName" class="form-control" required placeholder="e.g. Maria Cruz">
+                        <input type="text" name="parent_name" id="editParentName" data-label="Parent Name" class="form-control" required placeholder="e.g. Maria Cruz">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Gmail Address <span class="text-danger">*</span></label>
-                        <input type="email" name="gmail" id="editParentGmail" class="form-control" required placeholder="parent@gmail.com">
+                        <input type="email" name="gmail" id="editParentGmail" data-label="Gmail" class="form-control" required placeholder="parent@gmail.com">
                     </div>
                     <div class="mb-2">
                         <label class="form-label fw-semibold">Relationship <span class="text-danger">*</span></label>
