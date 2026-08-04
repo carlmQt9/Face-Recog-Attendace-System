@@ -85,28 +85,33 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0" style="font-size:13px;">
+            <table class="table table-hover mb-0 table-card-mobile" style="font-size:13px;">
                 <thead class="table-light">
                     <tr>
                         <th>Student</th>
-                        <th>Camera / Location</th>
-                        <th>Method</th>
+                        <th class="d-none d-sm-table-cell">Camera / Location</th>
+                        <th class="d-none d-sm-table-cell">Method</th>
                         <th>Time</th>
-                        <th>Notified</th>
+                        <th class="d-none d-md-table-cell">Notified</th>
                     </tr>
                 </thead>
                 <tbody id="recentTableBody">
                     @forelse($recentAttendance as $record)
                     <tr>
-                        <td>{{ $record->student->user->name }}</td>
-                        <td>{{ $record->camera->location }}</td>
-                        <td>
+                        <td class="td-main">
+                            <div class="fw-semibold">{{ $record->student->user->name }}</div>
+                            <div class="text-muted d-sm-none" style="font-size:11px;">{{ $record->camera->location }}</div>
+                        </td>
+                        <td class="td-hide d-none d-sm-table-cell">{{ $record->camera->location }}</td>
+                        <td class="td-hide d-none d-sm-table-cell">
                             <span class="badge {{ $record->method === 'manual' ? 'bg-warning text-dark' : 'bg-success' }}">
                                 {{ ucfirst(str_replace('_', ' ', $record->method)) }}
                             </span>
                         </td>
-                        <td>{{ $record->arrived_at->format('h:i A') }}</td>
-                        <td>
+                        <td class="td-badge">
+                            <span class="badge bg-success">{{ $record->arrived_at->format('h:i A') }}</span>
+                        </td>
+                        <td class="td-hide d-none d-md-table-cell">
                             @if($record->notification_sent)
                                 <i class="bi bi-check-circle-fill text-success"></i>
                             @else
@@ -282,11 +287,14 @@ async function pollAdminDashboard() {
             const tbody = document.getElementById('recentTableBody');
             tbody.innerHTML = data.recent.map(r => `
                 <tr>
-                    <td>${r.name}</td>
-                    <td>${r.camera}</td>
-                    <td><span class="badge ${r.method === 'Manual' ? 'bg-warning text-dark' : 'bg-success'}">${r.method}</span></td>
-                    <td>${r.time}</td>
-                    <td>${r.notified ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-secondary"></i>'}</td>
+                    <td class="td-main">
+                        <div class="fw-semibold">${r.name}</div>
+                        <div class="text-muted d-sm-none" style="font-size:11px;">${r.camera}</div>
+                    </td>
+                    <td class="td-hide d-none d-sm-table-cell">${r.camera}</td>
+                    <td class="td-hide d-none d-sm-table-cell"><span class="badge ${r.method === 'Manual' ? 'bg-warning text-dark' : 'bg-success'}">${r.method}</span></td>
+                    <td class="td-badge"><span class="badge bg-success">${r.time}</span></td>
+                    <td class="td-hide d-none d-md-table-cell">${r.notified ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-secondary"></i>'}</td>
                 </tr>`).join('');
 
             const ind = document.getElementById('liveIndicator');

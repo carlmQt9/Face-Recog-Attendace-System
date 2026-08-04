@@ -184,13 +184,13 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0 table-card-mobile">
             <thead class="table-light">
                 <tr>
-                    <th style="width:50px;">Photo</th>
+                    <th style="width:54px;">Photo</th>
                     <th>Date</th>
-                    <th>Time In</th>
-                    <th class="d-none d-sm-table-cell">Time Out</th>
+                    <th>In</th>
+                    <th class="d-none d-sm-table-cell">Out</th>
                     <th class="d-none d-md-table-cell">Duration</th>
                     <th class="d-none d-md-table-cell">Location</th>
                 </tr>
@@ -207,37 +207,37 @@
                             . ' · ' . $record->arrived_at->format('M j, Y');
                     @endphp
                     <tr>
-                        <td>
+                        <td class="td-avatar">
                             @if($snap)
                                 <img src="{{ $snap }}" alt="{{ auth()->user()->name }}"
                                      data-lightbox="{{ $snap }}"
                                      data-lightbox-caption="{{ auth()->user()->name }}"
                                      data-lightbox-sub="{{ $snapSub }}"
-                                     style="width:44px;height:44px;border-radius:9px;object-fit:cover;border:1.5px solid #e2e8f0;cursor:zoom-in;">
+                                     style="width:40px;height:40px;border-radius:9px;object-fit:cover;border:1.5px solid #e2e8f0;cursor:zoom-in;">
                             @else
-                                <div style="width:44px;height:44px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:800;">
+                                <div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:800;">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
                             @endif
                         </td>
-                        <td style="vertical-align:middle;">
-                            {{ $record->arrived_at->format('D, M j') }}
+                        <td class="td-main">
+                            <div class="fw-semibold">{{ $record->arrived_at->format('D, M j') }}</div>
                             <div class="text-muted d-md-none" style="font-size:11px;">{{ $record->camera->location }}</div>
                         </td>
-                        <td style="vertical-align:middle;">
-                            <span class="fw-semibold text-success">{{ $record->arrived_at->format('h:i A') }}</span>
+                        <td class="td-badge">
+                            <span class="fw-semibold text-success" style="white-space:nowrap;">{{ $record->arrived_at->format('h:i A') }}</span>
                         </td>
-                        <td style="vertical-align:middle;" class="d-none d-sm-table-cell">
+                        <td class="td-hide d-none d-sm-table-cell">
                             @if($record->time_out)
-                                <span class="fw-semibold text-danger">{{ $record->time_out->format('h:i A') }}</span>
+                                <span class="fw-semibold text-danger" style="white-space:nowrap;">{{ $record->time_out->format('h:i A') }}</span>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
                         </td>
-                        <td style="vertical-align:middle;" class="d-none d-md-table-cell">
+                        <td class="td-hide d-none d-md-table-cell">
                             <span class="text-muted small">{{ $record->durationLabel() }}</span>
                         </td>
-                        <td style="vertical-align:middle;" class="d-none d-md-table-cell">{{ $record->camera->location }}</td>
+                        <td class="td-hide d-none d-md-table-cell">{{ $record->camera->location }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="6" class="text-center text-muted py-4">No attendance records this month.</td></tr>

@@ -85,9 +85,14 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed',
+            'name'        => 'required|string|max:255',
+            'email'       => 'required|email|unique:users,email,' . $user->id,
+            'password'    => 'nullable|string|min:8|confirmed',
+            'student_id'  => 'nullable|string|unique:students,student_id,' . ($user->student?->id ?? 'NULL') . ',id',
+            'grade_level' => 'nullable|string|max:50',
+            'section'     => 'nullable|string|max:50',
+            'employee_id' => 'nullable|string|unique:teachers,employee_id,' . ($user->teacher?->id ?? 'NULL') . ',id',
+            'department'  => 'nullable|string|max:100',
         ]);
 
         $user->name  = $request->name;
@@ -98,6 +103,24 @@ class UserController extends Controller
         }
 
         $user->save();
+
+        // Update role-specific profile if exists
+        if ($user->role === 'student' && $user->student) {
+            $user->student->update([
+                'student_id'  => $request->student_id  ?? $user->student->student_id,
+                'grade_level' => $request->grade_level,
+                'section'     => $request->section,
+            ]);
+        } elseif ($user->role === 'teacher' && $user->teacher) {
+            $user->teacher->update([
+                'employee_id' => $request->employee_id ?? $user->teacher->employee_id,
+                'department'  => $request->department,
+            ]);
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'User updated successfully.']);
+        }
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User updated successfully.');

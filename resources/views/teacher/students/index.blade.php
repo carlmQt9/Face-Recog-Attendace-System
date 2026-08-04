@@ -34,7 +34,7 @@
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                <table class="table table-hover mb-0" style="font-size:13px;">
+                <table class="table table-hover mb-0 table-card-mobile" style="font-size:13px;">
                     <thead class="table-light">
                         <tr>
                             <th>Student</th>
@@ -42,50 +42,46 @@
                             <th class="d-none d-md-table-cell">Grade</th>
                             <th class="d-none d-md-table-cell">Section</th>
                             <th>Face</th>
-                            <th>QR</th>
-                            <th></th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($students as $student)
                         <tr>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
-                                        <div class="avatar"
-                                             data-lightbox="{{ Storage::url($student->face_encoding) }}"
-                                             data-lightbox-caption="{{ $student->user->name }}"
-                                             data-lightbox-sub="Registered Face · {{ $student->student_id }}"
-                                             style="cursor:zoom-in;">
-                                            <img src="{{ Storage::url($student->face_encoding) }}" alt="{{ $student->user->name }}">
-                                        </div>
-                                    @else
-                                        <div class="avatar">{{ strtoupper(substr($student->user->name, 0, 1)) }}</div>
-                                    @endif
-                                    <div>
-                                        <div class="fw-semibold">{{ $student->user->name }}</div>
-                                        <div class="text-muted" style="font-size:11px;">{{ $student->user->email }}</div>
+                            <td class="td-avatar">
+                                @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
+                                    <div class="avatar"
+                                         data-lightbox="{{ Storage::url($student->face_encoding) }}"
+                                         data-lightbox-caption="{{ $student->user->name }}"
+                                         data-lightbox-sub="Registered Face · {{ $student->student_id }}"
+                                         style="cursor:zoom-in;">
+                                        <img src="{{ Storage::url($student->face_encoding) }}" alt="{{ $student->user->name }}">
                                     </div>
-                                </div>
+                                @else
+                                    <div class="avatar">{{ strtoupper(substr($student->user->name, 0, 1)) }}</div>
+                                @endif
                             </td>
-                            <td class="d-none d-sm-table-cell">{{ $student->student_id }}</td>
-                            <td class="d-none d-md-table-cell">{{ $student->grade_level ?? '—' }}</td>
-                            <td class="d-none d-md-table-cell">{{ $student->section ?? '—' }}</td>
-                            <td>
+                            <td class="td-main">
+                                <div class="fw-semibold">{{ $student->user->name }}</div>
+                                <div class="text-muted" style="font-size:11px;">{{ $student->user->email }}</div>
+                                <div class="text-muted d-sm-none" style="font-size:11px;">{{ $student->student_id }}</div>
+                            </td>
+                            <td class="td-hide d-none d-sm-table-cell">{{ $student->student_id }}</td>
+                            <td class="td-hide d-none d-md-table-cell">{{ $student->grade_level ?? '—' }}</td>
+                            <td class="td-hide d-none d-md-table-cell">{{ $student->section ?? '—' }}</td>
+                            <td class="td-badge">
                                 @if($student->face_registered)
                                     <span class="badge bg-success"><i class="bi bi-shield-fill-check me-1"></i>Done</span>
                                 @else
                                     <span class="badge bg-warning text-dark">Pending</span>
                                 @endif
                             </td>
-                            <td>
+                            <td class="td-actions" style="white-space:nowrap;">
                                 <button class="btn btn-sm btn-outline-info"
                                         onclick="showQr('{{ addslashes($student->user->name) }}','{{ $student->student_id }}','{{ addslashes($student->grade_level ?? '') }}','{{ addslashes($student->section ?? '') }}','{{ $student->qrUrl() }}')"
                                         title="View QR Card">
                                     <i class="bi bi-qr-code"></i>
                                 </button>
-                            </td>
-                            <td>
                                 <form action="{{ route('teacher.students.remove', $student) }}"
                                       method="POST" class="d-inline" onsubmit="return false"
                                       data-confirm-title="Remove Student"
@@ -100,7 +96,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-5">
+                            <td colspan="6" class="text-center text-muted py-5">
                                 <i class="bi bi-people" style="font-size:32px;display:block;margin-bottom:8px;"></i>
                                 No students yet. Click <strong>Add Student</strong> to get started.
                             </td>
@@ -176,7 +172,7 @@
 
 {{-- ── Add Student Modal ── --}}
 <div class="modal fade" id="addModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="bi bi-person-plus-fill me-2"></i>Add New Student</h5>
@@ -231,7 +227,7 @@
 
 {{-- ── QR Modal ── --}}
 <div class="modal fade" id="qrModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
+    <div class="modal-dialog modal-dialog-scrollable" style="max-width:320px;">
         <div class="modal-content" style="border-radius:20px;overflow:hidden;">
             <div style="background:linear-gradient(135deg,#4f46e5,#06b6d4);padding:16px 20px;text-align:center;">
                 <div style="font-size:11px;font-weight:800;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.08em;">Face Attendance System</div>

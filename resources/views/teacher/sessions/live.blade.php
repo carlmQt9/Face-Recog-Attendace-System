@@ -48,14 +48,14 @@
 
             <div class="card-body p-0">
                 <div class="table-responsive">
-                <table class="table table-hover mb-0" id="rosterTable">
+                <table class="table table-hover mb-0 table-card-mobile" id="rosterTable">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th>
+                            <th style="width:32px;">#</th>
                             <th>Student</th>
                             <th class="d-none d-sm-table-cell">Method</th>
-                            <th>Time In</th>
-                            <th class="d-none d-md-table-cell">Time Out</th>
+                            <th>In</th>
+                            <th class="d-none d-sm-table-cell">Out</th>
                             <th class="d-none d-md-table-cell">Duration</th>
                             <th class="d-none d-lg-table-cell">Notified</th>
                         </tr>
@@ -63,43 +63,49 @@
                     <tbody id="rosterTableBody">
                         @forelse($attendance as $i => $record)
                         <tr>
-                            <td class="text-muted">{{ $i + 1 }}</td>
-                            <td>
+                            <td class="text-muted" style="font-size:12px;width:32px;">{{ $i + 1 }}</td>
+                            <td class="td-main">
+                                @php
+                                    $thumbUrl = $record->snapshotUrl()
+                                        ?? ($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding)
+                                            ? Storage::url($record->student->face_encoding) : null);
+                                @endphp
                                 <div class="d-flex align-items-center gap-2">
-                                    @php
-                                        $thumbUrl = $record->snapshotUrl()
-                                            ?? ($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding)
-                                                ? Storage::url($record->student->face_encoding) : null);
-                                    @endphp
                                     @if($thumbUrl)
                                         <img src="{{ $thumbUrl }}"
                                              alt="{{ $record->student->user->name }}"
                                              data-lightbox="{{ $thumbUrl }}"
                                              data-lightbox-caption="{{ $record->student->user->name }}"
                                              data-lightbox-sub="{{ $record->scan_type === 'time_out' ? 'Timed Out' : 'Timed In' }} · {{ $record->arrived_at->format('h:i A') }}"
-                                             style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
+                                             style="width:34px;height:34px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
                                     @else
-                                        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                            <i class="bi bi-person-fill text-white" style="font-size:16px;"></i>
+                                        <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="bi bi-person-fill text-white" style="font-size:15px;"></i>
                                         </div>
                                     @endif
-                                    <strong>{{ $record->student->user->name }}</strong>
+                                    <div>
+                                        <div class="fw-semibold" style="line-height:1.2;">{{ $record->student->user->name }}</div>
+                                        <div class="d-sm-none" style="font-size:11px;color:#64748b;">
+                                            @php $methodMap=['face_scan'=>['bg-primary','Face'],'manual'=>['bg-warning text-dark','Manual'],'qr_code'=>['bg-info text-dark','QR']];[$cls,$lbl]=$methodMap[$record->method]??['bg-secondary','—']; @endphp
+                                            <span class="badge {{ $cls }}" style="font-size:9px;">{{ $lbl }}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="d-none d-sm-table-cell">
+                            <td class="td-hide d-none d-sm-table-cell">
                                 @php $methodMap=['face_scan'=>['bg-primary','Face'],'manual'=>['bg-warning text-dark','Manual'],'qr_code'=>['bg-info text-dark','QR']];[$cls,$lbl]=$methodMap[$record->method]??['bg-secondary','—']; @endphp
                                 <span class="badge {{ $cls }}">{{ $lbl }}</span>
                             </td>
-                            <td><span class="badge bg-success">{{ $record->arrived_at->format('h:i A') }}</span></td>
-                            <td class="d-none d-md-table-cell">
+                            <td class="td-badge"><span class="badge bg-success" style="white-space:nowrap;">{{ $record->arrived_at->format('h:i A') }}</span></td>
+                            <td class="td-hide d-none d-sm-table-cell">
                                 @if($record->time_out)
                                     <span class="badge bg-danger">{{ $record->time_out->format('h:i A') }}</span>
                                 @else
                                     <span class="text-muted small">—</span>
                                 @endif
                             </td>
-                            <td class="d-none d-md-table-cell"><span class="text-muted small">{{ $record->durationLabel() }}</span></td>
-                            <td class="d-none d-lg-table-cell">
+                            <td class="td-hide d-none d-md-table-cell"><span class="text-muted small">{{ $record->durationLabel() }}</span></td>
+                            <td class="td-hide d-none d-lg-table-cell">
                                 <div class="d-flex gap-1 align-items-center">
                                     @if($record->notification_sent)
                                         <i class="bi bi-envelope-check-fill text-success" title="Time-in email sent"></i>

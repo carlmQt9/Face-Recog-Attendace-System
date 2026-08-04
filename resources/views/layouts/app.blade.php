@@ -80,9 +80,72 @@
             .sidebar { transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
             .sidebar .brand-close { display: inline-flex; align-items: center; }
-            .main-content { margin-left: 0; padding: 16px; }
-            .top-bar { margin: -16px -16px 16px; padding: 10px 14px; }
+            .main-content { margin-left: 0; padding: 16px 12px; }
+            .top-bar { margin: -16px -12px 16px; padding: 10px 14px; }
             .hamburger-btn { display: inline-flex; align-items: center; }
+        }
+
+        /* ── Bootstrap modal — mobile bottom sheet ── */
+        @media (max-width: 575.98px) {
+            /* Anchor the modal to the bottom of the screen */
+            .modal-dialog {
+                margin: 0 auto !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                top: auto !important;
+            }
+            .modal-content {
+                border-radius: 20px 20px 0 0 !important;
+                max-height: 88dvh !important;
+                overflow-y: auto;
+                border: none !important;
+            }
+            /* Slide-up animation */
+            .modal.fade .modal-dialog {
+                transform: translateY(100%) !important;
+                transition: transform .3s ease-out !important;
+            }
+            .modal.show .modal-dialog {
+                transform: translateY(0) !important;
+            }
+            .modal-header { padding: 14px 16px !important; }
+            .modal-body   { padding: 16px !important; }
+            .modal-footer {
+                padding: 10px 16px calc(10px + env(safe-area-inset-bottom)) !important;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .modal-footer .btn { flex: 1; min-width: 0; }
+        }
+
+        /* ── Mobile card-list rows (tables that switch to card layout) ── */
+        @media (max-width: 575.98px) {
+            .table-card-mobile thead { display: none; }
+            .table-card-mobile,
+            .table-card-mobile tbody,
+            .table-card-mobile tr { display: block; width: 100%; }
+            .table-card-mobile tr {
+                border-bottom: 1px solid #f1f5f9;
+                padding: 10px 12px;
+                display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+            }
+            .table-card-mobile td { border: none !important; padding: 0 !important; font-size: 13px; }
+            .table-card-mobile td.td-avatar  { flex-shrink: 0; }
+            .table-card-mobile td.td-main    { flex: 1; min-width: 0; }
+            .table-card-mobile td.td-badge   { flex-shrink: 0; }
+            /* actions row — buttons are auto width, NOT stretched */
+            .table-card-mobile td.td-actions {
+                width: 100%; display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap;
+            }
+            .table-card-mobile td.td-actions .btn {
+                flex: 0 0 auto;
+                font-size: 12px; padding: 5px 10px;
+            }
+            .table-card-mobile td.td-hide { display: none; }
         }
     </style>
     @stack('styles')
@@ -225,9 +288,9 @@
 
     <!-- ══ CONFIRM MODAL ══ -->
     <style>
-        #confirmModalBackdrop { position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .22s ease; }
+        #confirmModalBackdrop { position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .22s ease;overflow-y:auto; }
         #confirmModalBackdrop.show { opacity:1;pointer-events:all; }
-        #confirmModalBox { background:#fff;border-radius:18px;padding:32px 28px 24px;min-width:min(320px,90vw);max-width:420px;width:90%;box-shadow:0 24px 60px rgba(0,0,0,.25);transform:scale(.88) translateY(16px);transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .22s ease;opacity:0; }
+        #confirmModalBox { background:#fff;border-radius:18px;padding:28px 20px 20px;min-width:min(300px,100%);max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.25);transform:scale(.88) translateY(16px);transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .22s ease;opacity:0;max-height:calc(100dvh - 32px);overflow-y:auto; }
         #confirmModalBackdrop.show #confirmModalBox { transform:scale(1) translateY(0);opacity:1; }
         #confirmModalIcon { font-size:38px;margin-bottom:12px;display:block;text-align:center; }
         #confirmModalTitle { font-size:17px;font-weight:800;color:#0f172a;text-align:center;margin-bottom:8px; }

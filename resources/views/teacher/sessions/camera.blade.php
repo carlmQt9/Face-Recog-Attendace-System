@@ -257,26 +257,35 @@ body { background:#0a0a0f; }
 .qr-modal-backdrop{
     position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1050;
     display:flex;align-items:center;justify-content:center;
+    padding:16px;
     opacity:0;pointer-events:none;transition:opacity .25s;
+    overflow-y:auto;
 }
 .qr-modal-backdrop.open{opacity:1;pointer-events:all;}
 .qr-modal{
     background:#0f172a;border:1px solid rgba(255,255,255,.1);
-    border-radius:24px;padding:32px;text-align:center;
-    max-width:380px;width:90%;
+    border-radius:24px;padding:28px 24px;text-align:center;
+    max-width:380px;width:100%;
+    max-height:calc(100dvh - 32px);overflow-y:auto;
     animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
 }
 .qr-modal h6{color:#fff;font-weight:800;font-size:17px;margin-bottom:4px;}
 .qr-modal .qr-sub{color:#64748b;font-size:13px;margin-bottom:20px;}
-#qrCanvas{border-radius:16px;background:#fff;padding:12px;display:block;margin:0 auto 16px;}
+#qrCanvas{border-radius:16px;background:#fff;padding:12px;display:block;margin:0 auto 16px;max-width:100%;}
+@media (max-width:400px){
+    .qr-modal{padding:20px 14px;}
+    #qrCanvas{width:160px!important;height:160px!important;}
+}
 .qr-link{
     display:flex;align-items:center;gap:8px;
     background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
     border-radius:10px;padding:9px 12px;margin-bottom:16px;
+    min-width:0;
 }
 .qr-link input{
-    flex:1;background:transparent;border:none;outline:none;
-    color:#94a3b8;font-size:12px;font-family:monospace;
+    flex:1;min-width:0;background:transparent;border:none;outline:none;
+    color:#94a3b8;font-size:12px;font-family:monospace;overflow:hidden;
+    text-overflow:ellipsis;
 }
 .qr-link button{
     background:rgba(79,70,229,.2);border:1px solid rgba(79,70,229,.4);

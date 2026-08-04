@@ -9,55 +9,49 @@
     position: fixed; inset: 0; z-index: 1055;
     background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
     display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    padding: 16px;
     opacity: 0; pointer-events: none;
     transition: opacity .25s;
+    overflow-y: auto;
 }
 .qr-backdrop.open { opacity: 1; pointer-events: all; }
 
-/* ── QR Modal Box ───────────────────────────────────────── */
 .qr-modal {
     background: #fff; border-radius: 20px;
-    overflow: hidden; width: 320px;
+    overflow: hidden; width: min(320px, 100%);
     box-shadow: 0 24px 80px rgba(0,0,0,.25);
     transform: scale(.92); transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+    max-height: calc(100dvh - 32px); overflow-y: auto;
 }
 .qr-backdrop.open .qr-modal { transform: scale(1); }
-
-.qr-modal-header {
-    background: linear-gradient(135deg, #4f46e5, #06b6d4);
-    padding: 18px 20px 14px; text-align: center;
-}
-.qr-modal-header .school  { font-size: 12px; font-weight: 800; color: rgba(255,255,255,.9); text-transform: uppercase; letter-spacing: .08em; }
-.qr-modal-header .subtitle{ font-size: 10px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
-
+.qr-modal-header { background: linear-gradient(135deg, #4f46e5, #06b6d4); padding: 18px 20px 14px; text-align: center; }
+.qr-modal-header .school   { font-size: 12px; font-weight: 800; color: rgba(255,255,255,.9); text-transform: uppercase; letter-spacing: .08em; }
+.qr-modal-header .subtitle { font-size: 10px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
 .qr-modal-body { padding: 20px; text-align: center; }
-.qr-canvas-wrap {
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 10px; background: #fff;
-    border: 3px solid #e2e8f0; border-radius: 14px;
-    margin-bottom: 14px;
-}
-/* qrcodejs renders a table or canvas inside the div */
+.qr-canvas-wrap { display: inline-flex; align-items: center; justify-content: center; padding: 10px; border: 3px solid #e2e8f0; border-radius: 14px; margin-bottom: 14px; }
 #qrModalCanvas { line-height: 0; }
-#qrModalCanvas img,
-#qrModalCanvas canvas { display: block; }
-
+#qrModalCanvas img, #qrModalCanvas canvas { display: block; }
 .qr-student-name { font-size: 17px; font-weight: 800; color: #0f172a; margin-bottom: 3px; }
 .qr-student-meta { font-size: 12px; color: #64748b; margin-bottom: 6px; }
-.qr-id-badge {
-    display: inline-block; background: #f1f5f9; border: 1px solid #e2e8f0;
-    border-radius: 8px; padding: 3px 14px;
-    font-size: 12px; font-weight: 700; color: #334155;
-}
-
-.qr-modal-footer {
-    background: #f8fafc; border-top: 1px solid #e2e8f0;
-    padding: 10px 20px 14px; text-align: center;
-}
+.qr-id-badge { display: inline-block; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px 14px; font-size: 12px; font-weight: 700; color: #334155; }
+.qr-modal-footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 10px 20px 14px; text-align: center; }
 .qr-modal-footer .hint { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
 .qr-actions { display: flex; gap: 8px; justify-content: center; }
 .qr-actions .btn { border-radius: 9px; font-size: 13px; font-weight: 600; padding: 7px 18px; }
+
+/* ── User table row — actions always right-aligned ── */
+.user-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
+    min-width: 0;
+}
+.user-row:last-child { border-bottom: none; }
+.user-row .u-avatar { flex-shrink: 0; }
+.user-row .u-info   { flex: 1; min-width: 0; }
+.user-row .u-name   { font-weight: 600; font-size: 14px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-row .u-email  { font-size: 11px; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-row .u-badge  { flex-shrink: 0; }
+.user-row .u-actions { flex-shrink: 0; display: flex; gap: 5px; align-items: center; }
 </style>
 @endpush
 
@@ -71,93 +65,92 @@
 
 <div class="card">
     <div class="card-body p-0">
-        <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Name</th>
-                    <th class="d-none d-md-table-cell">Email</th>
-                    <th>Role</th>
-                    <th class="d-none d-sm-table-cell">Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($users as $user)
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            @php
-                                $faceUrl = null;
-                                if ($user->role === 'student' && $user->student?->face_registered && $user->student?->face_encoding) {
-                                    if (Storage::disk('public')->exists($user->student->face_encoding)) {
-                                        $faceUrl = Storage::url($user->student->face_encoding);
-                                    }
-                                } elseif ($user->role === 'teacher' && $user->teacher?->face_registered && $user->teacher?->face_encoding) {
-                                    if (Storage::disk('public')->exists($user->teacher->face_encoding)) {
-                                        $faceUrl = Storage::url($user->teacher->face_encoding);
-                                    }
-                                }
-                            @endphp
-                            @if($faceUrl)
-                                <img src="{{ $faceUrl }}" alt="{{ $user->name }}"
-                                     data-lightbox="{{ $faceUrl }}"
-                                     data-lightbox-caption="{{ $user->name }}"
-                                     data-lightbox-sub="{{ ucfirst($user->role) }}"
-                                     style="width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;cursor:zoom-in;">
-                            @else
-                                <div style="width:38px;height:38px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">
-                                    {{ strtoupper(substr($user->name, 0, 1)) }}
-                                </div>
-                            @endif
-                            <div>
-                                <span class="fw-semibold">{{ $user->name }}</span>
-                                <div class="text-muted d-md-none" style="font-size:11px;">{{ $user->email }}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="text-muted d-none d-md-table-cell">{{ $user->email }}</td>
-                    <td>
-                        <span class="badge bg-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'teacher' ? 'success' : 'primary') }}">
-                            {{ ucfirst($user->role) }}
-                        </span>
-                    </td>
-                    <td class="d-none d-sm-table-cell">{{ $user->created_at->format('M d, Y') }}</td>
-                    <td>
-                        <div class="d-flex flex-wrap gap-1">
-                        <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                        @if($user->role === 'student' && $user->student?->qr_token)
-                            <button class="btn btn-sm btn-outline-info" title="View & Print QR Card"
-                                    onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level ?? '') }}','{{ addslashes($user->student->section ?? '') }}','{{ $user->student->qrUrl() }}')">
-                                <i class="bi bi-qr-code"></i> QR
-                            </button>
-                        @endif
-                        @if(auth()->id() !== $user->id)
-                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline"
-                              onsubmit="return false"
-                              data-confirm-title="Delete User"
-                              data-confirm-message="Are you sure you want to permanently delete {{ $user->name }}? All their data will be removed."
-                              data-confirm-ok="Delete" data-confirm-type="danger" data-confirm-icon="🗑️">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-outline-danger">Delete</button>
-                        </form>
-                        @endif
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="5" class="text-center text-muted py-4">No users found.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+        {{-- Use flex rows instead of a table so actions stay right-aligned on ALL screen sizes --}}
+        @forelse($users as $user)
+        @php
+            $faceUrl = null;
+            if ($user->role === 'student' && $user->student?->face_registered && $user->student?->face_encoding) {
+                if (Storage::disk('public')->exists($user->student->face_encoding)) {
+                    $faceUrl = Storage::url($user->student->face_encoding);
+                }
+            } elseif ($user->role === 'teacher' && $user->teacher?->face_registered && $user->teacher?->face_encoding) {
+                if (Storage::disk('public')->exists($user->teacher->face_encoding)) {
+                    $faceUrl = Storage::url($user->teacher->face_encoding);
+                }
+            }
+        @endphp
+        <div class="user-row">
+            {{-- Avatar --}}
+            <div class="u-avatar">
+                @if($faceUrl)
+                    <img src="{{ $faceUrl }}" alt="{{ $user->name }}"
+                         data-lightbox="{{ $faceUrl }}"
+                         data-lightbox-caption="{{ $user->name }}"
+                         data-lightbox-sub="{{ ucfirst($user->role) }}"
+                         style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid #dee2e6;cursor:zoom-in;">
+                @else
+                    <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    </div>
+                @endif
+            </div>
+            {{-- Name + email --}}
+            <div class="u-info">
+                <div class="u-name">{{ $user->name }}</div>
+                <div class="u-email">{{ $user->email }}</div>
+            </div>
+            {{-- Role badge --}}
+            <div class="u-badge">
+                <span class="badge bg-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'teacher' ? 'success' : 'primary') }}">
+                    {{ ucfirst($user->role) }}
+                </span>
+            </div>
+            {{-- Actions — pinned to right --}}
+            <div class="u-actions">
+                <button class="btn btn-sm btn-outline-primary" title="Edit"
+                        onclick="openEditModal(
+                            {{ $user->id }},
+                            '{{ addslashes($user->name) }}',
+                            '{{ addslashes($user->email) }}',
+                            '{{ $user->role }}',
+                            '{{ addslashes($user->student?->student_id ?? '') }}',
+                            '{{ addslashes($user->student?->grade_level ?? '') }}',
+                            '{{ addslashes($user->student?->section ?? '') }}',
+                            '{{ addslashes($user->teacher?->employee_id ?? '') }}',
+                            '{{ addslashes($user->teacher?->department ?? '') }}'
+                        )">
+                    <i class="bi bi-pencil-fill"></i>
+                </button>
+                @if($user->role === 'student' && $user->student?->qr_token)
+                    <button class="btn btn-sm btn-outline-info" title="QR Card"
+                            onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level ?? '') }}','{{ addslashes($user->student->section ?? '') }}','{{ $user->student->qrUrl() }}')">
+                        <i class="bi bi-qr-code"></i>
+                    </button>
+                @endif
+                @if(auth()->id() !== $user->id)
+                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline"
+                      onsubmit="return false"
+                      data-confirm-title="Delete User"
+                      data-confirm-message="Are you sure you want to permanently delete {{ $user->name }}? All their data will be removed."
+                      data-confirm-ok="Delete" data-confirm-type="danger" data-confirm-icon="🗑️">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-sm btn-outline-danger" title="Delete">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </form>
+                @endif
+            </div>
         </div>
+        @empty
+        <div class="text-center text-muted py-5">No users found.</div>
+        @endforelse
     </div>
 </div>
 {{ $users->links() }}
 
 {{-- ── Add User Modal ── --}}
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content" style="border-radius:16px;overflow:hidden;">
             <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#06b6d4);border:none;">
                 <h5 class="modal-title text-white fw-bold" id="addUserModalLabel">
@@ -265,6 +258,88 @@
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" form="addUserForm" class="btn btn-primary px-4">
                     <i class="bi bi-person-plus-fill me-1"></i> Create User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- ── Edit User Modal ── --}}
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0891b2,#4f46e5);border:none;">
+                <h5 class="modal-title text-white fw-bold" id="editUserModalLabel">
+                    <i class="bi bi-pencil-fill me-2"></i>Edit User
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editUserForm" method="POST">
+                    @csrf @method('PUT')
+
+                    {{-- Name --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" name="name" id="editName" class="form-control" required placeholder="e.g. Juan dela Cruz">
+                    </div>
+                    {{-- Email --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                        <input type="email" name="email" id="editEmail" class="form-control" required placeholder="user@school.edu">
+                    </div>
+                    {{-- Password --}}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            New Password
+                            <span class="text-muted fw-normal" style="font-size:12px;">(leave blank to keep)</span>
+                        </label>
+                        <input type="password" name="password" class="form-control" placeholder="Min. 8 characters">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Confirm New Password</label>
+                        <input type="password" name="password_confirmation" class="form-control" placeholder="Repeat password">
+                    </div>
+
+                    {{-- Role-specific fields (read-only display) --}}
+                    <div id="editStudentFields" class="d-none">
+                        <hr class="my-2">
+                        <p class="text-muted small mb-2"><i class="bi bi-person-badge me-1"></i>Student Details</p>
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Student ID</label>
+                                <input type="text" name="student_id" id="editStudentId" class="form-control" placeholder="2024-0001">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Grade Level</label>
+                                <input type="text" name="grade_level" id="editGradeLevel" class="form-control" placeholder="e.g. Grade 7">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Section</label>
+                                <input type="text" name="section" id="editSection" class="form-control" placeholder="e.g. Abakada">
+                            </div>
+                        </div>
+                    </div>
+                    <div id="editTeacherFields" class="d-none">
+                        <hr class="my-2">
+                        <p class="text-muted small mb-2"><i class="bi bi-person-workspace me-1"></i>Teacher Details</p>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Employee ID</label>
+                                <input type="text" name="employee_id" id="editEmployeeId" class="form-control" placeholder="EMP-001">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Department</label>
+                                <input type="text" name="department" id="editDepartment" class="form-control" placeholder="e.g. Science">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top:1px solid #e2e8f0;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="editUserForm" class="btn btn-primary px-4">
+                    <i class="bi bi-floppy-fill me-1"></i> Save Changes
                 </button>
             </div>
         </div>
@@ -461,6 +536,40 @@ function toggleModalFields() {
     const role = document.getElementById('modalRoleSelect').value;
     document.getElementById('modalTeacherFields').classList.toggle('d-none', role !== 'teacher');
     document.getElementById('modalStudentFields').classList.toggle('d-none', role !== 'student');
+}
+
+// ── Edit User modal ───────────────────────────────────────────────────────────
+function openEditModal(id, name, email, role, studentId, gradeLevel, section, employeeId, department) {
+    // Set form action to the correct PUT route
+    const form = document.getElementById('editUserForm');
+    form.action = `/admin/users/${id}`;
+
+    // Fill common fields
+    document.getElementById('editName').value  = name;
+    document.getElementById('editEmail').value = email;
+    // Clear password fields
+    form.querySelector('[name="password"]').value = '';
+    form.querySelector('[name="password_confirmation"]').value = '';
+
+    // Show/hide role-specific fields
+    const stuFields = document.getElementById('editStudentFields');
+    const tchrFields = document.getElementById('editTeacherFields');
+    stuFields.classList.add('d-none');
+    tchrFields.classList.add('d-none');
+
+    if (role === 'student') {
+        document.getElementById('editStudentId').value   = studentId;
+        document.getElementById('editGradeLevel').value  = gradeLevel;
+        document.getElementById('editSection').value     = section;
+        stuFields.classList.remove('d-none');
+    } else if (role === 'teacher') {
+        document.getElementById('editEmployeeId').value  = employeeId;
+        document.getElementById('editDepartment').value  = department;
+        tchrFields.classList.remove('d-none');
+    }
+
+    // Open the modal
+    new bootstrap.Modal(document.getElementById('editUserModal')).show();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

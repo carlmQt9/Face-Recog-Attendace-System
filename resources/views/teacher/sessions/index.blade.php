@@ -170,54 +170,59 @@
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-        <table class="table table-hover mb-0" style="font-size:13px;">
+        <table class="table table-hover mb-0 table-card-mobile" style="font-size:13px;">
             <thead class="table-light">
                 <tr>
-                    <th>Subject</th><th>Section</th><th>Type</th>
-                    <th class="d-none d-lg-table-cell">Schedule</th>
+                    <th>Subject</th>
+                    <th class="d-none d-sm-table-cell">Section</th>
+                    <th>Type</th>
                     <th class="d-none d-md-table-cell">Camera</th>
                     <th>Started</th>
                     <th class="d-none d-sm-table-cell">Ended</th>
-                    <th>Status</th><th></th>
+                    <th>Status</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody id="sessionsTableBody">
                 @forelse($sessions as $session)
                 <tr>
-                    <td class="fw-semibold">{{ $session->subject }}</td>
-                    <td>{{ $session->section }}</td>
-                    <td>
+                    <td class="td-main">
+                        <div class="fw-semibold">{{ $session->subject }}</div>
+                        <div class="text-muted d-sm-none" style="font-size:11px;">{{ $session->section }}</div>
+                    </td>
+                    <td class="td-hide d-none d-sm-table-cell">{{ $session->section }}</td>
+                    <td class="td-badge">
                         @if($session->session_type === 'afternoon_out')
                             <span class="badge badge-afternoon">🌇</span>
                         @else
                             <span class="badge badge-morning">🌅</span>
                         @endif
                     </td>
-                    <td class="d-none d-lg-table-cell">
+                    <td class="td-hide d-none d-lg-table-cell">
                         @if($session->scheduled_start && $session->scheduled_end)
                             <span class="text-muted small">{{ \Carbon\Carbon::parse($session->scheduled_start)->format('h:i A') }} – {{ \Carbon\Carbon::parse($session->scheduled_end)->format('h:i A') }}</span>
                         @else
                             <span class="text-muted small">—</span>
                         @endif
                     </td>
-                    <td class="d-none d-md-table-cell">
+                    <td class="td-hide d-none d-md-table-cell">
                         @if($session->camera->is_local_device)<i class="bi bi-laptop text-primary me-1"></i>@endif
                         {{ $session->camera->location }}
                     </td>
                     <td>{{ $session->started_at?->format('M d, h:i A') ?? '—' }}</td>
-                    <td class="d-none d-sm-table-cell">{{ $session->ended_at?->format('h:i A') ?? '—' }}</td>
-                    <td>
+                    <td class="td-hide d-none d-sm-table-cell">{{ $session->ended_at?->format('h:i A') ?? '—' }}</td>
+                    <td class="td-badge">
                         <span class="badge bg-{{ $session->status === 'active' ? 'success' : 'secondary' }}">
                             {{ ucfirst($session->status) }}
                         </span>
                     </td>
-                    <td class="text-nowrap">
+                    <td class="td-actions" style="white-space:nowrap;">
                         <button onclick="openDrawer('{{ route('teacher.sessions.live', $session) }}','{{ addslashes($session->subject) }} — {{ addslashes($session->section) }} Roster')"
-                                class="btn btn-sm btn-outline-primary">
+                                class="btn btn-sm btn-outline-primary" title="View Roster">
                             <i class="bi bi-eye-fill"></i>
                         </button>
                         @if($session->status === 'active')
-                            <a href="{{ route('teacher.sessions.camera', $session) }}" class="btn btn-sm btn-success">
+                            <a href="{{ route('teacher.sessions.camera', $session) }}" class="btn btn-sm btn-success" title="Open Camera">
                                 <i class="bi bi-camera-video-fill"></i>
                             </a>
                         @endif
@@ -492,28 +497,27 @@ function renderSessions(sessions) {
         const typeBadge = s.session_type === 'afternoon_out'
             ? '<span class="badge badge-afternoon">🌇</span>'
             : '<span class="badge badge-morning">🌅</span>';
-        const schedule = (s.scheduled_start && s.scheduled_end)
-            ? `<span class="text-muted small">${s.scheduled_start} – ${s.scheduled_end}</span>`
-            : '<span class="text-muted small">—</span>';
         const statusBadge = s.status === 'active'
             ? '<span class="badge bg-success">Active</span>'
             : '<span class="badge bg-secondary">Ended</span>';
         const cameraBtn = s.status === 'active' && s.camera_route
-            ? `<a href="${s.camera_route}" class="btn btn-sm btn-success"><i class="bi bi-camera-video-fill"></i></a>`
+            ? `<a href="${s.camera_route}" class="btn btn-sm btn-success" title="Open Camera"><i class="bi bi-camera-video-fill"></i></a>`
             : '';
         const camIcon = s.is_local ? '<i class="bi bi-laptop text-primary me-1"></i>' : '';
         return `<tr>
-            <td class="fw-semibold">${s.subject}</td>
-            <td>${s.section}</td>
-            <td>${typeBadge}</td>
-            <td class="d-none d-lg-table-cell">${schedule}</td>
-            <td class="d-none d-md-table-cell">${camIcon}${s.camera}</td>
+            <td class="td-main">
+                <div class="fw-semibold">${s.subject}</div>
+                <div class="text-muted d-sm-none" style="font-size:11px;">${s.section}</div>
+            </td>
+            <td class="td-hide d-none d-sm-table-cell">${s.section}</td>
+            <td class="td-badge">${typeBadge}</td>
+            <td class="td-hide d-none d-md-table-cell">${camIcon}${s.camera}</td>
             <td>${s.started_at}</td>
-            <td class="d-none d-sm-table-cell">${s.ended_at}</td>
-            <td>${statusBadge}</td>
-            <td class="text-nowrap">
+            <td class="td-hide d-none d-sm-table-cell">${s.ended_at}</td>
+            <td class="td-badge">${statusBadge}</td>
+            <td class="td-actions" style="white-space:nowrap;">
                 <button onclick="openDrawer('${s.live_route}','${s.subject} — ${s.section} Roster')"
-                        class="btn btn-sm btn-outline-primary">
+                        class="btn btn-sm btn-outline-primary" title="View Roster">
                     <i class="bi bi-eye-fill"></i>
                 </button>
                 ${cameraBtn}
