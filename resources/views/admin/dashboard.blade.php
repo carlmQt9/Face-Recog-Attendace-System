@@ -50,27 +50,21 @@
 
 {{-- ══ CHARTS ROW ══ --}}
 <div class="row g-3 mb-4">
-
-    {{-- Bar: Last 7 days --}}
-    <div class="col-md-5">
+    <div class="col-12 col-md-5">
         <div class="chart-card">
             <div class="chart-title">📊 Attendance — Last 7 Days</div>
             <div class="chart-sub">Total students marked present per day</div>
             <canvas id="chartWeekly" height="180"></canvas>
         </div>
     </div>
-
-    {{-- Line: Attendance by hour today --}}
-    <div class="col-md-5">
+    <div class="col-12 col-md-5">
         <div class="chart-card">
             <div class="chart-title">📈 Today's Hourly Trend</div>
             <div class="chart-sub">Scan activity hour by hour today</div>
-            <canvas id="chartHourly" height="180" id="chartHourly"></canvas>
+            <canvas id="chartHourly" height="180"></canvas>
         </div>
     </div>
-
-    {{-- Doughnut: Method breakdown --}}
-    <div class="col-md-2">
+    <div class="col-6 col-md-2">
         <div class="chart-card d-flex flex-column align-items-center justify-content-center">
             <div class="chart-title text-center">🔍 Method</div>
             <div class="chart-sub text-center">Today's scans</div>

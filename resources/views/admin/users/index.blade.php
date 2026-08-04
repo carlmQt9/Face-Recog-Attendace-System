@@ -71,13 +71,14 @@
 
 <div class="card">
     <div class="card-body p-0">
+        <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
                     <th>Name</th>
-                    <th>Email</th>
+                    <th class="d-none d-md-table-cell">Email</th>
                     <th>Role</th>
-                    <th>Created</th>
+                    <th class="d-none d-sm-table-cell">Created</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -99,61 +100,49 @@
                                 }
                             @endphp
                             @if($faceUrl)
-                                <img src="{{ $faceUrl }}"
-                                     alt="{{ $user->name }}"
+                                <img src="{{ $faceUrl }}" alt="{{ $user->name }}"
                                      data-lightbox="{{ $faceUrl }}"
                                      data-lightbox-caption="{{ $user->name }}"
                                      data-lightbox-sub="{{ ucfirst($user->role) }}"
                                      style="width:38px;height:38px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;cursor:zoom-in;">
                             @else
-                                <div style="width:38px;height:38px;border-radius:9px;flex-shrink:0;
-                                            background:linear-gradient(135deg,#4f46e5,#06b6d4);
-                                            display:flex;align-items:center;justify-content:center;
-                                            font-size:15px;color:#fff;font-weight:700;">
+                                <div style="width:38px;height:38px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </div>
                             @endif
-                            <span class="fw-semibold">{{ $user->name }}</span>
+                            <div>
+                                <span class="fw-semibold">{{ $user->name }}</span>
+                                <div class="text-muted d-md-none" style="font-size:11px;">{{ $user->email }}</div>
+                            </div>
                         </div>
                     </td>
-                    <td class="text-muted">{{ $user->email }}</td>
+                    <td class="text-muted d-none d-md-table-cell">{{ $user->email }}</td>
                     <td>
                         <span class="badge bg-{{ $user->role === 'admin' ? 'danger' : ($user->role === 'teacher' ? 'success' : 'primary') }}">
                             {{ ucfirst($user->role) }}
                         </span>
                     </td>
-                    <td>{{ $user->created_at->format('M d, Y') }}</td>
+                    <td class="d-none d-sm-table-cell">{{ $user->created_at->format('M d, Y') }}</td>
                     <td>
+                        <div class="d-flex flex-wrap gap-1">
                         <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-
-                        {{-- QR button — only for students with a token --}}
                         @if($user->role === 'student' && $user->student?->qr_token)
-                            <button class="btn btn-sm btn-outline-info"
-                                    title="View & Print QR Card"
-                                    onclick="openQrModal(
-                                        '{{ addslashes($user->name) }}',
-                                        '{{ addslashes($user->student->student_id) }}',
-                                        '{{ addslashes($user->student->grade_level ?? '') }}',
-                                        '{{ addslashes($user->student->section ?? '') }}',
-                                        '{{ $user->student->qrUrl() }}'
-                                    )">
+                            <button class="btn btn-sm btn-outline-info" title="View & Print QR Card"
+                                    onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level ?? '') }}','{{ addslashes($user->student->section ?? '') }}','{{ $user->student->qrUrl() }}')">
                                 <i class="bi bi-qr-code"></i> QR
                             </button>
                         @endif
-
                         @if(auth()->id() !== $user->id)
-                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST"
-                              class="d-inline"
+                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline"
                               onsubmit="return false"
                               data-confirm-title="Delete User"
                               data-confirm-message="Are you sure you want to permanently delete {{ $user->name }}? All their data will be removed."
-                              data-confirm-ok="Delete"
-                              data-confirm-type="danger"
-                              data-confirm-icon="🗑️">
+                              data-confirm-ok="Delete" data-confirm-type="danger" data-confirm-icon="🗑️">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-outline-danger">Delete</button>
                         </form>
                         @endif
+                        </div>
                     </td>
                 </tr>
                 @empty
@@ -161,6 +150,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 {{ $users->links() }}

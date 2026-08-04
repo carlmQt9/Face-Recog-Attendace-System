@@ -24,14 +24,15 @@
 .settings-section-body { padding:20px; }
 
 .setting-row {
-    display:flex; align-items:center; gap:16px;
+    display:flex; align-items:flex-start; gap:16px;
     padding:14px 0; border-bottom:1px solid #f1f5f9;
+    flex-wrap: wrap;
 }
 .setting-row:last-child { border-bottom:none; padding-bottom:0; }
-.setting-info { flex:1; min-width:0; }
+.setting-info { flex:1; min-width:180px; }
 .setting-info label { font-size:13px; font-weight:600; color:#1e293b; display:block; margin-bottom:2px; }
 .setting-desc { font-size:11px; color:#94a3b8; line-height:1.5; }
-.setting-control { flex-shrink:0; width:200px; text-align:right; }
+.setting-control { flex-shrink:0; min-width:160px; text-align:right; }
 
 .num-stepper {
     display:inline-flex; align-items:center;
@@ -50,7 +51,7 @@
 
 .vol-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
 input[type=range].vol-bar {
-    -webkit-appearance:none; width:200px; height:5px; border-radius:50px;
+    -webkit-appearance:none; width:100%; max-width:200px; height:5px; border-radius:50px;
     outline:none; cursor:pointer;
 }
 input[type=range].vol-bar::-webkit-slider-thumb {

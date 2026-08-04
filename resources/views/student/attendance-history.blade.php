@@ -59,8 +59,8 @@
 </div>
 
 {{-- Month Picker --}}
-<div class="d-flex gap-2 mb-4 align-items-center">
-    <form method="GET" action="{{ route('student.attendance.index') }}" class="d-flex gap-2 align-items-center">
+<div class="d-flex gap-2 mb-4 align-items-center flex-wrap">
+    <form method="GET" action="{{ route('student.attendance.index') }}" class="d-flex gap-2 align-items-center flex-wrap">
         <label class="form-label mb-0 fw-semibold">Month:</label>
         <select name="month" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
             @for($m = 1; $m <= 12; $m++)
@@ -73,7 +73,7 @@
             @endfor
         </select>
     </form>
-    <span class="text-muted small ms-2">{{ $records->count() }} days present</span>
+    <span class="text-muted small">{{ $records->count() }} days present</span>
 </div>
 
 {{-- Calendar Grid --}}
@@ -91,22 +91,17 @@
             $presentDays = $calendar->keys()->map(fn($d) => (int) substr($d, 8, 2))->toArray();
         @endphp
 
-        <div class="d-grid" style="grid-template-columns: repeat(7, 1fr); display:grid; gap:4px; text-align:center;">
-            @foreach(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] as $dow)
-                <div class="fw-bold small text-muted py-1">{{ $dow }}</div>
+        <div class="d-grid" style="grid-template-columns:repeat(7,1fr);display:grid;gap:3px;text-align:center;">
+            @foreach(['M','T','W','T','F','S','S'] as $dow)
+                <div class="fw-bold text-muted py-1" style="font-size:clamp(10px,2.5vw,13px);">{{ $dow }}</div>
             @endforeach
-
-            {{-- empty cells before first day --}}
-            @for($i = 1; $i < $firstDay; $i++)
-                <div></div>
-            @endfor
-
+            @for($i = 1; $i < $firstDay; $i++)<div></div>@endfor
             @for($day = 1; $day <= $daysInMonth; $day++)
                 @php $isPresent = in_array($day, $presentDays); @endphp
-                <div class="py-2 rounded {{ $isPresent ? 'bg-success text-white' : 'bg-light text-muted' }}"
-                     style="border-radius:8px; min-width:34px;">
+                <div class="{{ $isPresent ? 'bg-success text-white' : 'bg-light text-muted' }}"
+                     style="border-radius:6px;padding:4px 2px;font-size:clamp(11px,2.8vw,14px);">
                     {{ $day }}
-                    @if($isPresent)<br><i class="bi bi-check-lg" style="font-size:10px;"></i>@endif
+                    @if($isPresent)<br><i class="bi bi-check-lg" style="font-size:9px;"></i>@endif
                 </div>
             @endfor
         </div>
@@ -156,22 +151,22 @@
                         </div>
                     </div>
                 </div>
-                <div class="d-flex gap-4 text-center">
+                <div class="d-flex gap-3 text-center flex-wrap justify-content-end">
                     <div>
                         <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Time In</div>
-                        <div style="font-size:17px;font-weight:800;color:#16a34a;">{{ $latest->arrived_at->format('h:i A') }}</div>
+                        <div style="font-size:clamp(14px,4vw,17px);font-weight:800;color:#16a34a;">{{ $latest->arrived_at->format('h:i A') }}</div>
                     </div>
                     <div style="width:1px;background:#e2e8f0;"></div>
                     <div>
                         <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Time Out</div>
-                        <div style="font-size:17px;font-weight:800;color:{{ $latest->time_out ? '#dc2626' : '#94a3b8' }};">
+                        <div style="font-size:clamp(14px,4vw,17px);font-weight:800;color:{{ $latest->time_out ? '#dc2626' : '#94a3b8' }};">
                             {{ $latest->time_out ? $latest->time_out->format('h:i A') : '—' }}
                         </div>
                     </div>
                     <div style="width:1px;background:#e2e8f0;"></div>
                     <div>
                         <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Duration</div>
-                        <div style="font-size:17px;font-weight:800;color:#4f46e5;">{{ $latest->durationLabel() }}</div>
+                        <div style="font-size:clamp(14px,4vw,17px);font-weight:800;color:#4f46e5;">{{ $latest->durationLabel() }}</div>
                     </div>
                 </div>
             </div>
@@ -188,15 +183,16 @@
         </div>
     </div>
     <div class="card-body p-0">
+        <div class="table-responsive">
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
-                    <th style="width:60px;">Photo</th>
+                    <th style="width:50px;">Photo</th>
                     <th>Date</th>
                     <th>Time In</th>
-                    <th>Time Out</th>
-                    <th>Duration</th>
-                    <th>Location</th>
+                    <th class="d-none d-sm-table-cell">Time Out</th>
+                    <th class="d-none d-md-table-cell">Duration</th>
+                    <th class="d-none d-md-table-cell">Location</th>
                 </tr>
             </thead>
             <tbody id="attendanceTableBody">
@@ -205,8 +201,7 @@
                     @php
                         $snap = $record->snapshotUrl()
                             ?? ($student?->face_encoding && Storage::disk('public')->exists($student->face_encoding)
-                                ? Storage::url($student->face_encoding)
-                                : null);
+                                ? Storage::url($student->face_encoding) : null);
                         $snapSub = ($record->scan_type === 'time_out' ? 'Time Out' : 'Time In')
                             . ' · ' . $record->arrived_at->format('h:i A')
                             . ' · ' . $record->arrived_at->format('M j, Y');
@@ -214,43 +209,42 @@
                     <tr>
                         <td>
                             @if($snap)
-                                <img src="{{ $snap }}"
-                                     alt="{{ auth()->user()->name }}"
+                                <img src="{{ $snap }}" alt="{{ auth()->user()->name }}"
                                      data-lightbox="{{ $snap }}"
                                      data-lightbox-caption="{{ auth()->user()->name }}"
                                      data-lightbox-sub="{{ $snapSub }}"
-                                     style="width:44px;height:44px;border-radius:9px;
-                                            object-fit:cover;border:1.5px solid #e2e8f0;cursor:zoom-in;">
+                                     style="width:44px;height:44px;border-radius:9px;object-fit:cover;border:1.5px solid #e2e8f0;cursor:zoom-in;">
                             @else
-                                <div style="width:44px;height:44px;border-radius:9px;
-                                            background:linear-gradient(135deg,#4f46e5,#06b6d4);
-                                            display:flex;align-items:center;justify-content:center;
-                                            font-size:18px;color:#fff;font-weight:800;">
+                                <div style="width:44px;height:44px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;font-weight:800;">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
                             @endif
                         </td>
-                        <td style="vertical-align:middle;">{{ $record->arrived_at->format('D, M j') }}</td>
+                        <td style="vertical-align:middle;">
+                            {{ $record->arrived_at->format('D, M j') }}
+                            <div class="text-muted d-md-none" style="font-size:11px;">{{ $record->camera->location }}</div>
+                        </td>
                         <td style="vertical-align:middle;">
                             <span class="fw-semibold text-success">{{ $record->arrived_at->format('h:i A') }}</span>
                         </td>
-                        <td style="vertical-align:middle;">
+                        <td style="vertical-align:middle;" class="d-none d-sm-table-cell">
                             @if($record->time_out)
                                 <span class="fw-semibold text-danger">{{ $record->time_out->format('h:i A') }}</span>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
                         </td>
-                        <td style="vertical-align:middle;">
+                        <td style="vertical-align:middle;" class="d-none d-md-table-cell">
                             <span class="text-muted small">{{ $record->durationLabel() }}</span>
                         </td>
-                        <td style="vertical-align:middle;">{{ $record->camera->location }}</td>
+                        <td style="vertical-align:middle;" class="d-none d-md-table-cell">{{ $record->camera->location }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="6" class="text-center text-muted py-4">No attendance records this month.</td></tr>
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 @endsection

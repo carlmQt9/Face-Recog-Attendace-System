@@ -31,7 +31,7 @@ body { font-family:'Inter',sans-serif; background:var(--dark); color:#e2e8f0; ov
 .btn-nav:hover { opacity:.9; transform:translateY(-1px); }
 
 /* HERO */
-.hero { min-height:100vh; display:flex; align-items:center; position:relative; overflow:hidden; padding:120px 0 80px; }
+.hero { min-height:100vh; display:flex; align-items:center; position:relative; overflow:hidden; padding:60px 0 60px; }
 .hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(79,70,229,.25) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 20% 80%,rgba(6,182,212,.18) 0%,transparent 60%),var(--dark); }
 .hero-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px); background-size:60px 60px; }
 .hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(79,70,229,.15); border:1px solid rgba(79,70,229,.4); border-radius:50px; padding:6px 16px; font-size:13px; font-weight:600; color:var(--primary-light); margin-bottom:28px; }

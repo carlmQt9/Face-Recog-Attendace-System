@@ -23,7 +23,7 @@
     {{-- ── LEFT: My Students ── --}}
     <div class="col-lg-8">
         <div class="card">
-            <div class="card-header bg-white d-flex align-items-center justify-content-between">
+            <div class="card-header bg-white d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <h6 class="mb-0">
                     <i class="bi bi-people-fill text-primary me-2"></i>My Class
                     <span class="badge bg-primary ms-2">{{ $students->count() }}</span>
@@ -33,13 +33,14 @@
                 </button>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0" style="font-size:13px;">
                     <thead class="table-light">
                         <tr>
                             <th>Student</th>
-                            <th>ID</th>
-                            <th>Grade</th>
-                            <th>Section</th>
+                            <th class="d-none d-sm-table-cell">ID</th>
+                            <th class="d-none d-md-table-cell">Grade</th>
+                            <th class="d-none d-md-table-cell">Section</th>
                             <th>Face</th>
                             <th>QR</th>
                             <th></th>
@@ -56,13 +57,10 @@
                                              data-lightbox-caption="{{ $student->user->name }}"
                                              data-lightbox-sub="Registered Face · {{ $student->student_id }}"
                                              style="cursor:zoom-in;">
-                                            <img src="{{ Storage::url($student->face_encoding) }}"
-                                                 alt="{{ $student->user->name }}">
+                                            <img src="{{ Storage::url($student->face_encoding) }}" alt="{{ $student->user->name }}">
                                         </div>
                                     @else
-                                        <div class="avatar">
-                                            {{ strtoupper(substr($student->user->name, 0, 1)) }}
-                                        </div>
+                                        <div class="avatar">{{ strtoupper(substr($student->user->name, 0, 1)) }}</div>
                                     @endif
                                     <div>
                                         <div class="fw-semibold">{{ $student->user->name }}</div>
@@ -70,9 +68,9 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ $student->student_id }}</td>
-                            <td>{{ $student->grade_level ?? '—' }}</td>
-                            <td>{{ $student->section ?? '—' }}</td>
+                            <td class="d-none d-sm-table-cell">{{ $student->student_id }}</td>
+                            <td class="d-none d-md-table-cell">{{ $student->grade_level ?? '—' }}</td>
+                            <td class="d-none d-md-table-cell">{{ $student->section ?? '—' }}</td>
                             <td>
                                 @if($student->face_registered)
                                     <span class="badge bg-success"><i class="bi bi-shield-fill-check me-1"></i>Done</span>
@@ -82,24 +80,17 @@
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-outline-info"
-                                        onclick="showQr('{{ addslashes($student->user->name) }}',
-                                                        '{{ $student->student_id }}',
-                                                        '{{ addslashes($student->grade_level ?? '') }}',
-                                                        '{{ addslashes($student->section ?? '') }}',
-                                                        '{{ $student->qrUrl() }}')"
+                                        onclick="showQr('{{ addslashes($student->user->name) }}','{{ $student->student_id }}','{{ addslashes($student->grade_level ?? '') }}','{{ addslashes($student->section ?? '') }}','{{ $student->qrUrl() }}')"
                                         title="View QR Card">
                                     <i class="bi bi-qr-code"></i>
                                 </button>
                             </td>
                             <td>
                                 <form action="{{ route('teacher.students.remove', $student) }}"
-                                      method="POST" class="d-inline"
-                                      onsubmit="return false"
+                                      method="POST" class="d-inline" onsubmit="return false"
                                       data-confirm-title="Remove Student"
-                                      data-confirm-message="Remove {{ $student->user->name }} from your class? They will be unassigned but their account will not be deleted."
-                                      data-confirm-ok="Remove"
-                                      data-confirm-type="warning"
-                                      data-confirm-icon="👤">
+                                      data-confirm-message="Remove {{ $student->user->name }} from your class?"
+                                      data-confirm-ok="Remove" data-confirm-type="warning" data-confirm-icon="👤">
                                     @csrf @method('DELETE')
                                     <button class="btn btn-sm btn-outline-danger" title="Remove from my class">
                                         <i class="bi bi-person-dash-fill"></i>
@@ -111,12 +102,13 @@
                         <tr>
                             <td colspan="7" class="text-center text-muted py-5">
                                 <i class="bi bi-people" style="font-size:32px;display:block;margin-bottom:8px;"></i>
-                                No students in your class yet. Click <strong>Add Student</strong> to get started.
+                                No students yet. Click <strong>Add Student</strong> to get started.
                             </td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
 
@@ -131,15 +123,15 @@
                 </h6>
             </div>
             <div class="card-body">
-                <form action="{{ route('teacher.students.assign') }}" method="POST" class="d-flex gap-2">
+                <form action="{{ route('teacher.students.assign') }}" method="POST" class="d-flex gap-2 flex-wrap">
                     @csrf
-                    <select name="student_id" class="form-select" required>
+                    <select name="student_id" class="form-select" style="min-width:200px;flex:1;" required>
                         <option value="">— Select a student —</option>
                         @foreach($available as $s)
                             <option value="{{ $s->id }}">{{ $s->user->name }} ({{ $s->student_id }})</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="btn btn-success" style="white-space:nowrap;">
+                    <button type="submit" class="btn btn-success text-nowrap">
                         <i class="bi bi-plus-circle me-1"></i> Add to My Class
                     </button>
                 </form>

@@ -25,11 +25,12 @@
                 <span class="badge bg-secondary">{{ $students->count() }}</span>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Name</th>
-                            <th>Student ID</th>
+                            <th class="d-none d-sm-table-cell">Student ID</th>
                             <th>Face Status</th>
                             <th>Action</th>
                         </tr>
@@ -47,33 +48,28 @@
                                                  data-lightbox-sub="Registered Face"
                                                  style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;cursor:zoom-in;">
                                         @else
-                                            <div style="width:36px;height:36px;border-radius:8px;flex-shrink:0;
-                                                        background:linear-gradient(135deg,#4f46e5,#06b6d4);
-                                                        display:flex;align-items:center;justify-content:center;
-                                                        font-size:15px;color:#fff;font-weight:700;">
+                                            <div style="width:36px;height:36px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">
                                                 {{ strtoupper(substr($student->user->name, 0, 1)) }}
                                             </div>
                                         @endif
-                                        <span class="fw-semibold">{{ $student->user->name }}</span>
+                                        <div>
+                                            <span class="fw-semibold">{{ $student->user->name }}</span>
+                                            <div class="text-muted d-sm-none" style="font-size:11px;">{{ $student->student_id }}</div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td class="text-muted">{{ $student->student_id }}</td>
+                                <td class="text-muted d-none d-sm-table-cell">{{ $student->student_id }}</td>
                                 <td>
                                     @if($student->face_registered)
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-shield-fill-check me-1"></i>Registered
-                                        </span>
+                                        <span class="badge bg-success"><i class="bi bi-shield-fill-check me-1"></i>Done</span>
                                     @else
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-exclamation-circle me-1"></i>Pending
-                                        </span>
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>Pending</span>
                                     @endif
                                 </td>
                                 <td>
                                     <a href="{{ route('admin.face-registration.capture', ['type'=>'student','id'=>$student->id]) }}"
                                        class="btn btn-sm {{ $student->face_registered ? 'btn-outline-primary' : 'btn-primary' }}">
-                                        <i class="bi bi-camera-fill me-1"></i>
-                                        {{ $student->face_registered ? 'Re-capture' : 'Capture' }}
+                                        <i class="bi bi-camera-fill me-1"></i>{{ $student->face_registered ? 'Re-capture' : 'Capture' }}
                                     </a>
                                 </td>
                             </tr>
@@ -82,6 +78,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>
@@ -94,11 +91,12 @@
                 <span class="badge bg-secondary">{{ $teachers->count() }}</span>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Name</th>
-                            <th>Employee ID</th>
+                            <th class="d-none d-sm-table-cell">Employee ID</th>
                             <th>Face Status</th>
                             <th>Action</th>
                         </tr>
@@ -116,33 +114,28 @@
                                                  data-lightbox-sub="Registered Face — Teacher"
                                                  style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;cursor:zoom-in;">
                                         @else
-                                            <div style="width:36px;height:36px;border-radius:8px;flex-shrink:0;
-                                                        background:linear-gradient(135deg,#059669,#10b981);
-                                                        display:flex;align-items:center;justify-content:center;
-                                                        font-size:15px;color:#fff;font-weight:700;">
+                                            <div style="width:36px;height:36px;border-radius:8px;flex-shrink:0;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">
                                                 {{ strtoupper(substr($teacher->user->name, 0, 1)) }}
                                             </div>
                                         @endif
-                                        <span class="fw-semibold">{{ $teacher->user->name }}</span>
+                                        <div>
+                                            <span class="fw-semibold">{{ $teacher->user->name }}</span>
+                                            <div class="text-muted d-sm-none" style="font-size:11px;">{{ $teacher->employee_id }}</div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td class="text-muted">{{ $teacher->employee_id }}</td>
+                                <td class="text-muted d-none d-sm-table-cell">{{ $teacher->employee_id }}</td>
                                 <td>
                                     @if($teacher->face_registered)
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-shield-fill-check me-1"></i>Registered
-                                        </span>
+                                        <span class="badge bg-success"><i class="bi bi-shield-fill-check me-1"></i>Done</span>
                                     @else
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-exclamation-circle me-1"></i>Pending
-                                        </span>
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>Pending</span>
                                     @endif
                                 </td>
                                 <td>
                                     <a href="{{ route('admin.face-registration.capture', ['type'=>'teacher','id'=>$teacher->id]) }}"
                                        class="btn btn-sm {{ $teacher->face_registered ? 'btn-outline-success' : 'btn-success' }}">
-                                        <i class="bi bi-camera-fill me-1"></i>
-                                        {{ $teacher->face_registered ? 'Re-capture' : 'Capture' }}
+                                        <i class="bi bi-camera-fill me-1"></i>{{ $teacher->face_registered ? 'Re-capture' : 'Capture' }}
                                     </a>
                                 </td>
                             </tr>
@@ -151,6 +144,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>

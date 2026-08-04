@@ -78,29 +78,22 @@
               onsubmit="return validateSessionForm(event)">
             @csrf
 
-            {{-- All fields in one clean row — columns total exactly 12 --}}
             <div class="row g-2 align-items-start">
-
-                {{-- Subject: col-2 --}}
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label mb-1 fw-semibold" style="font-size:13px;">Subject</label>
                     <input type="text" name="subject"
                            class="form-control form-control-sm @error('subject') is-invalid @enderror"
                            value="{{ old('subject') }}" placeholder="e.g. Mathematics">
                     @error('subject')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-
-                {{-- Section: col-2 --}}
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label mb-1 fw-semibold" style="font-size:13px;">Section</label>
                     <input type="text" name="section"
                            class="form-control form-control-sm @error('section') is-invalid @enderror"
                            value="{{ old('section') }}" placeholder="e.g. Grade 7-A">
                     @error('section')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-
-                {{-- Camera: col-2 --}}
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label mb-1 fw-semibold" style="font-size:13px;">Camera</label>
                     <select name="camera_id" id="cameraSelect"
                             class="form-select form-select-sm @error('camera_id') is-invalid @enderror"
@@ -116,19 +109,16 @@
                     </select>
                     @error('camera_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-
-                {{-- Type: col-2 --}}
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label mb-1 fw-semibold" style="font-size:13px;">
                         Type
                         @error('session_type')<span class="text-danger"> {{ $message }}</span>@enderror
                     </label>
-                    <div class="d-flex gap-1 flex-nowrap" id="sessionTypeToggle">
+                    <div class="d-flex gap-1 flex-wrap" id="sessionTypeToggle">
                         <input type="radio" class="stype-radio" name="session_type"
                                id="stMorning" value="morning_in"
                                {{ old('session_type','morning_in') === 'morning_in' ? 'checked' : '' }}>
                         <label for="stMorning" class="stype-pill stype-sm" id="stMorningLabel">🌅 AM</label>
-
                         <input type="radio" class="stype-radio out" name="session_type"
                                id="stAfternoon" value="afternoon_out"
                                {{ old('session_type') === 'afternoon_out' ? 'checked' : '' }}>
@@ -136,37 +126,27 @@
                     </div>
                     <div id="sessionTypeHint" style="font-size:11px;margin-top:3px;min-height:16px;"></div>
                 </div>
-
-                {{-- Schedule: col-3 --}}
-                <div class="col-md-3">
+                <div class="col-12 col-md-3">
                     <label class="form-label mb-1 fw-semibold" style="font-size:13px;">
-                        Schedule
-                        <span class="text-muted fw-normal" style="font-size:11px;">(optional)</span>
+                        Schedule <span class="text-muted fw-normal" style="font-size:11px;">(optional)</span>
                     </label>
                     <div class="input-group input-group-sm">
                         <input type="time" name="scheduled_start" id="schedStart"
                                class="form-control @error('scheduled_start') is-invalid @enderror"
-                               value="{{ old('scheduled_start') }}"
-                               oninput="onScheduleInput()">
+                               value="{{ old('scheduled_start') }}" oninput="onScheduleInput()">
                         <span class="input-group-text px-1 text-muted">–</span>
                         <input type="time" name="scheduled_end" id="schedEnd"
                                class="form-control @error('scheduled_end') is-invalid @enderror"
-                               value="{{ old('scheduled_end') }}"
-                               oninput="onScheduleInput()">
+                               value="{{ old('scheduled_end') }}" oninput="onScheduleInput()">
                     </div>
                     <div id="scheduleHint" style="font-size:11px;margin-top:3px;min-height:16px;"></div>
-                    @error('scheduled_end')
-                        <div class="text-danger" style="font-size:11px;">{{ $message }}</div>
-                    @enderror
+                    @error('scheduled_end')<div class="text-danger" style="font-size:11px;">{{ $message }}</div>@enderror
                 </div>
-
-                {{-- Start button: col-1 --}}
-                <div class="col-md-1" style="padding-top:23px;">
+                <div class="col-12 col-md-1" style="padding-top:23px;">
                     <button type="submit" class="btn btn-success btn-sm w-100 text-nowrap">
                         <i class="bi bi-play-fill"></i> Start
                     </button>
                 </div>
-
             </div>
 
             <div id="localCamInfo" style="display:none;margin-top:10px;">
@@ -189,11 +169,16 @@
         </h6>
     </div>
     <div class="card-body p-0">
+        <div class="table-responsive">
         <table class="table table-hover mb-0" style="font-size:13px;">
             <thead class="table-light">
                 <tr>
-                    <th>Subject</th><th>Section</th><th>Type</th><th>Schedule</th><th>Camera</th>
-                    <th>Started</th><th>Ended</th><th>Status</th><th></th>
+                    <th>Subject</th><th>Section</th><th>Type</th>
+                    <th class="d-none d-lg-table-cell">Schedule</th>
+                    <th class="d-none d-md-table-cell">Camera</th>
+                    <th>Started</th>
+                    <th class="d-none d-sm-table-cell">Ended</th>
+                    <th>Status</th><th></th>
                 </tr>
             </thead>
             <tbody id="sessionsTableBody">
@@ -203,57 +188,47 @@
                     <td>{{ $session->section }}</td>
                     <td>
                         @if($session->session_type === 'afternoon_out')
-                            <span class="badge badge-afternoon">🌇 Afternoon</span>
+                            <span class="badge badge-afternoon">🌇</span>
                         @else
-                            <span class="badge badge-morning">🌅 Morning</span>
+                            <span class="badge badge-morning">🌅</span>
                         @endif
                     </td>
-                    <td>
+                    <td class="d-none d-lg-table-cell">
                         @if($session->scheduled_start && $session->scheduled_end)
-                            <span class="text-muted small">
-                                {{ \Carbon\Carbon::parse($session->scheduled_start)->format('h:i A') }}
-                                –
-                                {{ \Carbon\Carbon::parse($session->scheduled_end)->format('h:i A') }}
-                            </span>
+                            <span class="text-muted small">{{ \Carbon\Carbon::parse($session->scheduled_start)->format('h:i A') }} – {{ \Carbon\Carbon::parse($session->scheduled_end)->format('h:i A') }}</span>
                         @else
                             <span class="text-muted small">—</span>
                         @endif
                     </td>
-                    <td>
-                        @if($session->camera->is_local_device)
-                            <i class="bi bi-laptop text-primary me-1"></i>
-                        @endif
+                    <td class="d-none d-md-table-cell">
+                        @if($session->camera->is_local_device)<i class="bi bi-laptop text-primary me-1"></i>@endif
                         {{ $session->camera->location }}
                     </td>
                     <td>{{ $session->started_at?->format('M d, h:i A') ?? '—' }}</td>
-                    <td>{{ $session->ended_at?->format('h:i A') ?? '—' }}</td>
+                    <td class="d-none d-sm-table-cell">{{ $session->ended_at?->format('h:i A') ?? '—' }}</td>
                     <td>
                         <span class="badge bg-{{ $session->status === 'active' ? 'success' : 'secondary' }}">
                             {{ ucfirst($session->status) }}
                         </span>
                     </td>
                     <td class="text-nowrap">
-                        {{-- View opens in drawer --}}
-                        <button onclick="openDrawer(
-                                    '{{ route('teacher.sessions.live', $session) }}',
-                                    '{{ addslashes($session->subject) }} — {{ addslashes($session->section) }} Roster'
-                                 )"
+                        <button onclick="openDrawer('{{ route('teacher.sessions.live', $session) }}','{{ addslashes($session->subject) }} — {{ addslashes($session->section) }} Roster')"
                                 class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-eye-fill"></i> View
+                            <i class="bi bi-eye-fill"></i>
                         </button>
                         @if($session->status === 'active')
-                            {{-- Camera goes to full page (needs full camera access) --}}
-                            <a href="{{ route('teacher.sessions.camera', $session) }}"
-                               class="btn btn-sm btn-success">
-                                <i class="bi bi-camera-video-fill"></i> Camera
+                            <a href="{{ route('teacher.sessions.camera', $session) }}" class="btn btn-sm btn-success">
+                                <i class="bi bi-camera-video-fill"></i>
                             </a>
-                        @endif                    </td>
+                        @endif
+                    </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="text-center text-muted py-4">No sessions yet.</td></tr>
+                <tr><td colspan="9" class="text-center text-muted py-4">No sessions yet.</td></tr>
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 {{ $sessions->links() }}
@@ -515,8 +490,8 @@ function renderSessions(sessions) {
     }
     tbody.innerHTML = sessions.map(s => {
         const typeBadge = s.session_type === 'afternoon_out'
-            ? '<span class="badge badge-afternoon">🌇 Afternoon</span>'
-            : '<span class="badge badge-morning">🌅 Morning</span>';
+            ? '<span class="badge badge-afternoon">🌇</span>'
+            : '<span class="badge badge-morning">🌅</span>';
         const schedule = (s.scheduled_start && s.scheduled_end)
             ? `<span class="text-muted small">${s.scheduled_start} – ${s.scheduled_end}</span>`
             : '<span class="text-muted small">—</span>';
@@ -524,22 +499,22 @@ function renderSessions(sessions) {
             ? '<span class="badge bg-success">Active</span>'
             : '<span class="badge bg-secondary">Ended</span>';
         const cameraBtn = s.status === 'active' && s.camera_route
-            ? `<a href="${s.camera_route}" class="btn btn-sm btn-success"><i class="bi bi-camera-video-fill"></i> Camera</a>`
+            ? `<a href="${s.camera_route}" class="btn btn-sm btn-success"><i class="bi bi-camera-video-fill"></i></a>`
             : '';
         const camIcon = s.is_local ? '<i class="bi bi-laptop text-primary me-1"></i>' : '';
         return `<tr>
             <td class="fw-semibold">${s.subject}</td>
             <td>${s.section}</td>
             <td>${typeBadge}</td>
-            <td>${schedule}</td>
-            <td>${camIcon}${s.camera}</td>
+            <td class="d-none d-lg-table-cell">${schedule}</td>
+            <td class="d-none d-md-table-cell">${camIcon}${s.camera}</td>
             <td>${s.started_at}</td>
-            <td>${s.ended_at}</td>
+            <td class="d-none d-sm-table-cell">${s.ended_at}</td>
             <td>${statusBadge}</td>
             <td class="text-nowrap">
                 <button onclick="openDrawer('${s.live_route}','${s.subject} — ${s.section} Roster')"
                         class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-eye-fill"></i> View
+                    <i class="bi bi-eye-fill"></i>
                 </button>
                 ${cameraBtn}
             </td>

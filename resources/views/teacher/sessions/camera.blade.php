@@ -332,9 +332,6 @@ body { background:#0a0a0f; }
                 {{-- Compact PST clock --}}
                 <span class="cam-pill" style="font-family:monospace;color:#4ade80;min-width:76px;text-align:center;" id="camPhTime">--:-- --</span>
 
-                {{-- Divider --}}
-                <span style="color:rgba(255,255,255,.15);font-size:18px;">|</span>
-
                 @if($session->camera->is_local_device)
                 <button class="cam-icon-btn" onclick="switchCamera()" title="Switch front/rear camera">
                     <i class="bi bi-arrow-repeat"></i>
@@ -344,18 +341,15 @@ body { background:#0a0a0f; }
                 {{-- Scan mode: Auto / Manual / QR --}}
                 <div class="mode-toggle">
                     <button class="mode-btn active" id="modeAuto" onclick="setMode('auto')" title="Auto face scan">
-                        <i class="bi bi-magic"></i><span class="d-none d-md-inline ms-1">Auto</span>
+                        <i class="bi bi-magic"></i><span class="d-none d-sm-inline ms-1">Auto</span>
                     </button>
                     <button class="mode-btn" id="modeManual" onclick="setMode('manual')" title="Manual scan">
-                        <i class="bi bi-hand-index"></i><span class="d-none d-md-inline ms-1">Manual</span>
+                        <i class="bi bi-hand-index"></i><span class="d-none d-sm-inline ms-1">Manual</span>
                     </button>
                     <button class="mode-btn" id="modeQr" onclick="setMode('qr')" title="QR code scan">
-                        <i class="bi bi-qr-code-scan"></i><span class="d-none d-md-inline ms-1">QR</span>
+                        <i class="bi bi-qr-code-scan"></i><span class="d-none d-sm-inline ms-1">QR</span>
                     </button>
                 </div>
-
-                {{-- Divider --}}
-                <span style="color:rgba(255,255,255,.15);font-size:18px;">|</span>
 
                 {{-- Scan type: In / Out --}}
                 @if($session->isActive())
@@ -371,9 +365,6 @@ body { background:#0a0a0f; }
                 </div>
                 @endif
 
-                {{-- Divider --}}
-                <span style="color:rgba(255,255,255,.15);font-size:18px;">|</span>
-
                 {{-- QR modal, End, Home --}}
                 @if($session->isActive())
                 <button class="cam-icon-btn" onclick="openQr()" title="Show session QR code">
@@ -381,14 +372,13 @@ body { background:#0a0a0f; }
                 </button>
                 <form action="{{ route('teacher.sessions.stop', $session) }}" method="POST" class="d-inline">
                     @csrf
-                    <button class="cam-icon-btn danger" title="End session"
-                            onclick="handleEndSession(this)">
+                    <button class="cam-icon-btn danger" title="End session" onclick="handleEndSession(this)">
                         <i class="bi bi-stop-circle-fill"></i>
                     </button>
                 </form>
                 @endif
                 <a href="{{ route('teacher.sessions.index') }}" class="cam-icon-btn"
-                   style="text-decoration:none;" title="Back to My Sessions (session stays active)">
+                   style="text-decoration:none;" title="Back to My Sessions">
                     <i class="bi bi-house-fill"></i>
                 </a>
             </div>
