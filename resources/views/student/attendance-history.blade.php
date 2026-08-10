@@ -189,6 +189,7 @@
                 <tr>
                     <th style="width:54px;">Photo</th>
                     <th>Date</th>
+                    <th>Status</th>
                     <th>In</th>
                     <th class="d-none d-sm-table-cell">Out</th>
                     <th class="d-none d-md-table-cell">Duration</th>
@@ -223,6 +224,18 @@
                         <td class="td-main">
                             <div class="fw-semibold">{{ $record->arrived_at->format('D, M j') }}</div>
                             <div class="text-muted d-md-none" style="font-size:11px;">{{ $record->camera->location }}</div>
+                        </td>
+                        <td class="td-badge">
+                            @php
+                                $statusBadgeClass = match($record->status ?? 'present') {
+                                    'present' => 'bg-success',
+                                    'absent' => 'bg-danger',
+                                    'late' => 'bg-warning text-dark',
+                                    default => 'bg-secondary'
+                                };
+                                $statusLabel = ucfirst($record->status ?? 'present');
+                            @endphp
+                            <span class="badge {{ $statusBadgeClass }}">{{ $statusLabel }}</span>
                         </td>
                         <td class="td-badge">
                             <span class="fw-semibold text-success" style="white-space:nowrap;">{{ $record->arrived_at->format('h:i A') }}</span>

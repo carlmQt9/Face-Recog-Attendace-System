@@ -15,6 +15,7 @@ class AttendanceRecord extends Model
         'camera_id',
         'scan_result',
         'scan_type',
+        'status',
         'method',
         'marked_by',
         'confidence_score',
@@ -31,6 +32,7 @@ class AttendanceRecord extends Model
         'notification_sent'          => 'boolean',
         'time_out_notification_sent' => 'boolean',
         'confidence_score'           => 'decimal:2',
+        'status'                     => 'string',
     ];
 
     /** Duration in minutes between time-in and time-out */
@@ -58,6 +60,28 @@ class AttendanceRecord extends Model
         return \Storage::disk('public')->exists($this->snapshot_path)
             ? \Storage::url($this->snapshot_path)
             : null;
+    }
+
+    /** Get status badge HTML */
+    public function statusBadge(): string
+    {
+        return match($this->status ?? 'present') {
+            'present' => '<span class="badge bg-success">Present</span>',
+            'absent' => '<span class="badge bg-danger">Absent</span>',
+            'late' => '<span class="badge bg-warning text-dark">Late</span>',
+            default => '<span class="badge bg-secondary">Unknown</span>',
+        };
+    }
+
+    /** Get status color for UI */
+    public function statusColor(): string
+    {
+        return match($this->status ?? 'present') {
+            'present' => 'success',
+            'absent' => 'danger',
+            'late' => 'warning',
+            default => 'secondary',
+        };
     }
 
     // ── Relationships ─────────────────────────────────────────────────────────

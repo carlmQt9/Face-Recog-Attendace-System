@@ -22,11 +22,19 @@
                         &nbsp;·&nbsp; Started: {{ $session->started_at?->format('h:i A') }}
                         &nbsp;·&nbsp; <span id="rosterCount">{{ $attendance->count() }}</span> scanned
                         &nbsp;·&nbsp;
-                        @if($session->session_type === 'afternoon_out')
-                            <span class="badge" style="background:#fee2e2;color:#991b1b;">🌇 PM</span>
-                        @else
-                            <span class="badge" style="background:#dcfce7;color:#15803d;">🌅 AM</span>
-                        @endif
+                        @php
+                            $isOut = $session->session_type === 'afternoon_out';
+                            if ($session->scheduled_start) {
+                                $startHour = intval(explode(':', $session->scheduled_start)[0]);
+                                $amPm = $startHour >= 12 ? 'PM' : 'AM';
+                                $typeEmoji = $isOut ? '📤' : '📥';
+                                $typeLabel = ($isOut ? 'Out' : 'In') . ' (' . $amPm . ')';
+                            } else {
+                                $typeEmoji = $isOut ? '📤' : '📥';
+                                $typeLabel = $isOut ? 'Out' : 'In';
+                            }
+                        @endphp
+                        <span class="badge" style="background:{{ $isOut ? '#fee2e2' : '#dcfce7' }};color:{{ $isOut ? '#991b1b' : '#15803d' }};">{{ $typeEmoji }} {{ $typeLabel }}</span>
                     </small>
                 </div>
                 @if($session->isActive())
@@ -54,6 +62,7 @@
                             <th style="width:32px;">#</th>
                             <th>Student</th>
                             <th class="d-none d-sm-table-cell">Method</th>
+                            <th>Status</th>
                             <th>In</th>
                             <th class="d-none d-sm-table-cell">Out</th>
                             <th class="d-none d-md-table-cell">Duration</th>
@@ -96,6 +105,18 @@
                                 @php $methodMap=['face_scan'=>['bg-primary','Face'],'manual'=>['bg-warning text-dark','Manual'],'qr_code'=>['bg-info text-dark','QR']];[$cls,$lbl]=$methodMap[$record->method]??['bg-secondary','—']; @endphp
                                 <span class="badge {{ $cls }}">{{ $lbl }}</span>
                             </td>
+                            <td class="td-badge">
+                                @php
+                                    $statusBadgeClass = match($record->status ?? 'present') {
+                                        'present' => 'bg-success',
+                                        'absent' => 'bg-danger',
+                                        'late' => 'bg-warning text-dark',
+                                        default => 'bg-secondary'
+                                    };
+                                    $statusLabel = ucfirst($record->status ?? 'present');
+                                @endphp
+                                <span class="badge {{ $statusBadgeClass }}">{{ $statusLabel }}</span>
+                            </td>
                             <td class="td-badge"><span class="badge bg-success" style="white-space:nowrap;">{{ $record->arrived_at->format('h:i A') }}</span></td>
                             <td class="td-hide d-none d-sm-table-cell">
                                 @if($record->time_out)
@@ -124,7 +145,7 @@
                         </tr>
                         @empty
                         <tr id="emptyRow">
-                            <td colspan="7" class="text-center text-muted py-4">Waiting for students to scan in…</td>
+                            <td colspan="8" class="text-center text-muted py-4">Waiting for students to scan in…</td>
                         </tr>
                         @endforelse
                     </tbody>

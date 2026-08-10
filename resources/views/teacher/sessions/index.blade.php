@@ -24,8 +24,8 @@
     padding:4px 10px;
     font-size:12px;
 }
-.badge-morning   { background:#fef9c3; color:#854d0e; font-weight:700; }
-.badge-afternoon { background:#fee2e2; color:#991b1b; font-weight:700; }
+.badge-timein   { background:#dcfce7; color:#15803d; font-weight:700; }
+.badge-timeout { background:#fee2e2; color:#991b1b; font-weight:700; }
 
 /* ── Slide-in drawer ──────────────────────────────── */
 .drawer-backdrop {
@@ -116,13 +116,13 @@
                     </label>
                     <div class="d-flex gap-1 flex-wrap" id="sessionTypeToggle">
                         <input type="radio" class="stype-radio" name="session_type"
-                               id="stMorning" value="morning_in"
+                               id="stIn" value="morning_in"
                                {{ old('session_type','morning_in') === 'morning_in' ? 'checked' : '' }}>
-                        <label for="stMorning" class="stype-pill stype-sm" id="stMorningLabel">🌅 AM</label>
+                        <label for="stIn" class="stype-pill stype-sm" id="stInLabel">📥 In</label>
                         <input type="radio" class="stype-radio out" name="session_type"
-                               id="stAfternoon" value="afternoon_out"
+                               id="stOut" value="afternoon_out"
                                {{ old('session_type') === 'afternoon_out' ? 'checked' : '' }}>
-                        <label for="stAfternoon" class="stype-pill stype-sm" id="stAfternoonLabel">🌇 PM</label>
+                        <label for="stOut" class="stype-pill stype-sm" id="stOutLabel">📤 Out</label>
                     </div>
                 </div>
                 <div class="col-12 col-md-3">
@@ -190,11 +190,17 @@
                             <td class="align-middle fw-semibold">{{ $session->subject }}</td>
                             <td class="align-middle">{{ $session->section }}</td>
                             <td class="align-middle">
-                                @if($session->session_type === 'afternoon_out')
-                                    <span class="badge badge-afternoon">🌇 PM</span>
-                                @else
-                                    <span class="badge badge-morning">🌅 AM</span>
-                                @endif
+                                @php
+                                    $isOut = $session->session_type === 'afternoon_out';
+                                    $timeLabel = $isOut ? '📤 Out' : '📥 In';
+                                    $badgeClass = $isOut ? 'badge-timeout' : 'badge-timein';
+                                    if ($session->scheduled_start) {
+                                        $startHour = intval(explode(':', $session->scheduled_start)[0]);
+                                        $amPm = $startHour >= 12 ? 'PM' : 'AM';
+                                        $timeLabel .= ' (' . $amPm . ')';
+                                    }
+                                @endphp
+                                <span class="badge {{ $badgeClass }}">{{ $timeLabel }}</span>
                             </td>
                             <td class="align-middle">
                                 {{ $session->camera->location }}
@@ -239,8 +245,13 @@
             <div class="mob-list">
                 @forelse($sessions as $session)
                 <div class="session-row" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #f1f5f9;min-width:0;">
-                    <div style="flex-shrink:0;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;background:{{ $session->session_type === 'afternoon_out' ? '#fee2e2' : '#fef9c3' }};">
-                        {{ $session->session_type === 'afternoon_out' ? '🌇' : '🌅' }}
+                    @php
+                        $isOut = $session->session_type === 'afternoon_out';
+                        $bgColor = $isOut ? '#fee2e2' : '#dcfce7';
+                        $emoji = $isOut ? '📤' : '📥';
+                    @endphp
+                    <div style="flex-shrink:0;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;background:{{ $bgColor }};">
+                        {{ $emoji }}
                     </div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $session->subject }}</div>
@@ -392,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cameraSelect').addEventListener('change', function() { this.classList.remove('is-invalid'); });
 });
 
-// ── Restrict schedule time pickers to AM (00:00–11:59) or PM (12:00–23:59) ──
+// ── Allow full day schedule for both AM and PM sessions ──
 function applyTimeRestrictions() {
     const selectedType = document.querySelector('[name="session_type"]:checked')?.value;
     const startEl = document.getElementById('schedStart');
@@ -401,24 +412,16 @@ function applyTimeRestrictions() {
 
     if (!startEl || !endEl) return;
 
+    // Remove previous restrictions - allow full 24-hour range for both session types
+    startEl.min = '00:00'; startEl.max = '23:59';
+    endEl.min   = '00:00'; endEl.max   = '23:59';
+
     if (selectedType === 'afternoon_out') {
-        // PM only: 12:00 – 23:59
-        startEl.min = '12:00'; startEl.max = '23:59';
-        endEl.min   = '12:00'; endEl.max   = '23:59';
-        // If current values are in AM range, clear them
-        if (startEl.value && startEl.value < '12:00') startEl.value = '';
-        if (endEl.value   && endEl.value   < '12:00') endEl.value   = '';
         hint.innerHTML = '<i class="bi bi-clock text-warning me-1" style="color:#d97706;"></i>'
-            + '<span style="color:#d97706;">PM session — schedule must be between 12:00 PM – 11:59 PM.</span>';
+            + '<span style="color:#d97706;">Time Out session — schedule will determine if AM or PM.</span>';
     } else {
-        // AM only: 00:00 – 11:59
-        startEl.min = '00:00'; startEl.max = '11:59';
-        endEl.min   = '00:00'; endEl.max   = '11:59';
-        // If current values are in PM range, clear them
-        if (startEl.value && startEl.value >= '12:00') startEl.value = '';
-        if (endEl.value   && endEl.value   >= '12:00') endEl.value   = '';
         hint.innerHTML = '<i class="bi bi-clock text-success me-1"></i>'
-            + '<span style="color:#16a34a;">AM session — schedule must be between 12:00 AM – 11:59 AM.</span>';
+            + '<span style="color:#16a34a;">Time In session — schedule will determine if AM or PM.</span>';
     }
     // Re-run schedule hint
     onScheduleInput();
@@ -453,7 +456,12 @@ function onScheduleInput() {
     }
     startEl.classList.add('is-valid');
     endEl.classList.add('is-valid');
-    hint.innerHTML = '<span style="color:#16a34a;">✓ Session will auto-end at ' + formatTime(end) + '</span>';
+    
+    // Determine if AM or PM based on start time
+    const [startHour] = start.split(':').map(Number);
+    const amOrPm = startHour >= 12 ? '🌇 PM' : '🌅 AM';
+    
+    hint.innerHTML = '<span style="color:#16a34a;">✓ ' + amOrPm + ' session will auto-end at ' + formatTime(end) + '</span>';
 }
 
 function formatTime(val) {
@@ -552,12 +560,12 @@ function renderSessions(sessions) {
     let mobileRows  = '';
 
     sessions.forEach(s => {
-        const isAfternoon  = s.session_type === 'afternoon_out';
-        const typeBg       = isAfternoon ? '#fee2e2' : '#fef9c3';
-        const typeEmoji    = isAfternoon ? '🌇' : '🌅';
-        const typeBadge    = isAfternoon
-            ? '<span class="badge badge-afternoon">🌇 PM</span>'
-            : '<span class="badge badge-morning">🌅 AM</span>';
+        const isOut     = s.session_type === 'afternoon_out';
+        const typeBg    = isOut ? '#fee2e2' : '#dcfce7';
+        const typeEmoji = isOut ? '📤' : '📥';
+        const typeBadge = isOut
+            ? '<span class="badge badge-timeout">📤 Out</span>'
+            : '<span class="badge badge-timein">📥 In</span>';
         const statusBadge  = s.status === 'active'
             ? '<span class="badge bg-success">Active</span>'
             : '<span class="badge bg-secondary">Ended</span>';

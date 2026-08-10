@@ -18,7 +18,7 @@ body { background:#0a0a0f; }
 .camera-wrapper.no-match  { box-shadow:0 0 60px rgba(248,113,113,.5); border-color:#f87171; }
 .camera-wrapper.cooldown  { box-shadow:0 0 60px rgba(250,204,21,.4); border-color:#facc15; }
 
-#videoFeed   { width:100%; display:block; border-radius:18px; }
+#videoFeed   { width:100%; display:block; border-radius:18px; transform:scaleX(-1); }
 #scanCanvas  { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; border-radius:18px; }
 
 /* ── Scan line ─────────────────────────────────────── */
@@ -164,9 +164,6 @@ body { background:#0a0a0f; }
 }
 .scantype-btn.in.active  {background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;}
 .scantype-btn.out.active {background:linear-gradient(135deg,#dc2626,#f87171);color:#fff;}
-.scantype-btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
-.scantype-btn:disabled.in.active  {background:linear-gradient(135deg,#16a34a,#22c55e);color:rgba(255,255,255,.5);}
-.scantype-btn:disabled.out.active {background:linear-gradient(135deg,#dc2626,#f87171);color:rgba(255,255,255,.5);}
 
 .scan-btn{
     background:linear-gradient(135deg,#0c3d8a,#1a6b3c);color:#fff;
@@ -307,7 +304,65 @@ body { background:#0a0a0f; }
 .device-bar select{
     background:#1e293b;border:1px solid rgba(255,255,255,.12);
     color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;flex:1;min-width:160px;
-}</style>
+}
+
+/* ── Camera Switch Modal ─────────────────────────────– */
+.camera-modal-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1100;
+    display:flex;align-items:center;justify-content:center;
+    padding:16px;
+    opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.camera-modal-backdrop.open{opacity:1;pointer-events:all;}
+.camera-modal{
+    background:#0f172a;border:1px solid rgba(255,255,255,.1);
+    border-radius:24px;padding:32px 24px;text-align:center;
+    max-width:420px;width:100%;
+    animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
+    position:relative;z-index:1101;
+}
+.camera-modal h6{color:#fff;font-weight:800;font-size:18px;margin-bottom:8px;}
+.camera-modal .camera-sub{color:#64748b;font-size:13px;margin-bottom:24px;}
+.camera-option{
+    display:flex;align-items:center;gap:16px;padding:16px;
+    background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);
+    border-radius:14px;margin-bottom:12px;cursor:pointer;
+    transition:all .2s;
+}
+.camera-option:hover{
+    background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);
+}
+.camera-option.selected{
+    background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.4);
+}
+.camera-option-icon{
+    font-size:28px;flex-shrink:0;
+}
+.camera-option-text{
+    text-align:left;flex:1;min-width:0;
+}
+.camera-option-text h5{
+    color:#fff;font-weight:700;font-size:14px;margin:0;line-height:1.2;
+}
+.camera-option-text p{
+    color:#64748b;font-size:11px;margin:2px 0 0 0;
+}
+.camera-modal-actions{
+    display:flex;gap:10px;margin-top:24px;
+}
+.camera-modal-actions button{
+    flex:1;padding:10px;border-radius:10px;border:none;font-weight:700;font-size:13px;
+    cursor:pointer;transition:all .2s;
+}
+.camera-modal-actions button.btn-primary{
+    background:linear-gradient(135deg,#0c3d8a,#1a6b3c);color:#fff;
+}
+.camera-modal-actions button.btn-primary:hover{opacity:.85;}
+.camera-modal-actions button.btn-secondary{
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#94a3b8;
+}
+.camera-modal-actions button.btn-secondary:hover{background:rgba(255,255,255,.08);}
+</style>
 @endpush
 
 @section('content')
@@ -326,11 +381,19 @@ body { background:#0a0a0f; }
                         &nbsp;<span class="badge bg-primary"><i class="bi bi-laptop me-1"></i>Local Device</span>
                     @endif
                     &nbsp;
-                    @if($session->session_type === 'afternoon_out')
-                        <span class="badge" style="background:#7f1d1d;color:#fca5a5;">🌇 Afternoon — Time Out</span>
-                    @else
-                        <span class="badge" style="background:#14532d;color:#86efac;">🌅 Morning — Time In</span>
-                    @endif
+                    @php
+                        $isOut = $session->session_type === 'afternoon_out';
+                        if ($session->scheduled_start) {
+                            $startHour = intval(explode(':', $session->scheduled_start)[0]);
+                            $amPm = $startHour >= 12 ? 'PM' : 'AM';
+                            $typeEmoji = $isOut ? '📤' : '📥';
+                            $typeLabel = ($isOut ? 'Out' : 'In') . ' (' . $amPm . ')';
+                        } else {
+                            $typeEmoji = $isOut ? '📤' : '📥';
+                            $typeLabel = $isOut ? 'Time Out' : 'Time In';
+                        }
+                    @endphp
+                    <span class="badge" style="background:{{ $isOut ? '#7f1d1d' : '#14532d' }};color:{{ $isOut ? '#fca5a5' : '#86efac' }};">{{ $typeEmoji }} {{ $typeLabel }}</span>
                     @if($session->scheduled_start && $session->scheduled_end)
                         &nbsp;<span class="badge" style="background:#1e3a5f;color:#93c5fd;">
                             ⏰ {{ \Carbon\Carbon::parse($session->scheduled_start)->format('h:i A') }}
@@ -344,9 +407,13 @@ body { background:#0a0a0f; }
                 {{-- Compact PST clock --}}
                 <span class="cam-pill" style="font-family:monospace;color:#4ade80;min-width:76px;text-align:center;" id="camPhTime">--:-- --</span>
 
+                {{-- Flip Camera Button --}}
                 @if($session->camera->is_local_device)
-                <button class="cam-icon-btn" onclick="switchCamera()" title="Switch front/rear camera">
-                    <i class="bi bi-arrow-repeat"></i>
+                <button class="cam-icon-btn" onclick="openCameraSwitchModal()" title="Switch front/rear camera">
+                    <i class="bi bi-arrow-repeat"></i> <span class="d-none d-sm-inline ms-1">Camera</span>
+                </button>
+                <button class="cam-icon-btn" onclick="quickSwapCamera()" title="Quick swap front/rear camera">
+                    <i class="bi bi-arrow-left-right"></i>
                 </button>
                 @endif
 
@@ -366,7 +433,7 @@ body { background:#0a0a0f; }
                 {{-- Scan type: In / Out --}}
                 @if($session->isActive())
                 <div class="scantype-toggle">
-                    <button class="scantype-btn in active" id="scanTypeIn"
+                    <button class="scantype-btn in" id="scanTypeIn"
                             onclick="confirmScanType('time_in')" title="Time In">
                         <i class="bi bi-box-arrow-in-right"></i> In
                     </button>
@@ -532,6 +599,24 @@ body { background:#0a0a0f; }
                     <div>
                         <div class="roster-name">{{ $record->student->user->name }}</div>
                         <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+                            @php
+                                $statusClass = match($record->status ?? 'present') {
+                                    'present' => 'rgba(22,163,74,.15)',
+                                    'absent' => 'rgba(220,38,38,.15)',
+                                    'late' => 'rgba(250,204,21,.15)',
+                                    default => 'rgba(100,116,139,.15)'
+                                };
+                                $statusColor = match($record->status ?? 'present') {
+                                    'present' => '#4ade80',
+                                    'absent' => '#f87171',
+                                    'late' => '#facc15',
+                                    default => '#94a3b8'
+                                };
+                                $statusLabel = ucfirst($record->status ?? 'present');
+                            @endphp
+                            <span style="font-size:10px;background:{{ $statusClass }};color:{{ $statusColor }};border-radius:5px;padding:2px 7px;font-weight:700;">
+                                {{ $statusLabel }}
+                            </span>
                             @if($record->scan_type === 'time_out')
                                 <span style="font-size:10px;background:rgba(220,38,38,.15);color:#f87171;border-radius:5px;padding:2px 7px;font-weight:700;">
                                     OUT {{ $record->time_out?->format('h:i A') }}
@@ -590,27 +675,37 @@ body { background:#0a0a0f; }
 </div>
 @endif
 
-{{-- ── Attendance Type Confirmation Modal ── --}}
-@if($session->isActive())
-<div class="qr-modal-backdrop" id="attendanceTypeBackdrop" style="display:none;" onclick="closeAttendanceTypeModal(event)">
-    <div class="qr-modal" style="min-width:320px;">
-        <h6 id="attendTypeModalTitle" style="font-size:18px;margin-bottom:12px;"><i class="bi bi-clock-fill me-2"></i>Confirm Attendance Type</h6>
-        <p id="attendTypeModalMsg" style="color:#94a3b8;font-size:13px;margin-bottom:20px;line-height:1.6;">
-            This student doesn't have a morning time-in. Do you want to set this afternoon scan as:
-        </p>
-        <div class="d-flex gap-2 justify-content-center" style="flex-wrap:wrap;">
-            <button class="btn btn-sm" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border-radius:9px;padding:8px 20px;font-weight:700;border:none;cursor:pointer;min-width:110px;"
-                    onclick="setAndSubmitAttendanceType('time_in')">
-                <i class="bi bi-box-arrow-in-right me-1"></i>Mark as Time-In
+{{-- ── Camera Switch Modal ── --}}
+@if($session->camera->is_local_device)
+<div class="camera-modal-backdrop" id="cameraModalBackdrop" onclick="closeCameraSwitchModalOutside(event)">
+    <div class="camera-modal">
+        <h6><i class="bi bi-camera-video me-2 text-primary"></i>Switch Camera</h6>
+        <p class="camera-sub">Select which camera to use for face scanning</p>
+        
+        <div onclick="selectCamera('front')" class="camera-option" id="cameraOption-front">
+            <div class="camera-option-icon">📱</div>
+            <div class="camera-option-text">
+                <h5>Front Camera</h5>
+                <p>Built-in device camera (default)</p>
+            </div>
+        </div>
+        
+        <div onclick="selectCamera('rear')" class="camera-option" id="cameraOption-rear">
+            <div class="camera-option-icon">📹</div>
+            <div class="camera-option-text">
+                <h5>Rear Camera</h5>
+                <p>External USB/webcam device</p>
+            </div>
+        </div>
+
+        <div class="camera-modal-actions">
+            <button class="btn-secondary" onclick="closeCameraSwitchModal()">
+                <i class="bi bi-x-lg me-1"></i>Cancel
             </button>
-            <button class="btn btn-sm" style="background:linear-gradient(135deg,#dc2626,#f87171);color:#fff;border-radius:9px;padding:8px 20px;font-weight:700;border:none;cursor:pointer;min-width:110px;"
-                    onclick="setAndSubmitAttendanceType('time_out')">
-                <i class="bi bi-box-arrow-right me-1"></i>Mark as Time-Out
+            <button class="btn-primary" onclick="applyCameraSelection()">
+                <i class="bi bi-arrow-right me-1"></i>Apply
             </button>
         </div>
-        <p style="font-size:11px;color:#475569;margin-top:14px;margin-bottom:0;">
-            Choose the type of attendance record you want to create
-        </p>
     </div>
 </div>
 @endif
@@ -635,7 +730,7 @@ const IS_LOCAL          = {{ $session->camera->is_local_device ? 'true' : 'false
 const SESSION_ID        = {{ $session->id }};
 const CAMERA_ID         = {{ $session->camera_id }};
 const IS_ACTIVE         = {{ $session->isActive() ? 'true' : 'false' }};
-const DEFAULT_SCAN_TYPE = '{{ $session->defaultScanType() }}';  // from session_type
+const DEFAULT_SCAN_TYPE = '{{ $session->defaultScanType() }}';  // Auto-set from session_type
 
 // ═══════════════════════════════════════════════════════
 //  STATE
@@ -648,7 +743,7 @@ let studentMap          = {};     // studentId -> { name, student_id }
 let modelsLoaded        = false;
 let autoScanInterval    = null;
 let scanMode            = 'auto'; // 'auto' | 'manual' | 'qr'
-let scanType            = DEFAULT_SCAN_TYPE;  // auto-set from session type
+let scanType            = null;   // Will be auto-set from session type
 let inCooldown          = false;
 let rosterCount         = {{ $attendance->count() }};
 // Track which students are already marked in this session (client-side dedup)
@@ -676,14 +771,18 @@ const confWrap    = document.getElementById('confWrap');
 //  INIT
 // ═══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async () => {
-    // Apply session type to UI immediately
+    // Initialize camera
+    setLoading('Starting camera…');
+    
+    // Auto-set scan type based on session type
     setScanType(DEFAULT_SCAN_TYPE);
     
-    // Start time-based button control
-    updateAttendanceButtonStates();
-    setInterval(updateAttendanceButtonStates, 10000); // Check every 10 seconds
-
-    setLoading('Starting camera…');
+    // Show message if needed
+    setTimeout(() => {
+        if (!scanType) {
+            setStatus('👉 Select Time In or Time Out mode to begin', 'wait');
+        }
+    }, 2000);
     await startCamera();
 
     setLoading('Loading face recognition models…');
@@ -700,6 +799,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     } else {
         setStatus('Ready — press Scan Now', 'info');
         if (scanBtn) { scanBtn.style.display = 'flex'; scanBtn.disabled = false; }
+    }
+
+    // Debug: Log camera modal availability
+    const modalBackdrop = document.getElementById('cameraModalBackdrop');
+    console.log('Camera modal available:', !!modalBackdrop);
+    if (modalBackdrop) {
+        console.log('Modal initial display:', getComputedStyle(modalBackdrop).display);
     }
 });
 
@@ -854,12 +960,27 @@ async function populateDevicePicker() {
     bar.style.display = '';
 }
 
-function switchCamera() {
-    preferredDeviceId = null;
-    sessionStorage.removeItem('preferredCamId');
-    facingMode = facingMode === 'user' ? 'environment' : 'user';
-    video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
-    startCamera();
+function flipCamera() {
+    // Toggle camera flip (horizontal flip)
+    const video = document.getElementById('videoFeed');
+    const canvas = document.getElementById('scanCanvas');
+    
+    // Check computed style since initial transform is set in CSS
+    const computedStyle = getComputedStyle(video);
+    const currentTransform = computedStyle.transform;
+    
+    // If currently scaleX(-1), toggle to scaleX(1). Otherwise, toggle to scaleX(-1)
+    const isFlipped = currentTransform.includes('scaleX(-1)') || video.style.transform === 'scaleX(-1)';
+    
+    if (isFlipped) {
+        // Remove flip
+        video.style.transform = 'scaleX(1)';
+        canvas.style.transform = 'scaleX(1)';
+    } else {
+        // Add flip
+        video.style.transform = 'scaleX(-1)';
+        canvas.style.transform = 'scaleX(-1)';
+    }
 }
 
 function switchToDevice(deviceId) {
@@ -871,35 +992,6 @@ function switchToDevice(deviceId) {
 // ═══════════════════════════════════════════════════════
 //  SCAN TYPE — Time In / Time Out
 // ═══════════════════════════════════════════════════════
-
-// Update IN/OUT button availability based on current time (AM/PM)
-// Morning hours (e.g. 6 AM - 11:59 AM): allow IN, disable OUT
-// Afternoon hours (12 PM onwards): allow both, encourage OUT
-function updateAttendanceButtonStates() {
-    const now = new Date();
-    const hour = now.getHours();
-    const inBtn = document.getElementById('scanTypeIn');
-    const outBtn = document.getElementById('scanTypeOut');
-    
-    if (!inBtn || !outBtn) return;
-    
-    // Morning: 6 AM to 11:59 AM — allow IN only
-    if (hour >= 6 && hour < 12) {
-        inBtn.disabled = false;
-        outBtn.disabled = true;
-        if (scanType === 'time_out') setScanType('time_in'); // Force to IN if currently OUT
-    }
-    // Afternoon/Evening: 12 PM to 5:59 PM — allow both
-    else if (hour >= 12 && hour < 18) {
-        inBtn.disabled = false;
-        outBtn.disabled = false;
-    }
-    // Outside school hours: allow both (teacher flexibility)
-    else {
-        inBtn.disabled = false;
-        outBtn.disabled = false;
-    }
-}
 
 // Called by the buttons — shows confirmation before switching
 async function confirmScanType(type) {
@@ -1011,7 +1103,10 @@ async function runQrScan() {
 
     // Mirror-compensate: if video is CSS-mirrored, flip the canvas draw so
     // the QR data orientation is correct for jsQR
-    if (video.style.transform === 'scaleX(-1)') {
+    const videoComputedStyle = getComputedStyle(video);
+    const isVideoFlipped = videoComputedStyle.transform.includes('scaleX(-1)') || video.style.transform === 'scaleX(-1)';
+    
+    if (isVideoFlipped) {
         fullCtx.translate(vw, 0);
         fullCtx.scale(-1, 1);
     }
@@ -1383,11 +1478,15 @@ function drawFaceBox(box, matched, name, confidence) {
     const ctx  = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Apply horizontal flip transformation to match the mirrored video
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.translate(-canvas.width, 0);
+
     const scaleX  = canvas.width  / video.videoWidth;
     const scaleY  = canvas.height / video.videoHeight;
-    const mirrorX = canvas.width - (box.x + box.width) * scaleX;
-    const bx = mirrorX;
-    const by = box.y    * scaleY;
+    const bx = box.x * scaleX;
+    const by = box.y * scaleY;
     const bw = box.width  * scaleX;
     const bh = box.height * scaleY;
 
@@ -1398,16 +1497,26 @@ function drawFaceBox(box, matched, name, confidence) {
     ctx.shadowBlur  = 12;
     ctx.strokeRect(bx, by, bw, bh);
 
-    // Label
+    // Label - flip text back to normal orientation
     if (name || !matched) {
         const label = matched ? `${name}  ${confidence}%` : 'Unknown';
         ctx.font      = 'bold 14px Inter, sans-serif';
         ctx.fillStyle = 'rgba(0,0,0,.65)';
-        ctx.fillRect(bx, by - 26, ctx.measureText(label).width + 16, 24);
+        
+        // Measure text for background
+        const textWidth = ctx.measureText(label).width;
+        ctx.fillRect(bx, by - 26, textWidth + 16, 24);
+        
+        // Draw text with normal orientation (flip it back)
+        ctx.save();
+        ctx.scale(-1, 1);
         ctx.fillStyle = color;
         ctx.shadowBlur = 0;
-        ctx.fillText(label, bx + 8, by - 8);
+        ctx.fillText(label, -(bx + textWidth + 8), by - 8);
+        ctx.restore();
     }
+    
+    ctx.restore();
 }
 
 function drawNoFace() {
@@ -1543,6 +1652,203 @@ window.addEventListener('beforeunload', () => {
 // ═══════════════════════════════════════════════════════
 //  QR CODE ATTENDANCE
 // ═══════════════════════════════════════════════════════
+//  CAMERA SWITCH MODAL
+// ═══════════════════════════════════════════════════════
+let selectedCameraType = 'front'; // Track selected camera
+
+// Debug function to test modal visibility
+window.testCameraModal = function() {
+    const backdrop = document.getElementById('cameraModalBackdrop');
+    console.log('Modal element exists:', !!backdrop);
+    if (backdrop) {
+        console.log('Modal classes:', backdrop.className);
+        console.log('Modal style display:', getComputedStyle(backdrop).display);
+        console.log('Modal style opacity:', getComputedStyle(backdrop).opacity);
+        console.log('Modal style z-index:', getComputedStyle(backdrop).zIndex);
+        backdrop.classList.add('open');
+        console.log('Modal opened manually');
+    }
+};
+
+function openCameraSwitchModal() {
+    const backdrop = document.getElementById('cameraModalBackdrop');
+    console.log('Camera modal backdrop element:', backdrop); // Debug log
+    
+    if (!backdrop) {
+        console.error('Camera modal backdrop not found!');
+        // Fallback to simple confirm dialog
+        const useRear = confirm('Switch to rear camera?\n\nOK = Rear Camera\nCancel = Front Camera');
+        selectedCameraType = useRear ? 'rear' : 'front';
+        applyCameraSelection();
+        return;
+    }
+    
+    // Reset selection to current camera
+    updateCameraOptionUI();
+    backdrop.classList.add('open');
+    backdrop.style.display = 'flex'; // Force display
+    console.log('Camera modal opened, classes:', backdrop.className); // Debug log
+}
+
+function closeCameraSwitchModal() {
+    document.getElementById('cameraModalBackdrop')?.classList.remove('open');
+}
+
+function closeCameraSwitchModalOutside(e) {
+    if (e.target === document.getElementById('cameraModalBackdrop')) closeCameraSwitchModal();
+}
+
+function selectCamera(type) {
+    selectedCameraType = type;
+    updateCameraOptionUI();
+}
+
+function updateCameraOptionUI() {
+    const frontOption = document.getElementById('cameraOption-front');
+    const rearOption = document.getElementById('cameraOption-rear');
+    
+    if (frontOption) {
+        frontOption.classList.toggle('selected', selectedCameraType === 'front');
+    }
+    if (rearOption) {
+        rearOption.classList.toggle('selected', selectedCameraType === 'rear');
+    }
+}
+
+async function applyCameraSelection() {
+    setLoading(`Switching to ${selectedCameraType === 'front' ? 'front' : 'rear'} camera…`);
+    closeCameraSwitchModal();
+    
+    try {
+        // Stop current stream
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+        }
+        
+        // Get available devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        if (videoDevices.length === 0) {
+            hideLoading();
+            setStatus('❌ No camera devices found', 'error');
+            return;
+        }
+        
+        // Select camera based on user choice
+        let constraints = {
+            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false
+        };
+        
+        // If rear/external is selected and there are multiple devices, try to use the second one
+        if (selectedCameraType === 'rear' && videoDevices.length > 1) {
+            // Try to use external camera (usually at index 1 or higher)
+            constraints.video.deviceId = { exact: videoDevices[1].deviceId };
+        } else if (videoDevices.length > 0) {
+            // Use first device (usually front camera)
+            constraints.video.deviceId = { exact: videoDevices[0].deviceId };
+        }
+        
+        // Request camera stream
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+        
+        // Wait for video to be ready
+        await new Promise(resolve => {
+            video.onloadedmetadata = () => resolve();
+        });
+        
+        hideLoading();
+        setStatus(`✅ ${selectedCameraType === 'front' ? 'Front' : 'Rear'} camera activated`, 'ok');
+        wrapper.style.setProperty('--scan-tint', 'rgba(74,222,128,.2)');
+        
+        // Resume scanning if in auto mode
+        if (scanMode === 'auto' && !inCooldown && IS_ACTIVE) {
+            startAutoScan();
+        }
+    } catch (e) {
+        hideLoading();
+        console.error('Camera switch error:', e);
+        setStatus('❌ Failed to switch camera — ' + e.message, 'error');
+        wrapper.className = 'camera-wrapper no-match';
+        
+        // Try to restart original camera
+        await startCamera();
+    }
+}
+
+// Quick swap between front and rear camera without modal
+async function quickSwapCamera() {
+    // Toggle the selected camera type
+    selectedCameraType = selectedCameraType === 'front' ? 'rear' : 'front';
+    
+    setLoading(`Switching to ${selectedCameraType === 'front' ? 'front' : 'rear'} camera…`);
+    
+    try {
+        // Stop current stream
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+        }
+        
+        // Get available devices
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        if (videoDevices.length === 0) {
+            hideLoading();
+            setStatus('❌ No camera devices found', 'error');
+            return;
+        }
+        
+        // Select camera based on current type
+        let constraints = {
+            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false
+        };
+        
+        if (selectedCameraType === 'rear' && videoDevices.length > 1) {
+            // Use external/rear camera (usually at index 1 or higher)
+            constraints.video.deviceId = { exact: videoDevices[1].deviceId };
+        } else if (videoDevices.length > 0) {
+            // Use front camera (usually at index 0)
+            constraints.video.deviceId = { exact: videoDevices[0].deviceId };
+        }
+        
+        // Request camera stream
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+        
+        // Wait for video to be ready
+        await new Promise(resolve => {
+            video.onloadedmetadata = () => resolve();
+        });
+        
+        hideLoading();
+        setStatus(`📹 ${selectedCameraType === 'front' ? 'Front' : 'Rear'} camera active`, 'ok');
+        wrapper.style.setProperty('--scan-tint', 'rgba(74,222,128,.2)');
+        
+        // Resume scanning if in auto mode
+        if (scanMode === 'auto' && !inCooldown && IS_ACTIVE) {
+            startAutoScan();
+        }
+    } catch (e) {
+        hideLoading();
+        console.error('Quick camera swap error:', e);
+        setStatus('❌ Camera swap failed — ' + e.message, 'error');
+        wrapper.className = 'camera-wrapper no-match';
+        
+        // Revert the camera type and try to restart original camera
+        selectedCameraType = selectedCameraType === 'front' ? 'rear' : 'front';
+        await startCamera();
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+//  QR CODE ATTENDANCE
+// ═══════════════════════════════════════════════════════
 const QR_URL = `${location.origin}/attend/qr/{{ $session->id }}/{{ hash('sha256', $session->id . config('app.key')) }}`;
 
 function openQr() {
@@ -1585,35 +1891,6 @@ function downloadQr() {
     link.download = `qr-attendance-{{ $session->subject }}-{{ $session->id }}.png`;
     link.href      = canvas.toDataURL('image/png');
     link.click();
-}
-
-// ── Attendance Type Modal ──
-let pendingAttendanceType = null;
-
-function showAttendanceTypeModal() {
-    const backdrop = document.getElementById('attendanceTypeBackdrop');
-    if (backdrop) {
-        backdrop.style.display = 'flex';
-        setTimeout(() => backdrop.classList.add('open'), 10);
-    }
-}
-
-function closeAttendanceTypeModal(e) {
-    if (e && e.target !== document.getElementById('attendanceTypeBackdrop')) return;
-    const backdrop = document.getElementById('attendanceTypeBackdrop');
-    if (backdrop) {
-        backdrop.classList.remove('open');
-        setTimeout(() => backdrop.style.display = 'none', 300);
-    }
-}
-
-function setAndSubmitAttendanceType(type) {
-    pendingAttendanceType = type;
-    closeAttendanceTypeModal({ target: document.getElementById('attendanceTypeBackdrop') });
-    // Trigger the pending attendance record submission
-    if (typeof submitPendingAttendance === 'function') {
-        submitPendingAttendance();
-    }
 }
 
 // ── End Session confirmation ──

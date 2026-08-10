@@ -124,6 +124,7 @@ class FaceScanController extends Controller
             'camera_id'         => $camera->id,
             'scan_result'       => 'success',
             'scan_type'         => 'time_in',
+            'status'           => 'present',
             'method'            => 'face_scan',
             'confidence_score'  => $request->confidence_score,
             'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'in'),
@@ -193,19 +194,44 @@ class FaceScanController extends Controller
             ]);
         }
 
-        // ── No open time-in — create one then close it ────────────────────────
+        // ── No open time-in — check if student was marked absent in morning ───
         if (!$record) {
-            $record = AttendanceRecord::create([
-                'student_id'        => $student->id,
-                'class_session_id'  => $session?->id,
-                'camera_id'         => $camera->id,
-                'scan_result'       => 'success',
-                'scan_type'         => 'time_in',
-                'method'            => 'face_scan',
-                'confidence_score'  => $request->confidence_score,
-                'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'out'),
-                'arrived_at'        => now()->subMinutes(1),
-            ]);
+            // Check if this is an afternoon session and student was absent in morning
+            if ($session && $session->session_type === 'afternoon_out') {
+                // Try to update absent status to late
+                $wasAbsent = $session->updateAbsentToLate($student->id);
+                if ($wasAbsent) {
+                    // Create a new time_in record for the afternoon session
+                    $record = AttendanceRecord::create([
+                        'student_id'        => $student->id,
+                        'class_session_id'  => $session?->id,
+                        'camera_id'         => $camera->id,
+                        'scan_result'       => 'success',
+                        'scan_type'         => 'time_in',
+                        'status'           => 'late',
+                        'method'            => 'face_scan',
+                        'confidence_score'  => $request->confidence_score,
+                        'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'late_in'),
+                        'arrived_at'        => now()->subMinutes(1),
+                    ]);
+                }
+            }
+            
+            // If still no record, create one
+            if (!$record) {
+                $record = AttendanceRecord::create([
+                    'student_id'        => $student->id,
+                    'class_session_id'  => $session?->id,
+                    'camera_id'         => $camera->id,
+                    'scan_result'       => 'success',
+                    'scan_type'         => 'time_in',
+                    'status'           => 'present',
+                    'method'            => 'face_scan',
+                    'confidence_score'  => $request->confidence_score,
+                    'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'out'),
+                    'arrived_at'        => now()->subMinutes(1),
+                ]);
+            }
         } else {
             // Update snapshot on the existing record if not already set
             if (!$record->snapshot_path && $request->face_image) {
@@ -228,6 +254,8 @@ class FaceScanController extends Controller
             }
         }
 
+        $statusMessage = $record->status === 'late' ? " (marked as late due to morning absence)" : "";
+
         return response()->json([
             'result'       => 'success',
             'scan_type'    => 'time_out',
@@ -236,8 +264,9 @@ class FaceScanController extends Controller
             'arrived_at'   => $record->arrived_at->format('h:i A'),
             'time_out'     => $record->time_out->format('h:i A'),
             'duration'     => $record->durationLabel(),
+            'status'       => $record->status,
             'snapshot_url' => $record->snapshotUrl(),
-            'message'      => "{$student->user->name} timed out at {$record->time_out->format('h:i A')} (stayed {$record->durationLabel()}).",
+            'message'      => "{$student->user->name} timed out at {$record->time_out->format('h:i A')} (stayed {$record->durationLabel()}){$statusMessage}.",
         ]);
     }
 

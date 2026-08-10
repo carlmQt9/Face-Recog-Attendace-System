@@ -101,8 +101,14 @@ class ClassSessionController extends Controller
         ) {
             $session->update(['status' => 'ended', 'ended_at' => now()]);
             $session->camera->update(['is_active' => false]);
+            
+            // Mark absent students when morning session auto-ends
+            $absentCount = $session->markAbsentStudents();
 
-            return response()->json(['auto_ended' => true]);
+            return response()->json([
+                'auto_ended' => true,
+                'absent_count' => $absentCount
+            ]);
         }
 
         return response()->json([
@@ -151,9 +157,17 @@ class ClassSessionController extends Controller
         $this->authorizeTeacher($session);
 
         $session->update(['status' => 'ended', 'ended_at' => now()]);
+        
+        // Mark absent students when morning session ends
+        $absentCount = $session->markAbsentStudents();
+        
+        $message = 'Class session ended.';
+        if ($absentCount > 0) {
+            $message .= " {$absentCount} students marked as absent.";
+        }
 
         return redirect()->route('teacher.sessions.index')
-            ->with('success', 'Class session ended.');
+            ->with('success', $message);
     }
 
     private function authorizeTeacher(ClassSession $session): void
