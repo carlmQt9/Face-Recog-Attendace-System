@@ -11,7 +11,7 @@
         ? Storage::url($student->face_encoding)
         : null;
 @endphp
-<div class="card mb-4" style="background:linear-gradient(135deg,#4f46e5,#06b6d4);border:none;">
+<div class="card mb-4" style="background:linear-gradient(135deg,#0c3d8a,#1a6b3c);border:none;">
     <div class="card-body py-3 px-4">
         <div class="d-flex align-items-center gap-3">
             @if($profileImg)
@@ -118,7 +118,7 @@
                 ?? ($student?->face_encoding && Storage::disk('public')->exists($student->face_encoding)
                     ? Storage::url($student->face_encoding) : null);
         @endphp
-        <div style="background:linear-gradient(135deg,rgba(79,70,229,.06),rgba(6,182,212,.04));
+        <div style="background:linear-gradient(135deg,rgba(12,61,138,.06),rgba(245,168,0,.04));
                     border-bottom:1px solid #e2e8f0;padding:14px 20px;">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;
                         letter-spacing:.08em;color:#94a3b8;margin-bottom:8px;">
@@ -136,7 +136,7 @@
                                     border:2px solid #e2e8f0;flex-shrink:0;cursor:zoom-in;">
                     @else
                         <div style="width:48px;height:48px;border-radius:10px;flex-shrink:0;
-                                    background:linear-gradient(135deg,#4f46e5,#06b6d4);
+                                    background:linear-gradient(135deg,#0c3d8a,#1a6b3c);
                                     display:flex;align-items:center;justify-content:center;
                                     font-size:20px;color:#fff;font-weight:800;">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
@@ -166,7 +166,7 @@
                     <div style="width:1px;background:#e2e8f0;"></div>
                     <div>
                         <div style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Duration</div>
-                        <div style="font-size:clamp(14px,4vw,17px);font-weight:800;color:#4f46e5;">{{ $latest->durationLabel() }}</div>
+                        <div style="font-size:clamp(14px,4vw,17px);font-weight:800;color:#0c3d8a;">{{ $latest->durationLabel() }}</div>
                     </div>
                 </div>
             </div>
@@ -215,7 +215,7 @@
                                      data-lightbox-sub="{{ $snapSub }}"
                                      style="width:40px;height:40px;border-radius:9px;object-fit:cover;border:1.5px solid #e2e8f0;cursor:zoom-in;">
                             @else
-                                <div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:800;">
+                                <div style="width:40px;height:40px;border-radius:9px;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:800;">
                                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                                 </div>
                             @endif
@@ -296,7 +296,7 @@ async function pollAttendance() {
                         style="width:44px;height:44px;border-radius:9px;object-fit:cover;
                                border:1.5px solid #e2e8f0;cursor:zoom-in;">`
                 : `<div style="width:44px;height:44px;border-radius:9px;
-                               background:linear-gradient(135deg,#4f46e5,#06b6d4);
+                               background:linear-gradient(135deg,#0c3d8a,#1a6b3c);
                                display:flex;align-items:center;justify-content:center;
                                font-size:18px;color:#fff;font-weight:800;">${studentInitial}</div>`;
 

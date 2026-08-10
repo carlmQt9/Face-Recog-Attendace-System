@@ -24,7 +24,7 @@
     max-height: calc(100dvh - 32px); overflow-y: auto;
 }
 .qr-backdrop.open .qr-modal { transform: scale(1); }
-.qr-modal-header { background: linear-gradient(135deg, #4f46e5, #06b6d4); padding: 18px 20px 14px; text-align: center; }
+.qr-modal-header { background: linear-gradient(135deg, #0c3d8a, #1a6b3c); padding: 18px 20px 14px; text-align: center; }
 .qr-modal-header .school   { font-size: 12px; font-weight: 800; color: rgba(255,255,255,.9); text-transform: uppercase; letter-spacing: .08em; }
 .qr-modal-header .subtitle { font-size: 10px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
 .qr-modal-body { padding: 20px; text-align: center; }
@@ -94,7 +94,7 @@
                         @if($faceUrl)
                             <img src="{{ $faceUrl }}" alt="{{ $user->name }}" data-lightbox="{{ $faceUrl }}" data-lightbox-caption="{{ $user->name }}" data-lightbox-sub="{{ ucfirst($user->role) }}" style="width:38px;height:38px;border-radius:9px;object-fit:cover;border:1px solid #dee2e6;cursor:zoom-in;">
                         @else
-                            <div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">{{ strtoupper(substr($user->name,0,1)) }}</div>
+                            <div style="width:38px;height:38px;border-radius:9px;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">{{ strtoupper(substr($user->name,0,1)) }}</div>
                         @endif
                     </td>
                     <td class="fw-semibold">{{ $user->name }}</td>
@@ -139,7 +139,7 @@
                     @if($faceUrl)
                         <img src="{{ $faceUrl }}" alt="{{ $user->name }}" data-lightbox="{{ $faceUrl }}" data-lightbox-caption="{{ $user->name }}" data-lightbox-sub="{{ ucfirst($user->role) }}" style="width:40px;height:40px;border-radius:10px;object-fit:cover;border:1px solid #dee2e6;cursor:zoom-in;">
                     @else
-                        <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;">{{ strtoupper(substr($user->name,0,1)) }}</div>
+                        <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:700;">{{ strtoupper(substr($user->name,0,1)) }}</div>
                     @endif
                 </div>
                 <div class="u-info">
@@ -173,9 +173,9 @@
 
 {{-- ── Add User Modal ── --}}
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#06b6d4);border:none;">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;max-height:90vh;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0c3d8a,#1a6b3c);border:none;">
                 <h5 class="modal-title text-white fw-bold" id="addUserModalLabel">
                     <i class="bi bi-person-plus-fill me-2"></i>Add New User
                 </h5>
@@ -194,34 +194,34 @@
                 @endif
                 <form action="{{ route('admin.users.store') }}" method="POST" id="addUserForm" data-validate="true">
                     @csrf
-                    <div class="row g-3">
-                        <div class="col-md-6">
+                    <div class="row g-3" style="margin-left:0;margin-right:0;">
+                        <div class="col-12 col-md-6" style="padding-left:0;padding-right:0;padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Full Name <span class="text-danger">*</span></label>
                             <input type="text" name="name" data-label="Full Name"
                                    class="form-control @error('name') is-invalid @enderror"
                                    value="{{ old('name') }}" placeholder="e.g. Juan dela Cruz">
                             @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" data-label="Email"
                                    class="form-control @error('email') is-invalid @enderror"
                                    value="{{ old('email') }}" placeholder="user@school.edu">
                             @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
                             <input type="password" name="password" data-label="Password"
                                    class="form-control @error('password') is-invalid @enderror"
                                    placeholder="Min. 8 characters">
                             @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
                             <input type="password" name="password_confirmation" data-label="Confirm Password"
                                    class="form-control" placeholder="Repeat password">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Role <span class="text-danger">*</span></label>
                             <select name="role" id="modalRoleSelect" data-label="Role"
                                     class="form-select @error('role') is-invalid @enderror"
@@ -236,15 +236,15 @@
 
                         {{-- Teacher fields --}}
                         <div id="modalTeacherFields" class="col-12 d-none">
-                            <div class="row g-3">
-                                <div class="col-md-6">
+                            <div class="row g-3" style="margin-left:0;margin-right:0;">
+                                <div class="col-12 col-md-6" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                                     <label class="form-label fw-semibold">Employee ID <span class="text-danger">*</span></label>
                                     <input type="text" name="employee_id" data-label="Employee ID"
                                            class="form-control @error('employee_id') is-invalid @enderror"
                                            value="{{ old('employee_id') }}" placeholder="EMP-001">
                                     @error('employee_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-12 col-md-6" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                                     <label class="form-label fw-semibold">Department</label>
                                     <input type="text" name="department" class="form-control"
                                            value="{{ old('department') }}" placeholder="e.g. Science">
@@ -254,20 +254,20 @@
 
                         {{-- Student fields --}}
                         <div id="modalStudentFields" class="col-12 d-none">
-                            <div class="row g-3">
-                                <div class="col-md-4">
+                            <div class="row g-3" style="margin-left:0;margin-right:0;">
+                                <div class="col-12 col-md-4" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                                     <label class="form-label fw-semibold">Student ID <span class="text-danger">*</span></label>
                                     <input type="text" name="student_id" data-label="Student ID"
                                            class="form-control @error('student_id') is-invalid @enderror"
                                            value="{{ old('student_id') }}" placeholder="2024-0001">
                                     @error('student_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-12 col-md-4" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                                     <label class="form-label fw-semibold">Grade Level</label>
                                     <input type="text" name="grade_level" class="form-control"
                                            value="{{ old('grade_level') }}" placeholder="e.g. Grade 7">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-12 col-md-4" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                                     <label class="form-label fw-semibold">Section</label>
                                     <input type="text" name="section" class="form-control"
                                            value="{{ old('section') }}" placeholder="e.g. Abakada">
@@ -290,8 +290,8 @@
 {{-- ── Edit User Modal ── --}}
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#0891b2,#4f46e5);border:none;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;max-height:90vh;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0c3d8a,#1a6b3c);border:none;">
                 <h5 class="modal-title text-white fw-bold" id="editUserModalLabel">
                     <i class="bi bi-pencil-fill me-2"></i>Edit User
                 </h5>
@@ -374,7 +374,7 @@
     <div class="qr-modal" id="qrModal">
 
         <div class="qr-modal-header">
-            <div class="school">Face Attendance System</div>
+            <div class="school">DMCMES Attendance System</div>
             <div class="subtitle">Student Attendance QR Card</div>
         </div>
 
@@ -492,7 +492,7 @@ function printQrCard() {
         const cardHtml = `
 <div class="card">
   <div class="card-head">
-    <div class="s">Face Attendance System</div>
+    <div class="s">DMCMES Attendance System</div>
     <div class="t">Student Attendance QR Card</div>
   </div>
   <div class="card-body">
@@ -515,7 +515,7 @@ body{background:#fff;display:flex;align-items:center;justify-content:center;
 .grid{display:grid;grid-template-columns:repeat(2,270px);gap:18px;}
 .card{border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;
       box-shadow:0 4px 16px rgba(0,0,0,.08);}
-.card-head{background:linear-gradient(135deg,#4f46e5,#06b6d4);
+.card-head{background:linear-gradient(135deg,#0c3d8a,#1a6b3c);
            padding:13px 16px 10px;text-align:center;}
 .s{font-size:10px;font-weight:800;color:rgba(255,255,255,.9);
    text-transform:uppercase;letter-spacing:.08em;}

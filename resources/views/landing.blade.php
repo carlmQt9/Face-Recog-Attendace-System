@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FaceAttend — Smart School Attendance System</title>
+<title>DMCMES — Smart School Attendance System</title>
+<link rel="icon" type="image/png" href="{{ asset('donma logo.png?v=' . time()) }}">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root {
-    --primary: #4f46e5;
-    --primary-light: #818cf8;
-    --accent: #06b6d4;
+    --primary: #0c3d8a;
+    --primary-light: #4a7fd4;
+    --accent: #f5a800;
     --dark: #0f172a;
     --dark2: #1e293b;
     --card-bg: rgba(255,255,255,0.04);
@@ -32,16 +33,16 @@ body { font-family:'Inter',sans-serif; background:var(--dark); color:#e2e8f0; ov
 
 /* HERO */
 .hero { min-height:100vh; display:flex; align-items:center; position:relative; overflow:hidden; padding:60px 0 60px; }
-.hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(79,70,229,.25) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 20% 80%,rgba(6,182,212,.18) 0%,transparent 60%),var(--dark); }
+.hero-bg { position:absolute; inset:0; background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(12,61,138,.25) 0%,transparent 70%),radial-gradient(ellipse 60% 50% at 20% 80%,rgba(245,168,0,.18) 0%,transparent 60%),var(--dark); }
 .hero-grid { position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px); background-size:60px 60px; }
-.hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(79,70,229,.15); border:1px solid rgba(79,70,229,.4); border-radius:50px; padding:6px 16px; font-size:13px; font-weight:600; color:var(--primary-light); margin-bottom:28px; }
+.hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(12,61,138,.15); border:1px solid rgba(12,61,138,.4); border-radius:50px; padding:6px 16px; font-size:13px; font-weight:600; color:var(--primary-light); margin-bottom:28px; }
 .hero-badge .dot { width:8px; height:8px; background:#4ade80; border-radius:50%; animation:pulseDot 2s infinite; }
 @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
 .hero h1 { font-size:clamp(40px,6vw,72px); font-weight:900; line-height:1.08; letter-spacing:-2px; color:#fff; margin-bottom:24px; }
 .gradient-text { background:linear-gradient(135deg,var(--primary-light),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
 .hero p.lead { font-size:18px; color:#94a3b8; line-height:1.7; max-width:520px; margin-bottom:40px; }
-.btn-primary-hero { background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; border:none; border-radius:14px; padding:16px 36px; font-size:16px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:10px; transition:transform .2s,box-shadow .2s; box-shadow:0 8px 32px rgba(79,70,229,.4); }
-.btn-primary-hero:hover { transform:translateY(-3px); box-shadow:0 16px 40px rgba(79,70,229,.5); color:#fff; }
+.btn-primary-hero { background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; border:none; border-radius:14px; padding:16px 36px; font-size:16px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:10px; transition:transform .2s,box-shadow .2s; box-shadow:0 8px 32px rgba(12,61,138,.4); }
+.btn-primary-hero:hover { transform:translateY(-3px); box-shadow:0 16px 40px rgba(12,61,138,.5); color:#fff; }
 .btn-secondary-hero { background:transparent; color:#e2e8f0; border:1px solid var(--border); border-radius:14px; padding:16px 36px; font-size:16px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:10px; transition:background .2s,border-color .2s; }
 .btn-secondary-hero:hover { background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.2); color:#fff; }
 </style>
@@ -52,9 +53,9 @@ body { font-family:'Inter',sans-serif; background:var(--dark); color:#e2e8f0; ov
 /* SCAN MOCKUP */
 .face-mockup { width:100%; max-width:480px; margin:0 auto; }
 .scan-frame { background:rgba(255,255,255,.04); border:1px solid var(--border); border-radius:24px; padding:28px; position:relative; overflow:hidden; }
-.scan-frame::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(79,70,229,.08),rgba(6,182,212,.08)); pointer-events:none; }
+.scan-frame::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(12,61,138,.08),rgba(245,168,0,.08)); pointer-events:none; }
 .camera-view { background:#0a0a1a; border-radius:16px; aspect-ratio:4/3; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
-.face-icon { font-size:80px; color:rgba(79,70,229,.4); animation:floatY 3s ease-in-out infinite; }
+.face-icon { font-size:80px; color:rgba(12,61,138,.4); animation:floatY 3s ease-in-out infinite; }
 @keyframes floatY { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
 .scan-line { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--accent),transparent); animation:scanMove 2.5s linear infinite; box-shadow:0 0 12px var(--accent); }
 @keyframes scanMove { 0%{top:10%} 100%{top:90%} }
@@ -67,7 +68,7 @@ body { font-family:'Inter',sans-serif; background:var(--dark); color:#e2e8f0; ov
 .status-pill { display:flex; align-items:center; gap:8px; background:rgba(74,222,128,.12); border:1px solid rgba(74,222,128,.3); border-radius:50px; padding:6px 14px; font-size:13px; font-weight:600; color:#4ade80; }
 .status-pill .pulse { width:8px; height:8px; background:#4ade80; border-radius:50%; animation:pulseDot 1.5s infinite; }
 .notify-toast { background:rgba(15,23,42,.95); border:1px solid rgba(74,222,128,.3); border-radius:14px; padding:12px 16px; display:flex; align-items:center; gap:12px; font-size:13px; margin-top:16px; box-shadow:0 8px 32px rgba(0,0,0,.4); }
-.toast-ico { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#4ade80,#06b6d4); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.toast-ico { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#4ade80,#f5a800); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
 .toast-name { font-weight:700; color:#fff; font-size:14px; }
 .toast-sub { color:#64748b; font-size:12px; }
 
@@ -84,12 +85,12 @@ section { padding:100px 0; }
 
 /* FEATURE CARDS */
 .feat-card { background:var(--card-bg); border:1px solid var(--border); border-radius:20px; padding:28px; height:100%; transition:transform .3s,border-color .3s,box-shadow .3s; position:relative; overflow:hidden; }
-.feat-card:hover { transform:translateY(-6px); border-color:rgba(79,70,229,.4); box-shadow:0 20px 60px rgba(79,70,229,.15); }
-.feat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(79,70,229,.5),transparent); opacity:0; transition:opacity .3s; }
+.feat-card:hover { transform:translateY(-6px); border-color:rgba(12,61,138,.4); box-shadow:0 20px 60px rgba(12,61,138,.15); }
+.feat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(12,61,138,.5),transparent); opacity:0; transition:opacity .3s; }
 .feat-card:hover::before { opacity:1; }
 .feat-ico { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:20px; }
-.ico-purple { background:rgba(79,70,229,.15); color:var(--primary-light); }
-.ico-cyan   { background:rgba(6,182,212,.15); color:var(--accent); }
+.ico-purple { background:rgba(12,61,138,.15); color:var(--primary-light); }
+.ico-cyan   { background:rgba(245,168,0,.15); color:var(--accent); }
 .ico-green  { background:rgba(74,222,128,.15); color:#4ade80; }
 .ico-orange { background:rgba(251,146,60,.15); color:#fb923c; }
 .ico-pink   { background:rgba(244,114,182,.15); color:#f472b6; }
@@ -102,7 +103,7 @@ section { padding:100px 0; }
 /* HOW IT WORKS */
 .how-section { background:rgba(255,255,255,.02); }
 .step-card { text-align:center; padding:20px 12px; }
-.step-num { width:64px; height:64px; background:linear-gradient(135deg,var(--primary),var(--accent)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:900; color:#fff; margin:0 auto 20px; box-shadow:0 8px 24px rgba(79,70,229,.4); }
+.step-num { width:64px; height:64px; background:linear-gradient(135deg,var(--primary),var(--accent)); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:900; color:#fff; margin:0 auto 20px; box-shadow:0 8px 24px rgba(12,61,138,.4); }
 .step-card h5 { font-size:18px; font-weight:700; color:#fff; margin-bottom:10px; }
 .step-card p  { color:#64748b; font-size:14px; line-height:1.7; }
 
@@ -111,8 +112,8 @@ section { padding:100px 0; }
 .role-card:hover { transform:translateY(-6px); box-shadow:0 24px 64px rgba(0,0,0,.3); }
 .role-header { display:flex; align-items:center; gap:16px; margin-bottom:28px; }
 .role-avatar { width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:28px; flex-shrink:0; }
-.avatar-admin   { background:linear-gradient(135deg,#7c3aed,#4f46e5); }
-.avatar-teacher { background:linear-gradient(135deg,#0891b2,#06b6d4); }
+.avatar-admin   { background:linear-gradient(135deg,#7c3aed,#0c3d8a); }
+.avatar-teacher { background:linear-gradient(135deg,#0c3d8a,#f5a800); }
 .avatar-student { background:linear-gradient(135deg,#059669,#10b981); }
 .role-name { font-size:20px; font-weight:800; color:#fff; }
 .role-tag  { font-size:12px; color:#64748b; font-weight:500; margin-top:2px; }
@@ -120,13 +121,13 @@ section { padding:100px 0; }
 .role-feat i { color:#4ade80; margin-top:2px; flex-shrink:0; }
 .btn-role { display:inline-flex; align-items:center; gap:6px; border-radius:10px; padding:8px 20px; font-size:13px; font-weight:600; text-decoration:none; margin-top:20px; transition:opacity .2s; }
 .btn-role:hover { opacity:.8; }
-.btn-role-admin   { background:rgba(79,70,229,.15); color:var(--primary-light); border:1px solid rgba(79,70,229,.3); }
-.btn-role-teacher { background:rgba(6,182,212,.12); color:var(--accent); border:1px solid rgba(6,182,212,.3); }
+.btn-role-admin   { background:rgba(12,61,138,.15); color:var(--primary-light); border:1px solid rgba(12,61,138,.3); }
+.btn-role-teacher { background:rgba(245,168,0,.12); color:var(--accent); border:1px solid rgba(245,168,0,.3); }
 .btn-role-student { background:rgba(74,222,128,.12); color:#4ade80; border:1px solid rgba(74,222,128,.3); }
 
 /* EMAIL PREVIEW */
 .email-card { background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 32px 80px rgba(0,0,0,.5); max-width:460px; margin:0 auto; }
-.email-top  { background:linear-gradient(135deg,#4f46e5,#06b6d4); padding:20px 24px; color:#fff; font-size:15px; font-weight:700; }
+.email-top  { background:linear-gradient(135deg,#0c3d8a,#1a6b3c); padding:20px 24px; color:#fff; font-size:15px; font-weight:700; }
 .email-body { padding:24px; }
 .email-body p { color:#374151; font-size:14px; line-height:1.7; margin-bottom:12px; }
 .info-row { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#f9fafb; border-radius:10px; margin-bottom:8px; font-size:13px; }
@@ -135,7 +136,7 @@ section { padding:100px 0; }
 .e-badge { display:inline-block; background:#dcfce7; color:#166534; border-radius:20px; padding:4px 14px; font-size:13px; font-weight:700; }
 
 /* CTA */
-.cta-section { background:linear-gradient(135deg,rgba(79,70,229,.2),rgba(6,182,212,.15)); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:100px 0; text-align:center; }
+.cta-section { background:linear-gradient(135deg,rgba(12,61,138,.2),rgba(245,168,0,.15)); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:100px 0; text-align:center; }
 .cta-section h2 { font-size:clamp(30px,4vw,52px); font-weight:900; color:#fff; letter-spacing:-1.5px; margin-bottom:20px; }
 .cta-section p  { color:#94a3b8; font-size:18px; margin-bottom:40px; }
 
@@ -163,8 +164,12 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
 <!-- ══════════ NAVBAR ══════════ -->
 <nav class="navbar navbar-expand-lg">
   <div class="container">
-    <a class="navbar-brand" href="#">
-      <div class="brand-dot">📷</div>FaceAttend
+    <a class="navbar-brand" href="#" style="display:flex;align-items:center;gap:12px;">
+      <img src="{{ asset('donma logo.png?v=' . time()) }}" alt="DMCMES Logo" style="width:44px;height:44px;object-fit:contain;border-radius:6px;">
+      <div style="display:flex;flex-direction:column;line-height:1.1;">
+        <span style="font-size:16px;font-weight:900;color:#f5a800;letter-spacing:0.05em;">DMCMES</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;">Smart Attendance</span>
+      </div>
     </a>
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#nav" style="color:#94a3b8">
       <i class="bi bi-list fs-4"></i>
@@ -403,11 +408,11 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
             <div><div style="color:#fff;font-weight:600;font-size:14px;">Instant delivery</div><div style="color:#475569;font-size:13px;">Email sent in under 1 second after scan</div></div>
           </div>
           <div class="d-flex align-items-center gap-3">
-            <div style="width:40px;height:40px;background:rgba(79,70,229,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary-light);flex-shrink:0;font-size:18px;"><i class="bi bi-google"></i></div>
+            <div style="width:40px;height:40px;background:rgba(12,61,138,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary-light);flex-shrink:0;font-size:18px;"><i class="bi bi-google"></i></div>
             <div><div style="color:#fff;font-weight:600;font-size:14px;">Gmail integration</div><div style="color:#475569;font-size:13px;">Works with any parent Gmail account</div></div>
           </div>
           <div class="d-flex align-items-center gap-3">
-            <div style="width:40px;height:40px;background:rgba(6,182,212,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;font-size:18px;"><i class="bi bi-calendar-event-fill"></i></div>
+            <div style="width:40px;height:40px;background:rgba(245,168,0,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;font-size:18px;"><i class="bi bi-calendar-event-fill"></i></div>
             <div><div style="color:#fff;font-weight:600;font-size:14px;">Date, time &amp; location</div><div style="color:#475569;font-size:13px;">Full details in every notification</div></div>
           </div>
         </div>
@@ -448,7 +453,10 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
   <div class="container">
     <div class="row g-4">
       <div class="col-lg-4">
-        <div class="foot-logo"><div class="brand-dot" style="width:32px;height:32px;font-size:15px;">📷</div> FaceAttend</div>
+        <div class="foot-logo" style="display:flex;align-items:center;gap:12px;">
+          <img src="{{ asset('donma logo.png?v=' . time()) }}" alt="DMCMES Logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px;">
+          <span>DMCMES</span>
+        </div>
         <p>A modern, AI-powered face recognition attendance system built for schools. Fast, secure, and completely hands-free.</p>
       </div>
       <div class="col-6 col-lg-2">
@@ -488,7 +496,7 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
     </div>
     <hr class="foot-hr">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-      <p class="foot-copy mb-0">© {{ date('Y') }} FaceAttend — Built with Laravel 12.</p>
+      <p class="foot-copy mb-0">© {{ date('Y') }} DMCMES — Built with Laravel 12.</p>
       <div class="d-flex gap-3">
         <span style="color:#334155;font-size:13px;"><i class="bi bi-shield-check me-1"></i>Secure</span>
         <span style="color:#334155;font-size:13px;"><i class="bi bi-lightning-charge me-1"></i>Fast</span>

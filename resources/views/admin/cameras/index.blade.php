@@ -77,7 +77,7 @@
         <div class="mob-list">
             @forelse($cameras as $camera)
             <div class="item-row">
-                <div class="ir-icon" style="width:40px;height:40px;border-radius:10px;background:{{ $camera->is_local_device ? 'rgba(79,70,229,.1)' : 'rgba(6,182,212,.1)' }};color:{{ $camera->is_local_device ? '#4f46e5' : '#0891b2' }};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">
+                <div class="ir-icon" style="width:40px;height:40px;border-radius:10px;background:{{ $camera->is_local_device ? 'rgba(12,61,138,.1)' : 'rgba(245,168,0,.1)' }};color:{{ $camera->is_local_device ? '#0c3d8a' : '#0c3d8a' }};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">
                     <i class="bi bi-{{ $camera->is_local_device ? 'laptop' : 'camera-video-fill' }}"></i>
                 </div>
                 <div class="ir-info">
@@ -127,8 +127,8 @@
 {{-- ── Add Camera Modal ── --}}
 <div class="modal fade" id="addCameraModal" tabindex="-1" aria-labelledby="addCameraModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#0891b2,#4f46e5);border:none;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;max-height:90vh;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0c3d8a,#1a6b3c);border:none;">
                 <h5 class="modal-title text-white fw-bold" id="addCameraModalLabel"><i class="bi bi-camera-video-fill me-2"></i>Add Camera</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -182,8 +182,8 @@
 {{-- ── Edit Camera Modal ── --}}
 <div class="modal fade" id="editCameraModal" tabindex="-1" aria-labelledby="editCameraModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#0891b2,#4f46e5);border:none;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;max-height:90vh;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0c3d8a,#1a6b3c);border:none;">
                 <h5 class="modal-title text-white fw-bold" id="editCameraModalLabel"><i class="bi bi-pencil-fill me-2"></i>Edit Camera</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>

@@ -13,7 +13,7 @@
 .cam-wrap {
     position:relative; border-radius:20px; overflow:hidden;
     background:#000; aspect-ratio:4/3;
-    box-shadow:0 0 50px rgba(79,70,229,.25);
+    box-shadow:0 0 50px rgba(12,61,138,.25);
     border:2px solid rgba(255,255,255,.07);
 }
 #webcam   { width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
@@ -79,11 +79,11 @@
 
 /* ── Progress bar ───────────────────────────────────────── */
 .prog-wrap { background:rgba(255,255,255,.07); border-radius:50px; height:6px; margin-bottom:6px; overflow:hidden; }
-.prog-fill { height:100%; border-radius:50px; background:linear-gradient(90deg,#4f46e5,#06b6d4); transition:width .4s; }
+.prog-fill { height:100%; border-radius:50px; background:linear-gradient(90deg,#0c3d8a,#f5a800); transition:width .4s; }
 
 /* ── Action buttons ─────────────────────────────────────── */
 .btn-capture {
-    background:linear-gradient(135deg,#4f46e5,#06b6d4); color:#fff;
+    background:linear-gradient(135deg,#0c3d8a,#1a6b3c); color:#fff;
     border:none; border-radius:14px; padding:14px 32px;
     font-size:15px; font-weight:700; cursor:pointer;
     transition:opacity .2s, transform .15s; width:100%;
@@ -138,7 +138,7 @@
         {{-- ── LEFT: Camera ── --}}
         <div class="col-lg-7 reg-left">
             <div class="d-flex align-items-center gap-3 mb-4">
-                <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:22px;">
+                <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:22px;">
                     👤
                 </div>
                 <div>
@@ -240,7 +240,7 @@
             </ul>
 
             {{-- Status box --}}
-            <div id="statusBox" style="background:rgba(79,70,229,.1);border:1px solid rgba(79,70,229,.25);border-radius:14px;padding:14px 16px;margin-bottom:20px;font-size:14px;color:#a5b4fc;min-height:52px;">
+            <div id="statusBox" style="background:rgba(12,61,138,.1);border:1px solid rgba(12,61,138,.25);border-radius:14px;padding:14px 16px;margin-bottom:20px;font-size:14px;color:#a5b4fc;min-height:52px;">
                 Click <strong>Start Verification</strong> to begin. Make sure your face is well lit.
             </div>
 
@@ -697,8 +697,8 @@ function saveRegistration() {
 // ─── Status helper ────────────────────────────────────────────────────────────
 function setStatus(type, html) {
     const colors = {
-        loading: ['rgba(79,70,229,.1)','rgba(79,70,229,.25)','#a5b4fc'],
-        ready:   ['rgba(79,70,229,.1)','rgba(79,70,229,.25)','#a5b4fc'],
+        loading: ['rgba(12,61,138,.1)','rgba(12,61,138,.25)','#a5b4fc'],
+        ready:   ['rgba(12,61,138,.1)','rgba(12,61,138,.25)','#a5b4fc'],
         ok:      ['rgba(74,222,128,.08)','rgba(74,222,128,.25)','#4ade80'],
         warn:    ['rgba(250,204,21,.08)','rgba(250,204,21,.25)','#facc15'],
         error:   ['rgba(248,113,113,.08)','rgba(248,113,113,.25)','#f87171'],

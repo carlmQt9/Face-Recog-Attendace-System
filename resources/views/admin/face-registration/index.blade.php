@@ -50,7 +50,7 @@
                                              data-lightbox-sub="Registered Face"
                                              style="width:36px;height:36px;border-radius:8px;object-fit:cover;cursor:zoom-in;">
                                     @else
-                                        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700;">
+                                        <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700;">
                                             {{ strtoupper(substr($student->user->name, 0, 1)) }}
                                         </div>
                                     @endif
@@ -93,7 +93,7 @@
                                      data-lightbox-sub="Registered Face"
                                      style="width:40px;height:40px;border-radius:10px;object-fit:cover;cursor:zoom-in;">
                             @else
-                                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">
+                                <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;font-weight:700;">
                                     {{ strtoupper(substr($student->user->name, 0, 1)) }}
                                 </div>
                             @endif

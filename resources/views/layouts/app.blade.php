@@ -4,23 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Attendance System') | Face Recognition</title>
+    <title>@yield('title', 'DMCMES Attendance') | Smart Attendance System</title>
+    <link rel="icon" type="image/png" href="/donma logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background-color: #f0f2f5; }
+        /* ── DMCMES Theme Colors ──
+           Primary  : #0c3d8a  (deep navy blue)
+           Accent   : #f5a800  (gold/yellow)
+           Secondary: #1a6b3c  (forest green)
+           Light bg : #f0f4f8
+        ── */
+
+        body { background-color: #f0f4f8; }
 
         /* ── Sidebar ── */
         .sidebar {
-            min-height: 100vh; background: #1a1a2e; color: #fff;
+            min-height: 100vh;
+            background: linear-gradient(180deg, #0c2d6b 0%, #0a2455 100%);
+            color: #fff;
             width: 240px; position: fixed; top: 0; left: 0; z-index: 1050;
             display: flex; flex-direction: column;
             transition: transform 0.3s ease;
+            border-right: 3px solid #f5a800;
         }
         .sidebar .brand {
-            padding: 18px 16px; font-size: 16px; font-weight: bold;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 14px 16px; font-size: 14px; font-weight: bold;
+            border-bottom: 1px solid rgba(245,168,0,0.3);
             display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+        }
+        .sidebar .brand-logo {
+            display: flex; align-items: center; gap: 10px; text-decoration: none;
+        }
+        .sidebar .brand-logo img {
+            width: 38px; height: 38px; object-fit: contain; border-radius: 6px;
+        }
+        .sidebar .brand-text { line-height: 1.2; }
+        .sidebar .brand-text .school-abbr {
+            font-size: 16px; font-weight: 900; color: #f5a800; letter-spacing:.04em;
+        }
+        .sidebar .brand-text .school-full {
+            font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 500;
+            text-transform: uppercase; letter-spacing: .05em; display: block;
         }
         .sidebar .brand-close {
             display: none; background: none; border: none;
@@ -33,8 +59,12 @@
             display: flex; align-items: center; gap: 10px;
             border-radius: 6px; font-size: 14px;
         }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            color: #fff; background: rgba(255,255,255,0.1);
+        .sidebar .nav-link:hover {
+            color: #f5a800; background: rgba(245,168,0,0.1);
+        }
+        .sidebar .nav-link.active {
+            color: #fff; background: rgba(245,168,0,0.2);
+            border-left: 3px solid #f5a800; padding-left: 13px;
         }
 
         /* ── Sidebar backdrop ── */
@@ -47,10 +77,10 @@
         /* ── Hamburger button ── */
         .hamburger-btn {
             display: none; background: none; border: none;
-            font-size: 24px; color: #334155; cursor: pointer;
+            font-size: 24px; color: #0c3d8a; cursor: pointer;
             padding: 4px 8px; border-radius: 8px; line-height: 1; flex-shrink: 0;
         }
-        .hamburger-btn:hover { background: #f1f5f9; }
+        .hamburger-btn:hover { background: #e8f0fe; }
 
         /* ── Main content ── */
         .main-content { margin-left: 240px; padding: 24px; min-width: 0; }
@@ -58,7 +88,7 @@
             background: #fff; padding: 12px 16px;
             margin: -24px -24px 24px;
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #e0e0e0; flex-wrap: wrap; gap: 8px;
+            border-bottom: 2px solid #f5a800; flex-wrap: wrap; gap: 8px;
         }
 
         /* ── Cards / badges ── */
@@ -66,13 +96,24 @@
         .stat-card { border-radius: 12px; padding: 20px; color: #fff; }
         .badge-role { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
 
+        /* ── Override Bootstrap primary color to DMCMES navy ── */
+        .btn-primary { background-color: #0c3d8a; border-color: #0c3d8a; }
+        .btn-primary:hover { background-color: #0a3070; border-color: #0a3070; }
+        .btn-primary:focus, .btn-primary:active { background-color: #0a3070 !important; border-color: #0a3070 !important; box-shadow: 0 0 0 .25rem rgba(12,61,138,.35) !important; }
+
+        .badge.bg-primary { background-color: #0c3d8a !important; }
+        .btn-outline-primary { color: #0c3d8a; border-color: #0c3d8a; }
+        .btn-outline-primary:hover { background-color: #0c3d8a; border-color: #0c3d8a; color: #fff; }
+
+        .pagination .page-item.active .page-link { background: #0c3d8a; border-color: #0c3d8a; }
+
         /* ── Pagination ── */
         .pagination { flex-wrap: wrap; gap: 4px; }
         .pagination .page-link {
             border-radius: 8px !important; border-color: #e2e8f0;
             color: #475569; font-size: 13px; padding: 6px 12px;
         }
-        .pagination .page-item.active .page-link { background: #4f46e5; border-color: #4f46e5; }
+        .pagination .page-item.disabled .page-link { color: #cbd5e1; }
         .pagination .page-item.disabled .page-link { color: #cbd5e1; }
 
         /* ── Mobile ── */
@@ -113,13 +154,65 @@
                 transform: translateY(0) !important;
             }
             .modal-header { padding: 14px 16px !important; }
-            .modal-body   { padding: 16px !important; }
+            .modal-body   { padding: 16px !important; overflow-y: auto; max-height: calc(88dvh - 120px); }
             .modal-footer {
                 padding: 10px 16px calc(10px + env(safe-area-inset-bottom)) !important;
                 flex-wrap: wrap;
                 gap: 8px;
             }
-            .modal-footer .btn { flex: 1; min-width: 0; }
+            .modal-footer .btn { flex: 1 0 45%; min-width: 0; max-width: calc(50% - 4px); font-size: 13px; padding: 8px 6px; }
+            
+            /* Optimize form spacing in modals for mobile */
+            .modal-body .form-label { font-size: 13px; margin-bottom: 6px; }
+            .modal-body .form-control,
+            .modal-body .form-select { font-size: 14px; padding: 9px 12px; }
+            .modal-body .mb-3 { margin-bottom: 12px !important; }
+            .modal-body .row.g-2 > div { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+        }
+        
+        /* ── Desktop modal sizing adjustments for better UX ── */
+        @media (min-width: 576px) {
+            .modal-dialog {
+                max-width: 540px !important;
+            }
+        }
+
+        /* ── Mobile modal form field optimization ── */
+        @media (max-width: 575.98px) {
+            /* Ensure form fields are full width and don't overflow */
+            .modal-body .form-control,
+            .modal-body .form-select { 
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            /* Make sure row/col layout doesn't break */
+            .modal-body .row {
+                margin-left: -8px !important;
+                margin-right: -8px !important;
+            }
+            .modal-body .row > [class*='col-'] {
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+            /* Reduce modal footer buttons to fit side by side */
+            .modal-footer .btn-group,
+            .modal-footer .d-flex {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            /* Ensure buttons don't shrink too much */
+            .modal-footer .btn {
+                min-width: 100px;
+                font-size: 13px;
+                padding: 8px 12px;
+            }
+            /* For single buttons, let them be full width */
+            .modal-footer .btn:only-child {
+                min-width: auto;
+            }
         }
 
         /* ── Mobile card-list rows (tables that switch to card layout) ── */
@@ -181,7 +274,13 @@
 
     <div class="sidebar" id="sidebar">
         <div class="brand">
-            <span><i class="bi bi-camera-fill me-2 text-primary"></i>Face Attendance</span>
+            <a href="#" class="brand-logo">
+                <img src="/donma logo.png" alt="DMCMES Logo" style="width:40px;height:40px;object-fit:contain;">
+                <div class="brand-text">
+                    <span class="school-abbr">DMCMES</span>
+                    <span class="school-full">Don Marcelo C. Marty ES</span>
+                </div>
+            </a>
             <button class="brand-close" onclick="closeSidebar()" title="Close menu">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -223,12 +322,12 @@
                     </a>
                 @endif
                 <hr style="border-color:rgba(255,255,255,0.1);margin:8px 0;">
-                <form action="{{ route('logout') }}" method="POST" id="logoutForm">
+                <form action="{{ route('logout') }}" method="POST" id="logoutForm" style="display:none;">
                     @csrf
-                    <button type="button" class="nav-link border-0 bg-transparent w-100 text-start" onclick="handleLogout()">
-                        <i class="bi bi-box-arrow-left"></i> Logout
-                    </button>
                 </form>
+                <button type="button" class="nav-link border-0 bg-transparent w-100 text-start" onclick="handleLogout()" id="logoutBtn">
+                    <i class="bi bi-box-arrow-left"></i> Logout
+                </button>
             @endauth
         </nav>
     </div>
@@ -243,7 +342,7 @@
             </div>
             @auth
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span class="badge bg-primary badge-role">{{ auth()->user()->role }}</span>
+                    <span class="badge badge-role" style="background:#0c3d8a;color:#f5a800;border:1px solid #f5a800;">{{ strtoupper(auth()->user()->role) }}</span>
                     <span class="text-muted small d-none d-sm-inline">{{ auth()->user()->name }}</span>
                 </div>
             @endauth
@@ -286,6 +385,55 @@
 
     @stack('scripts')
 
+    <!-- ══ LOGOUT HANDLER ══ -->
+    <script>
+    async function handleLogout(){
+        const c=await showConfirm({
+            title:'Log Out',
+            message:'Are you sure you want to log out?',
+            okText:'Log Out',
+            okType:'primary',
+            icon:'👋'
+        });
+        if(c) {
+            try {
+                const form = document.getElementById('logoutForm');
+                if(form) {
+                    // Use AJAX to ensure proper logout even if form submission fails
+                    const token = document.querySelector('meta[name="csrf-token"]')?.content;
+                    const response = await fetch('{{ route('logout') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRF-TOKEN': token
+                        },
+                        body: 'logout=true',
+                        credentials: 'include'
+                    });
+                    if (response.ok) {
+                        window.location.href = '{{ route('landing') }}';
+                    } else {
+                        throw new Error('Logout failed');
+                    }
+                } else {
+                    throw new Error('Form not found');
+                }
+            } catch(error) {
+                console.error('Logout error:', error);
+                // Force redirect as fallback
+                window.location.href = '{{ route('logout') }}';
+            }
+        }
+    }
+    
+    // Ensure logout form is available
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!document.getElementById('logoutForm')) {
+            console.warn('Logout form not found in DOM - it may not render properly');
+        }
+    });
+    </script>
+
     <!-- ══ LIGHTBOX ══ -->
     <style>
         #imgLightbox { position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;transition:opacity .22s ease;cursor:zoom-out; }
@@ -325,7 +473,7 @@
         #confirmModalOk { flex:1;padding:10px 0;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer; }
         #confirmModalOk.danger  { background:linear-gradient(135deg,#dc2626,#f87171);color:#fff; }
         #confirmModalOk.warning { background:linear-gradient(135deg,#d97706,#fbbf24);color:#fff; }
-        #confirmModalOk.primary { background:linear-gradient(135deg,#4f46e5,#818cf8);color:#fff; }
+        #confirmModalOk.primary { background:linear-gradient(135deg,#0c3d8a,#1a6b3c);color:#fff; }
         #confirmModalOk.success { background:linear-gradient(135deg,#059669,#34d399);color:#fff; }
     </style>
     <div id="confirmModalBackdrop">
@@ -352,7 +500,6 @@
     }
     document.getElementById('confirmModalBackdrop').addEventListener('click',function(e){if(e.target===this)confirmModalResolve(false);});
     document.addEventListener('keydown',function(e){if(e.key==='Escape'&&document.getElementById('confirmModalBackdrop').classList.contains('show'))confirmModalResolve(false);});
-    async function handleLogout(){const c=await showConfirm({title:'Log Out',message:'Are you sure you want to log out?',okText:'Log Out',okType:'primary',icon:'👋'});if(c)document.getElementById('logoutForm').submit();}
     document.addEventListener('click',async function(e){const btn=e.target.closest('button[type="submit"],button:not([type])');if(!btn)return;const form=btn.closest('form[data-confirm-title]');if(!form)return;e.preventDefault();e.stopImmediatePropagation();const c=await showConfirm({title:form.dataset.confirmTitle||'Are you sure?',message:form.dataset.confirmMessage||'This cannot be undone.',okText:form.dataset.confirmOk||'Confirm',okType:form.dataset.confirmType||'danger',icon:form.dataset.confirmIcon||'⚠️'});if(c)form.submit();});
 
     // ── Global modal form validation ──────────────────────────────────────────

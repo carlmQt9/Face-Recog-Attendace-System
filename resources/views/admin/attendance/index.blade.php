@@ -84,7 +84,7 @@
                                      data-lightbox-sub="{{ $record->student->student_id }}"
                                      style="width:34px;height:34px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
                             @else
-                                <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                     <i class="bi bi-person-fill text-white" style="font-size:15px;"></i>
                                 </div>
                             @endif

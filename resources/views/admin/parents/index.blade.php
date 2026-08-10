@@ -119,8 +119,8 @@
 {{-- ── Link Parent Modal ── --}}
 <div class="modal fade" id="linkParentModal" tabindex="-1" aria-labelledby="linkParentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#059669,#06b6d4);border:none;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;max-height:90vh;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#1a6b3c,#0c3d8a);border:none;">
                 <h5 class="modal-title text-white fw-bold" id="linkParentModalLabel">
                     <i class="bi bi-heart-fill me-2"></i>Link Parent / Guardian
                 </h5>
@@ -184,8 +184,8 @@
 {{-- ── Edit Parent Modal ── --}}
 <div class="modal fade" id="editParentModal" tabindex="-1" aria-labelledby="editParentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#059669,#06b6d4);border:none;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;max-height:90vh;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#1a6b3c,#0c3d8a);border:none;">
                 <h5 class="modal-title text-white fw-bold" id="editParentModalLabel">
                     <i class="bi bi-pencil-fill me-2"></i>Edit Parent Record
                 </h5>

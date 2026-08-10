@@ -14,9 +14,9 @@
         }
         .session-badge {
             display:inline-flex; align-items:center; gap:7px;
-            background:rgba(79,70,229,.15); border:1px solid rgba(79,70,229,.3);
+            background:rgba(12,61,138,.15); border:1px solid rgba(12,61,138,.3);
             border-radius:50px; padding:5px 14px; font-size:13px;
-            color:#818cf8; font-weight:700; margin-bottom:20px;
+            color:#4a7fd4; font-weight:700; margin-bottom:20px;
         }
         .qr-card h4 { color:#fff; font-weight:800; margin-bottom:4px; }
         .qr-card .sub { color:#475569; font-size:14px; margin-bottom:24px; }
@@ -27,7 +27,7 @@
         }
         .form-select option { background:#1e293b; color:#fff; }
         .btn-mark {
-            background:linear-gradient(135deg,#4f46e5,#06b6d4);
+            background:linear-gradient(135deg,#0c3d8a,#1a6b3c);
             color:#fff; border:none; border-radius:14px; padding:14px;
             font-size:15px; font-weight:700; width:100%; margin-top:14px;
             cursor:pointer; transition:opacity .2s;

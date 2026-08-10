@@ -56,10 +56,10 @@ input[type=range].vol-bar {
 }
 input[type=range].vol-bar::-webkit-slider-thumb {
     -webkit-appearance:none; width:16px; height:16px;
-    border-radius:50%; background:#4f46e5;
-    box-shadow:0 2px 6px rgba(79,70,229,.4); cursor:pointer;
+    border-radius:50%; background:#0c3d8a;
+    box-shadow:0 2px 6px rgba(12,61,138,.4); cursor:pointer;
 }
-.vol-label { font-size:12px; font-weight:700; color:#4f46e5; }
+.vol-label { font-size:12px; font-weight:700; color:#0c3d8a; }
 
 .beep-card {
     border-radius:10px; padding:12px 14px;
@@ -96,7 +96,7 @@ input[type=range].vol-bar::-webkit-slider-thumb {
     <div class="col-lg-8">
         <div class="settings-section">
             <div class="settings-section-header">
-                <div class="s-icon" style="background:rgba(79,70,229,.1);color:#4f46e5;">
+                <div class="s-icon" style="background:rgba(12,61,138,.1);color:#0c3d8a;">
                     <i class="bi bi-gear-fill"></i>
                 </div>
                 <div>
@@ -159,7 +159,7 @@ input[type=range].vol-bar::-webkit-slider-thumb {
     <div class="col-lg-4">
         <div class="settings-section h-100">
             <div class="settings-section-header">
-                <div class="s-icon" style="background:rgba(6,182,212,.1);color:#06b6d4;">
+                <div class="s-icon" style="background:rgba(245,168,0,.1);color:#f5a800;">
                     <i class="bi bi-soundwave"></i>
                 </div>
                 <div>
@@ -209,7 +209,7 @@ function stepCooldown(delta) {
 function updateVolume(val) {
     document.getElementById('volLabel').textContent = val + '%';
     const s = document.getElementById('volSlider');
-    s.style.background = `linear-gradient(90deg,#4f46e5 ${val}%,#e2e8f0 ${val}%)`;
+    s.style.background = `linear-gradient(90deg,#0c3d8a ${val}%,#e2e8f0 ${val}%)`;
 }
 document.addEventListener('DOMContentLoaded', () => {
     updateVolume(document.getElementById('volSlider').value);

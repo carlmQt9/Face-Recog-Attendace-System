@@ -12,7 +12,7 @@
 .student-row:last-child { border-bottom: none; }
 .student-row .sr-avatar {
     flex-shrink: 0; width: 42px; height: 42px; border-radius: 10px;
-    overflow: hidden; background: linear-gradient(135deg,#4f46e5,#06b6d4);
+    overflow: hidden; background: linear-gradient(135deg,#0c3d8a,#1a6b3c);
     display: flex; align-items: center; justify-content: center;
     font-size: 16px; color: #fff; font-weight: 700;
 }
@@ -27,7 +27,7 @@
 
 /* ── Add Student modal ── */
 #addModal .modal-header {
-    background: linear-gradient(135deg,#4f46e5,#06b6d4); border: none;
+    background: linear-gradient(135deg,#0c3d8a,#1a6b3c); border: none;
 }
 #addModal .form-label { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
 #addModal .form-control, #addModal .form-select { font-size: 13px; }
@@ -69,7 +69,7 @@
                             @forelse($students as $student)
                             <tr>
                                 <td class="align-middle">
-                                    <div style="width:38px;height:38px;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#4f46e5,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700;flex-shrink:0;"
+                                    <div style="width:38px;height:38px;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700;flex-shrink:0;"
                                          @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
                                              data-lightbox="{{ Storage::url($student->face_encoding) }}"
                                              data-lightbox-caption="{{ $student->user->name }}"
@@ -243,7 +243,7 @@
 
         <div class="card mt-3">
             <div class="card-body text-center">
-                <div style="font-size:34px;font-weight:800;color:#4f46e5;">{{ $students->count() }}</div>
+                <div style="font-size:34px;font-weight:800;color:#0c3d8a;">{{ $students->count() }}</div>
                 <div class="text-muted small mb-3">Students in your class</div>
                 <div style="font-size:28px;font-weight:800;color:#4ade80;">
                     {{ $students->where('face_registered', true)->count() }}
@@ -257,8 +257,8 @@
 {{-- ── Add Student Modal ── --}}
 <div class="modal fade" id="addModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#06b6d4);border:none;">
+        <div class="modal-content" style="border-radius:16px;overflow:hidden;max-height:90vh;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#0c3d8a,#1a6b3c);border:none;">
                 <h5 class="modal-title text-white fw-bold">
                     <i class="bi bi-person-plus-fill me-2"></i>Add New Student
                 </h5>
@@ -279,26 +279,26 @@
                                value="{{ old('name') }}" placeholder="Juan dela Cruz">
                     </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-12">
+                    <div class="row g-2 mb-3" style="margin-left:0;margin-right:0;">
+                        <div class="col-12" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" data-label="Email" class="form-control" required
                                    value="{{ old('email') }}" placeholder="student@school.edu">
                         </div>
                     </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-5">
+                    <div class="row g-2 mb-3" style="margin-left:0;margin-right:0;">
+                        <div class="col-5" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Student ID <span class="text-danger">*</span></label>
                             <input type="text" name="student_id" data-label="Student ID" class="form-control" required
                                    value="{{ old('student_id') }}" placeholder="2024-0001">
                         </div>
-                        <div class="col-4">
+                        <div class="col-4" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Grade</label>
                             <input type="text" name="grade_level" class="form-control"
                                    value="{{ old('grade_level') }}" placeholder="Grade 7">
                         </div>
-                        <div class="col-3">
+                        <div class="col-3" style="padding-left:calc(var(--bs-gutter-x) / 2);padding-right:calc(var(--bs-gutter-x) / 2);">
                             <label class="form-label fw-semibold">Section</label>
                             <input type="text" name="section" class="form-control"
                                    value="{{ old('section') }}" placeholder="A">
@@ -326,8 +326,8 @@
 <div class="modal fade" id="qrModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable" style="max-width:320px;">
         <div class="modal-content" style="border-radius:20px;overflow:hidden;">
-            <div style="background:linear-gradient(135deg,#4f46e5,#06b6d4);padding:14px 20px;text-align:center;">
-                <div style="font-size:11px;font-weight:800;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.08em;">Face Attendance System</div>
+            <div style="background:linear-gradient(135deg,#0c3d8a,#1a6b3c);padding:14px 20px;text-align:center;">
+                <div style="font-size:11px;font-weight:800;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.08em;">DMCMES Attendance System</div>
                 <div style="font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;">Student QR Card</div>
             </div>
             <div class="modal-body text-center py-3">
@@ -398,9 +398,9 @@ function printQr() {
         if (!url) return;
         const { name, sid, grade, section } = currentQr;
         const meta = [grade ? 'Grade ' + grade : '', section].filter(Boolean).join(' · ');
-        const card = `<div class="card"><div class="ch"><div class="s">Face Attendance System</div><div class="t">Student QR Card</div></div><div class="cb"><div class="qw"><img src="${url}"></div><div class="sn">${name}</div><div class="sm">${meta}</div><div class="si">ID: ${sid}</div></div><div class="cf">Show this QR to the camera to mark attendance</div></div>`;
+        const card = `<div class="card"><div class="ch"><div class="s">DMCMES Attendance System</div><div class="t">Student QR Card</div></div><div class="cb"><div class="qw"><img src="${url}"></div><div class="sn">${name}</div><div class="sm">${meta}</div><div class="si">ID: ${sid}</div></div><div class="cf">Show this QR to the camera to mark attendance</div></div>`;
         const win = window.open('', '_blank', 'width=640,height=500');
-        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR — ${name}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;font-family:sans-serif;}.grid{display:grid;grid-template-columns:repeat(2,260px);gap:16px;}.card{border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;}.ch{background:linear-gradient(135deg,#4f46e5,#06b6d4);padding:12px;text-align:center;}.s{font-size:10px;font-weight:800;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;}.t{font-size:9px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}.cb{padding:14px;text-align:center;}.qw{display:inline-block;padding:6px;border:2px solid #e2e8f0;border-radius:10px;margin-bottom:8px;}.qw img{display:block;width:130px;height:130px;}.sn{font-size:13px;font-weight:800;color:#0f172a;margin-bottom:2px;}.sm{font-size:11px;color:#64748b;}.si{display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:2px 10px;font-size:10px;font-weight:700;color:#334155;margin-top:4px;}.cf{background:#f8fafc;border-top:1px solid #e2e8f0;padding:7px;text-align:center;font-size:9px;color:#94a3b8;}@media print{body{padding:0;}@page{margin:8mm;}}</style></head><body><div class="grid">${card}${card}</div><script>window.onload=()=>setTimeout(()=>window.print(),150);<\/script></body></html>`);
+        win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR — ${name}</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;font-family:sans-serif;}.grid{display:grid;grid-template-columns:repeat(2,260px);gap:16px;}.card{border-radius:14px;overflow:hidden;border:1px solid #e2e8f0;}.ch{background:linear-gradient(135deg,#0c3d8a,#1a6b3c);padding:12px;text-align:center;}.s{font-size:10px;font-weight:800;color:rgba(255,255,255,.9);text-transform:uppercase;letter-spacing:.08em;}.t{font-size:9px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}.cb{padding:14px;text-align:center;}.qw{display:inline-block;padding:6px;border:2px solid #e2e8f0;border-radius:10px;margin-bottom:8px;}.qw img{display:block;width:130px;height:130px;}.sn{font-size:13px;font-weight:800;color:#0f172a;margin-bottom:2px;}.sm{font-size:11px;color:#64748b;}.si{display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:5px;padding:2px 10px;font-size:10px;font-weight:700;color:#334155;margin-top:4px;}.cf{background:#f8fafc;border-top:1px solid #e2e8f0;padding:7px;text-align:center;font-size:9px;color:#94a3b8;}@media print{body{padding:0;}@page{margin:8mm;}}</style></head><body><div class="grid">${card}${card}</div><script>window.onload=()=>setTimeout(()=>window.print(),150);<\/script></body></html>`);
         win.document.close();
     }, 100);
 }

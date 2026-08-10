@@ -20,7 +20,7 @@
             display: flex; gap: 12px; margin-bottom: 28px;
         }
         .btn { padding: 10px 22px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
-        .btn-print   { background: #4f46e5; color: #fff; }
+        .btn-print   { background: #0c3d8a; color: #fff; }
         .btn-back    { background: #fff; color: #64748b; border: 1px solid #e2e8f0; }
         .btn-print:hover { background: #4338ca; }
         .btn-back:hover  { background: #f8fafc; }
@@ -34,7 +34,7 @@
             box-shadow: 0 8px 40px rgba(0,0,0,.12);
         }
         .card-header {
-            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            background: linear-gradient(135deg, #0c3d8a, #1a6b3c);
             padding: 20px 24px 16px;
             text-align: center;
         }
@@ -105,7 +105,7 @@
     @for($copy = 0; $copy < 2; $copy++)
     <div class="id-card">
         <div class="card-header">
-            <div class="school-name">Face Attendance System</div>
+            <div class="school-name">DMCMES Attendance System</div>
             <div class="card-title">Student Attendance QR Card</div>
         </div>
         <div class="card-body">

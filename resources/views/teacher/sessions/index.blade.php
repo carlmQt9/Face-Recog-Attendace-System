@@ -14,7 +14,7 @@
     transition:all .18s; user-select:none; white-space:nowrap;
 }
 .stype-pill:hover { border-color:#94a3b8; color:#334155; }
-.stype-radio:checked + .stype-pill     { border-color:#4f46e5; background:#eef2ff; color:#4f46e5; }
+.stype-radio:checked + .stype-pill     { border-color:#0c3d8a; background:#e8f0fe; color:#0c3d8a; }
 .stype-radio.out:checked + .stype-pill { border-color:#dc2626; background:#fef2f2; color:#dc2626; }
 .stype-pill.disabled {
     opacity:.38; cursor:not-allowed; pointer-events:none;
@@ -124,7 +124,6 @@
                                {{ old('session_type') === 'afternoon_out' ? 'checked' : '' }}>
                         <label for="stAfternoon" class="stype-pill stype-sm" id="stAfternoonLabel">🌇 PM</label>
                     </div>
-                    <div id="sessionTypeHint" style="font-size:11px;margin-top:3px;min-height:16px;"></div>
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label mb-1 fw-semibold" style="font-size:13px;">
@@ -378,8 +377,14 @@ function saveDeviceChoice(v) {
 document.addEventListener('DOMContentLoaded', () => {
     const sel = document.getElementById('cameraSelect');
     if (sel.value) handleCameraChange(sel);
-    autoSelectSessionType();
-    setInterval(autoSelectSessionType, 60000);
+
+    // Set up time restrictions based on selected type
+    applyTimeRestrictions();
+
+    // Re-apply whenever the type changes
+    document.querySelectorAll('[name="session_type"]').forEach(radio => {
+        radio.addEventListener('change', applyTimeRestrictions);
+    });
 
     // Clear invalid highlight as soon as user fixes a field
     document.querySelector('[name="subject"]').addEventListener('input', function() { this.classList.remove('is-invalid'); });
@@ -387,37 +392,36 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cameraSelect').addEventListener('change', function() { this.classList.remove('is-invalid'); });
 });
 
-function autoSelectSessionType() {
-    const hour        = new Date().getHours();
-    const isAfternoon = hour >= 12;
+// ── Restrict schedule time pickers to AM (00:00–11:59) or PM (12:00–23:59) ──
+function applyTimeRestrictions() {
+    const selectedType = document.querySelector('[name="session_type"]:checked')?.value;
+    const startEl = document.getElementById('schedStart');
+    const endEl   = document.getElementById('schedEnd');
+    const hint    = document.getElementById('sessionTypeHint');
 
-    const morningRadio   = document.getElementById('stMorning');
-    const afternoonRadio = document.getElementById('stAfternoon');
-    const morningLabel   = document.getElementById('stMorningLabel');
-    const afternoonLabel = document.getElementById('stAfternoonLabel');
-    const hint           = document.getElementById('sessionTypeHint');
+    if (!startEl || !endEl) return;
 
-    if (!morningRadio) return;
-
-    if (isAfternoon) {
-        morningRadio.disabled = true;
-        morningLabel.classList.add('disabled');
-        morningLabel.title = 'Morning sessions are only available before 12:00 PM';
-        afternoonRadio.disabled = false;
-        afternoonLabel.classList.remove('disabled');
-        if (morningRadio.checked) { afternoonRadio.checked = true; }
-        hint.innerHTML = '<i class="bi bi-clock text-warning me-1"></i>'
-            + '<span style="color:#d97706;">Afternoon — Morning disabled.</span>';
+    if (selectedType === 'afternoon_out') {
+        // PM only: 12:00 – 23:59
+        startEl.min = '12:00'; startEl.max = '23:59';
+        endEl.min   = '12:00'; endEl.max   = '23:59';
+        // If current values are in AM range, clear them
+        if (startEl.value && startEl.value < '12:00') startEl.value = '';
+        if (endEl.value   && endEl.value   < '12:00') endEl.value   = '';
+        hint.innerHTML = '<i class="bi bi-clock text-warning me-1" style="color:#d97706;"></i>'
+            + '<span style="color:#d97706;">PM session — schedule must be between 12:00 PM – 11:59 PM.</span>';
     } else {
-        morningRadio.disabled = false;
-        morningLabel.classList.remove('disabled');
-        morningLabel.title = '';
-        afternoonRadio.disabled = false;
-        afternoonLabel.classList.remove('disabled');
-        if (!morningRadio.checked && !afternoonRadio.checked) { morningRadio.checked = true; }
+        // AM only: 00:00 – 11:59
+        startEl.min = '00:00'; startEl.max = '11:59';
+        endEl.min   = '00:00'; endEl.max   = '11:59';
+        // If current values are in PM range, clear them
+        if (startEl.value && startEl.value >= '12:00') startEl.value = '';
+        if (endEl.value   && endEl.value   >= '12:00') endEl.value   = '';
         hint.innerHTML = '<i class="bi bi-clock text-success me-1"></i>'
-            + '<span style="color:#16a34a;">Morning available.</span>';
+            + '<span style="color:#16a34a;">AM session — schedule must be between 12:00 AM – 11:59 AM.</span>';
     }
+    // Re-run schedule hint
+    onScheduleInput();
 }
 
 // ── Schedule input live hint ─────────────────────────────────────────────────

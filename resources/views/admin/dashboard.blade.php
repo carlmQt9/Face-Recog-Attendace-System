@@ -19,28 +19,28 @@
 {{-- ══ STAT CARDS ══ --}}
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#1a73e8,#0d47a1)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#0c3d8a,#0a2d6b)">
             <div class="stat-num" id="stat-students">{{ $stats['total_students'] }}</div>
             <div class="stat-lbl">Total Students</div>
             <div class="stat-icon">🎒</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#34a853,#1b5e20)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#1a6b3c,#14532d)">
             <div class="stat-num" id="stat-teachers">{{ $stats['total_teachers'] }}</div>
             <div class="stat-lbl">Total Teachers</div>
             <div class="stat-icon">👩‍🏫</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#b45309,#d97706)">
             <div class="stat-num" id="stat-cameras">{{ $stats['active_cameras'] }}<span style="font-size:18px;opacity:.7;">/{{ $stats['total_cameras'] }}</span></div>
             <div class="stat-lbl">Active Cameras</div>
             <div class="stat-icon">📷</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#ea4335,#880e4f)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#c2800a,#f5a800)">
             <div class="stat-num" id="stat-attendance">{{ $stats['today_attendance'] }}</div>
             <div class="stat-lbl">Present Today</div>
             <div class="stat-icon">✅</div>
@@ -151,7 +151,7 @@ const chartWeekly = new Chart(document.getElementById('chartWeekly'), {
             label: 'Present',
             data: weeklyData,
             backgroundColor: weeklyData.map((_, i) =>
-                i === weeklyData.length - 1 ? '#4f46e5' : '#818cf8'
+                i === weeklyData.length - 1 ? '#0c3d8a' : '#4a7fd4'
             ),
             borderRadius: 8,
             borderSkipped: false,
@@ -178,10 +178,10 @@ const chartHourly = new Chart(document.getElementById('chartHourly'), {
         datasets: [{
             label: 'Scans',
             data: hourData,
-            borderColor: '#06b6d4',
-            backgroundColor: 'rgba(6,182,212,.12)',
+            borderColor: '#f5a800',
+            backgroundColor: 'rgba(245,168,0,.12)',
             borderWidth: 2.5,
-            pointBackgroundColor: '#06b6d4',
+            pointBackgroundColor: '#f5a800',
             pointRadius: 4,
             pointHoverRadius: 6,
             fill: true,
@@ -201,7 +201,7 @@ const chartHourly = new Chart(document.getElementById('chartHourly'), {
 // ── 3. Method Doughnut ────────────────────────────────────────────────────────
 @php
     $methods      = ['face_scan' => 'Face Scan', 'qr_code' => 'QR Code', 'manual' => 'Manual'];
-    $methodColors = ['face_scan' => '#4f46e5', 'qr_code' => '#06b6d4', 'manual' => '#f59e0b'];
+    $methodColors = ['face_scan' => '#0c3d8a', 'qr_code' => '#f5a800', 'manual' => '#1a6b3c'];
     $mLabels      = [];
     $mData        = [];
     $mColors      = [];
