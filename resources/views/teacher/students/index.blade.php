@@ -268,8 +268,9 @@
                 @csrf
                 <div class="modal-body p-4">
                     @if($errors->any())
-                    <div class="alert alert-danger py-2 small mb-3">
+                    <div class="alert alert-danger alert-dismissible py-2 small mb-3 auto-dismiss">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>{{ $errors->first() }}
+                        <button type="button" class="btn-close btn-sm ms-auto" data-bs-dismiss="alert" style="font-size:10px;"></button>
                     </div>
                     @endif
 

@@ -10,8 +10,28 @@ class CameraController extends Controller
 {
     public function index()
     {
+        // Check if there are any cameras, if not, create a default local camera
+        $this->ensureDefaultLocalCamera();
+        
         $cameras = Camera::latest()->paginate(20);
         return view('admin.cameras.index', compact('cameras'));
+    }
+
+    /**
+     * Ensure there's at least one default local camera available
+     */
+    private function ensureDefaultLocalCamera()
+    {
+        if (Camera::count() === 0) {
+            Camera::create([
+                'name' => 'Default Local Camera',
+                'location' => 'Admin Device',
+                'type' => 'classroom',
+                'is_local_device' => true,
+                'is_active' => true,
+                'device_identifier' => null,
+            ]);
+        }
     }
 
     public function create()
@@ -30,6 +50,11 @@ class CameraController extends Controller
 
         $data = $request->only('name', 'location', 'type', 'device_identifier');
         $data['is_local_device'] = $request->boolean('is_local_device');
+        
+        // Automatically activate local cameras by default
+        if ($data['is_local_device']) {
+            $data['is_active'] = true;
+        }
 
         Camera::create($data);
 

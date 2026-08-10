@@ -134,7 +134,7 @@
             </div>
             <div class="modal-body p-4">
                 @if($errors->any())
-                    <div class="alert alert-danger py-2 small mb-3"><strong>Please fix:</strong><ul class="mb-0 mt-1">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
+                    <div class="alert alert-danger alert-dismissible py-2 small mb-3 auto-dismiss"><strong>Please fix:</strong><ul class="mb-0 mt-1">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul><button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" style="font-size:10px;"></button></div>
                 @endif
                 <form action="{{ route('admin.cameras.store') }}" method="POST" id="addCameraForm" data-validate="true">
                     @csrf
@@ -159,12 +159,12 @@
                     </div>
                     <div class="mb-3">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_local_device" id="modalIsLocalDevice" value="1" {{ old('is_local_device')?'checked':'' }} onchange="toggleModalDeviceId(this.checked)">
+                            <input class="form-check-input" type="checkbox" name="is_local_device" id="modalIsLocalDevice" value="1" {{ old('is_local_device', true)?'checked':'' }} onchange="toggleModalDeviceId(this.checked)">
                             <label class="form-check-label fw-semibold" for="modalIsLocalDevice"><i class="bi bi-laptop me-1 text-primary"></i> Use Local Device Camera <span class="text-muted fw-normal">(laptop, phone, tablet)</span></label>
                         </div>
                         <small class="text-muted">Browser camera — no IP address needed.</small>
                     </div>
-                    <div id="modalDeviceIdField" style="{{ old('is_local_device')?'display:none':'' }}">
+                    <div id="modalDeviceIdField" style="{{ old('is_local_device', true)?'display:none':'' }}">
                         <label class="form-label fw-semibold">Device Identifier <span class="text-muted fw-normal">(optional)</span></label>
                         <input type="text" name="device_identifier" class="form-control" value="{{ old('device_identifier') }}" placeholder="IP address or device ID">
                         <small class="text-muted">For IP or dedicated cameras.</small>

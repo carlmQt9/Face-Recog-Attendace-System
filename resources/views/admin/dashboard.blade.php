@@ -36,6 +36,9 @@
         <div class="stat-card" style="background:linear-gradient(135deg,#b45309,#d97706)">
             <div class="stat-num" id="stat-cameras">{{ $stats['active_cameras'] }}<span style="font-size:18px;opacity:.7;">/{{ $stats['total_cameras'] }}</span></div>
             <div class="stat-lbl">Active Cameras</div>
+            @if($stats['local_cameras'] > 0)
+                <div style="font-size:10px;opacity:.8;margin-top:2px;">{{ $stats['local_cameras'] }} Local Ready</div>
+            @endif
             <div class="stat-icon">📷</div>
         </div>
     </div>
@@ -47,6 +50,28 @@
         </div>
     </div>
 </div>
+
+@if($stats['local_cameras'] == 0)
+{{-- ══ LOCAL CAMERA STATUS ══ --}}
+<div class="alert alert-warning d-flex align-items-center mb-4" role="alert" style="border-radius:12px;border:none;">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <div>
+        <strong>No Local Cameras Active!</strong> 
+        Set up a local camera to enable device-based face recognition. 
+        <a href="{{ route('admin.cameras.index') }}" class="alert-link">Manage cameras</a>
+    </div>
+</div>
+@else
+{{-- ══ LOCAL CAMERA READY ══ --}}
+<div class="alert alert-success d-flex align-items-center mb-4" role="alert" style="border-radius:12px;border:none;">
+    <i class="bi bi-camera-video-fill me-2"></i>
+    <div>
+        <strong>{{ $stats['local_cameras'] }} Local Camera(s) Active!</strong> 
+        Your device cameras are ready for face recognition attendance. 
+        <a href="{{ route('admin.cameras.index') }}" class="alert-link">Manage cameras</a>
+    </div>
+</div>
+@endif
 
 {{-- ══ CHARTS ROW ══ --}}
 <div class="row g-3 mb-4">
@@ -266,6 +291,28 @@ async function pollAdminDashboard() {
         document.getElementById('stat-students').textContent   = data.stats.total_students;
         document.getElementById('stat-teachers').textContent   = data.stats.total_teachers;
         document.getElementById('stat-attendance').textContent = data.stats.today_attendance;
+        
+        // Update cameras stat with local camera info
+        const cameraEl = document.getElementById('stat-cameras');
+        cameraEl.innerHTML = `${data.stats.active_cameras}<span style="font-size:18px;opacity:.7;">/${data.stats.total_cameras}</span>`;
+        
+        // Update local camera indicator if exists
+        const cameraCard = cameraEl.closest('.stat-card');
+        const existingLocal = cameraCard.querySelector('[style*="font-size:10px"]');
+        if (existingLocal) {
+            if (data.stats.local_cameras > 0) {
+                existingLocal.textContent = `${data.stats.local_cameras} Local Ready`;
+            } else {
+                existingLocal.remove();
+            }
+        } else if (data.stats.local_cameras > 0) {
+            const localDiv = document.createElement('div');
+            localDiv.style.fontSize = '10px';
+            localDiv.style.opacity = '.8';
+            localDiv.style.marginTop = '2px';
+            localDiv.textContent = `${data.stats.local_cameras} Local Ready`;
+            cameraCard.querySelector('.stat-lbl').after(localDiv);
+        }
 
         // Update hourly chart live
         if (data.hourData) {

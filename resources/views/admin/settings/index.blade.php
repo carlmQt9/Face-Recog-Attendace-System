@@ -82,7 +82,7 @@ input[type=range].vol-bar::-webkit-slider-thumb {
 @section('content')
 
 @if(session('success'))
-<div class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2 mb-3" role="alert">
+<div class="alert alert-success alert-dismissible fade show auto-dismiss d-flex align-items-center gap-2 mb-3" role="alert">
     <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
     <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
 </div>

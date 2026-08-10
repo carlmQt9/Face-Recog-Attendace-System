@@ -32,5 +32,8 @@ class DatabaseSeeder extends Seeder
         foreach ($defaults as $setting) {
             SystemSetting::firstOrCreate(['key' => $setting['key']], $setting);
         }
+
+        // ── Default Camera Setup ──────────────────────────────────────────────
+        $this->call(CameraSeeder::class);
     }
 }

@@ -14,11 +14,15 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Ensure there's at least one local camera available and activated
+        $this->ensureDefaultLocalCamera();
+        
         $stats = [
             'total_students'    => Student::count(),
             'total_teachers'    => Teacher::count(),
             'total_cameras'     => Camera::count(),
             'active_cameras'    => Camera::where('is_active', true)->count(),
+            'local_cameras'     => Camera::where('is_local_device', true)->where('is_active', true)->count(),
             'today_attendance'  => AttendanceRecord::whereDate('arrived_at', today())
                                         ->where('scan_result', 'success')
                                         ->count(),
@@ -65,6 +69,38 @@ class DashboardController extends Controller
         ));
     }
 
+    /**
+     * Ensure there's at least one default local camera available and activated
+     */
+    private function ensureDefaultLocalCamera()
+    {
+        $localActiveCamera = Camera::where('is_local_device', true)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$localActiveCamera) {
+            // Check if there's an inactive local camera first
+            $inactiveLocalCamera = Camera::where('is_local_device', true)
+                ->where('is_active', false)
+                ->first();
+
+            if ($inactiveLocalCamera) {
+                // Activate the existing local camera
+                $inactiveLocalCamera->update(['is_active' => true]);
+            } else {
+                // Create a new default local camera
+                Camera::create([
+                    'name' => 'Default Local Camera',
+                    'location' => 'Admin Device',
+                    'type' => 'classroom',
+                    'is_local_device' => true,
+                    'is_active' => true,
+                    'device_identifier' => null,
+                ]);
+            }
+        }
+    }
+
     /** Real-time polling endpoint */
     public function stats()
     {
@@ -73,6 +109,7 @@ class DashboardController extends Controller
             'total_teachers'   => Teacher::count(),
             'total_cameras'    => Camera::count(),
             'active_cameras'   => Camera::where('is_active', true)->count(),
+            'local_cameras'    => Camera::where('is_local_device', true)->where('is_active', true)->count(),
             'today_attendance' => AttendanceRecord::whereDate('arrived_at', today())
                                       ->where('scan_result', 'success')
                                       ->count(),

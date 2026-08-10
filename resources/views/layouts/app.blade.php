@@ -350,14 +350,14 @@
 
         @foreach(['success','warning','danger','info'] as $type)
             @if(session($type))
-                <div class="alert alert-{{ $type }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ $type }} alert-dismissible fade show auto-dismiss" role="alert">
                     {{ session($type) }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
         @endforeach
         @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show auto-dismiss" role="alert">
                 {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
@@ -381,6 +381,118 @@
     document.querySelectorAll('.sidebar .nav-link').forEach(link => {
         link.addEventListener('click', () => { if (window.innerWidth <= 768) closeSidebar(); });
     });
+
+    // Auto-dismiss notifications after 2 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert.auto-dismiss');
+        alerts.forEach(function(alert) {
+            // Set a timeout to auto-dismiss the alert
+            setTimeout(function() {
+                // Use Bootstrap's dismiss method if available
+                const alertInstance = bootstrap.Alert.getOrCreateInstance(alert);
+                if (alertInstance) {
+                    alertInstance.close();
+                } else {
+                    // Fallback: manually remove the alert with fade effect
+                    alert.classList.remove('show');
+                    setTimeout(() => {
+                        if (alert.parentNode) {
+                            alert.parentNode.removeChild(alert);
+                        }
+                    }, 150); // Wait for CSS transition
+                }
+            }, 2000); // 2 seconds delay
+        });
+    });
+
+    // Also handle dynamically added notifications
+    function observeForNewAlerts() {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1 && node.classList && node.classList.contains('alert') && node.classList.contains('auto-dismiss')) {
+                        setTimeout(function() {
+                            const alertInstance = bootstrap.Alert.getOrCreateInstance(node);
+                            if (alertInstance) {
+                                alertInstance.close();
+                            } else {
+                                node.classList.remove('show');
+                                setTimeout(() => {
+                                    if (node.parentNode) {
+                                        node.parentNode.removeChild(node);
+                                    }
+                                }, 150);
+                            }
+                        }, 2000);
+                    }
+                });
+            });
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+    
+    // Start observing after DOM is loaded
+    document.addEventListener('DOMContentLoaded', observeForNewAlerts);
+
+    // Global utility function to show auto-dismissing notifications
+    window.showNotification = function(message, type = 'success', duration = 2000) {
+        // Create the alert element
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show auto-dismiss d-flex align-items-center gap-2 mb-3`;
+        alertDiv.setAttribute('role', 'alert');
+        
+        // Add appropriate icon based on type
+        const icons = {
+            success: 'bi-check-circle-fill',
+            warning: 'bi-exclamation-triangle-fill',
+            danger: 'bi-x-circle-fill',
+            info: 'bi-info-circle-fill',
+            error: 'bi-x-circle-fill'
+        };
+        
+        const icon = icons[type] || icons.success;
+        
+        alertDiv.innerHTML = `
+            <i class="bi ${icon}"></i> ${message}
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Insert the alert at the top of the main content, after the top bar
+        const mainContent = document.querySelector('.main-content');
+        const topBar = mainContent.querySelector('.top-bar');
+        if (topBar) {
+            topBar.insertAdjacentElement('afterend', alertDiv);
+        } else {
+            mainContent.insertBefore(alertDiv, mainContent.firstChild);
+        }
+        
+        // Auto-dismiss after the specified duration
+        setTimeout(function() {
+            const alertInstance = bootstrap.Alert.getOrCreateInstance(alertDiv);
+            if (alertInstance) {
+                alertInstance.close();
+            } else {
+                alertDiv.classList.remove('show');
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.parentNode.removeChild(alertDiv);
+                    }
+                }, 150);
+            }
+        }, duration);
+        
+        return alertDiv;
+    };
+
+    // Also provide a shorthand for common notification types
+    window.showSuccess = (message, duration) => showNotification(message, 'success', duration);
+    window.showError = (message, duration) => showNotification(message, 'danger', duration);
+    window.showWarning = (message, duration) => showNotification(message, 'warning', duration);
+    window.showInfo = (message, duration) => showNotification(message, 'info', duration);
     </script>
 
     @stack('scripts')

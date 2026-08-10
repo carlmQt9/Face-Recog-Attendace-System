@@ -128,9 +128,10 @@
             </div>
             <div class="modal-body p-4">
                 @if($errors->any())
-                    <div class="alert alert-danger py-2 small mb-3">
+                    <div class="alert alert-danger alert-dismissible py-2 small mb-3 auto-dismiss">
                         <strong>Please fix:</strong>
                         <ul class="mb-0 mt-1">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+                        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" style="font-size:10px;"></button>
                     </div>
                 @endif
                 <form action="{{ route('admin.parents.store') }}" method="POST" id="linkParentForm" data-validate="true">
