@@ -164,6 +164,9 @@ body { background:#0a0a0f; }
 }
 .scantype-btn.in.active  {background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;}
 .scantype-btn.out.active {background:linear-gradient(135deg,#dc2626,#f87171);color:#fff;}
+.scantype-btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
+.scantype-btn:disabled.in.active  {background:linear-gradient(135deg,#16a34a,#22c55e);color:rgba(255,255,255,.5);}
+.scantype-btn:disabled.out.active {background:linear-gradient(135deg,#dc2626,#f87171);color:rgba(255,255,255,.5);}
 
 .scan-btn{
     background:linear-gradient(135deg,#0c3d8a,#1a6b3c);color:#fff;
@@ -587,6 +590,31 @@ body { background:#0a0a0f; }
 </div>
 @endif
 
+{{-- ── Attendance Type Confirmation Modal ── --}}
+@if($session->isActive())
+<div class="qr-modal-backdrop" id="attendanceTypeBackdrop" style="display:none;" onclick="closeAttendanceTypeModal(event)">
+    <div class="qr-modal" style="min-width:320px;">
+        <h6 id="attendTypeModalTitle" style="font-size:18px;margin-bottom:12px;"><i class="bi bi-clock-fill me-2"></i>Confirm Attendance Type</h6>
+        <p id="attendTypeModalMsg" style="color:#94a3b8;font-size:13px;margin-bottom:20px;line-height:1.6;">
+            This student doesn't have a morning time-in. Do you want to set this afternoon scan as:
+        </p>
+        <div class="d-flex gap-2 justify-content-center" style="flex-wrap:wrap;">
+            <button class="btn btn-sm" style="background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;border-radius:9px;padding:8px 20px;font-weight:700;border:none;cursor:pointer;min-width:110px;"
+                    onclick="setAndSubmitAttendanceType('time_in')">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Mark as Time-In
+            </button>
+            <button class="btn btn-sm" style="background:linear-gradient(135deg,#dc2626,#f87171);color:#fff;border-radius:9px;padding:8px 20px;font-weight:700;border:none;cursor:pointer;min-width:110px;"
+                    onclick="setAndSubmitAttendanceType('time_out')">
+                <i class="bi bi-box-arrow-right me-1"></i>Mark as Time-Out
+            </button>
+        </div>
+        <p style="font-size:11px;color:#475569;margin-top:14px;margin-bottom:0;">
+            Choose the type of attendance record you want to create
+        </p>
+    </div>
+</div>
+@endif
+
 @endsection
 
 @push('scripts')
@@ -650,6 +678,10 @@ const confWrap    = document.getElementById('confWrap');
 window.addEventListener('DOMContentLoaded', async () => {
     // Apply session type to UI immediately
     setScanType(DEFAULT_SCAN_TYPE);
+    
+    // Start time-based button control
+    updateAttendanceButtonStates();
+    setInterval(updateAttendanceButtonStates, 10000); // Check every 10 seconds
 
     setLoading('Starting camera…');
     await startCamera();
@@ -839,6 +871,35 @@ function switchToDevice(deviceId) {
 // ═══════════════════════════════════════════════════════
 //  SCAN TYPE — Time In / Time Out
 // ═══════════════════════════════════════════════════════
+
+// Update IN/OUT button availability based on current time (AM/PM)
+// Morning hours (e.g. 6 AM - 11:59 AM): allow IN, disable OUT
+// Afternoon hours (12 PM onwards): allow both, encourage OUT
+function updateAttendanceButtonStates() {
+    const now = new Date();
+    const hour = now.getHours();
+    const inBtn = document.getElementById('scanTypeIn');
+    const outBtn = document.getElementById('scanTypeOut');
+    
+    if (!inBtn || !outBtn) return;
+    
+    // Morning: 6 AM to 11:59 AM — allow IN only
+    if (hour >= 6 && hour < 12) {
+        inBtn.disabled = false;
+        outBtn.disabled = true;
+        if (scanType === 'time_out') setScanType('time_in'); // Force to IN if currently OUT
+    }
+    // Afternoon/Evening: 12 PM to 5:59 PM — allow both
+    else if (hour >= 12 && hour < 18) {
+        inBtn.disabled = false;
+        outBtn.disabled = false;
+    }
+    // Outside school hours: allow both (teacher flexibility)
+    else {
+        inBtn.disabled = false;
+        outBtn.disabled = false;
+    }
+}
 
 // Called by the buttons — shows confirmation before switching
 async function confirmScanType(type) {
@@ -1524,6 +1585,35 @@ function downloadQr() {
     link.download = `qr-attendance-{{ $session->subject }}-{{ $session->id }}.png`;
     link.href      = canvas.toDataURL('image/png');
     link.click();
+}
+
+// ── Attendance Type Modal ──
+let pendingAttendanceType = null;
+
+function showAttendanceTypeModal() {
+    const backdrop = document.getElementById('attendanceTypeBackdrop');
+    if (backdrop) {
+        backdrop.style.display = 'flex';
+        setTimeout(() => backdrop.classList.add('open'), 10);
+    }
+}
+
+function closeAttendanceTypeModal(e) {
+    if (e && e.target !== document.getElementById('attendanceTypeBackdrop')) return;
+    const backdrop = document.getElementById('attendanceTypeBackdrop');
+    if (backdrop) {
+        backdrop.classList.remove('open');
+        setTimeout(() => backdrop.style.display = 'none', 300);
+    }
+}
+
+function setAndSubmitAttendanceType(type) {
+    pendingAttendanceType = type;
+    closeAttendanceTypeModal({ target: document.getElementById('attendanceTypeBackdrop') });
+    // Trigger the pending attendance record submission
+    if (typeof submitPendingAttendance === 'function') {
+        submitPendingAttendance();
+    }
 }
 
 // ── End Session confirmation ──
