@@ -14,7 +14,8 @@ class ClassSessionController extends Controller
         $teacher  = auth()->user()->teacher;
         $sessions = ClassSession::with('camera')
             ->where('teacher_id', $teacher->id)
-            ->latest()
+            ->orderByRaw("FIELD(status, 'active', 'ended') ASC")  // Active sessions first
+            ->latest()  // Then by newest first
             ->paginate(15);
 
         $cameras = Camera::where('is_active', true)->get();
@@ -28,7 +29,8 @@ class ClassSessionController extends Controller
         $teacher  = auth()->user()->teacher;
         $sessions = ClassSession::with('camera')
             ->where('teacher_id', $teacher->id)
-            ->latest()
+            ->orderByRaw("FIELD(status, 'active', 'ended') ASC")  // Active sessions first
+            ->latest()  // Then by newest first
             ->take(15)
             ->get()
             ->map(fn($s) => [

@@ -18,7 +18,7 @@ body { background:#0a0a0f; }
 .camera-wrapper.no-match  { box-shadow:0 0 60px rgba(248,113,113,.5); border-color:#f87171; }
 .camera-wrapper.cooldown  { box-shadow:0 0 60px rgba(250,204,21,.4); border-color:#facc15; }
 
-#videoFeed   { width:100%; display:block; border-radius:18px; transform:scaleX(-1); }
+#videoFeed   { width:100%; display:block; border-radius:18px; transform:scaleX(1); }
 #scanCanvas  { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; border-radius:18px; }
 
 /* ── Scan line ─────────────────────────────────────── */
@@ -796,11 +796,18 @@ async function startCamera() {
         if (IS_LOCAL) {
             if (preferredDeviceId) {
                 vc.deviceId = { exact: preferredDeviceId };
-                video.style.transform = 'scaleX(-1)';
+                // Mirror for front camera devices, natural for back/external cameras
+                // Assume deviceId selection means user wants natural view (back camera)
+                video.style.transform = 'scaleX(1)';
             } else {
                 vc.facingMode = facingMode;
+                // Mirror only for user-facing (front) camera
                 video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
             }
+        } else {
+            // For mobile: 'user' = front camera (mirror), 'environment' = back camera (natural)
+            vc.facingMode = facingMode;
+            video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
         }
         vc.width  = { ideal: 1280 };
         vc.height = { ideal: 720 };
@@ -928,6 +935,19 @@ function setMode(mode) {
     const qrFrame = document.getElementById('qrFrame');
     if (qrFrame) qrFrame.classList.toggle('active', mode === 'qr');
 
+    // ── AUTO-SWITCH CAMERA for QR mode ──────────────────────────────────
+    // QR mode: use back camera (environment-facing) for scanning QR codes
+    // Face mode: use front camera (user-facing) for face recognition
+    if (mode === 'qr' && facingMode !== 'environment') {
+        // Switch to back camera for QR scanning
+        facingMode = 'environment';
+        startCamera();  // Restart camera with back camera
+    } else if (mode !== 'qr' && facingMode !== 'user') {
+        // Switch back to front camera for face scanning
+        facingMode = 'user';
+        startCamera();  // Restart camera with front camera
+    }
+
     // Stop whatever is running
     stopAutoScan();
     stopQrScan();
@@ -993,15 +1013,10 @@ async function runQrScan() {
     fullCanvas.height = vh;
     const fullCtx = fullCanvas.getContext('2d', { willReadFrequently: true });
 
-    // Mirror-compensate: if video is CSS-mirrored, flip the canvas draw so
-    // the QR data orientation is correct for jsQR
-    const videoComputedStyle = getComputedStyle(video);
-    const isVideoFlipped = videoComputedStyle.transform.includes('scaleX(-1)') || video.style.transform === 'scaleX(-1)';
-    
-    if (isVideoFlipped) {
-        fullCtx.translate(vw, 0);
-        fullCtx.scale(-1, 1);
-    }
+    // For QR scanning: ALWAYS draw video directly without flipping
+    // QR codes must be read in their natural orientation
+    // - Front camera: video is CSS-mirrored for user, but we draw unflipped for QR reading
+    // - Back camera: video is not mirrored, we draw directly
     fullCtx.drawImage(video, 0, 0);
 
     // ── Contrast boost — helps low-light QR codes ────────────
