@@ -7,8 +7,8 @@
 {{-- Student Profile Banner --}}
 @php
     $student = auth()->user()->student;
-    $profileImg = ($student?->face_encoding && Storage::disk('public')->exists($student->face_encoding))
-        ? Storage::url($student->face_encoding)
+    $profileImg = ($student?->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($student->face_encoding))
+        ? \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding)
         : null;
 @endphp
 <div class="card mb-4" style="background:linear-gradient(135deg,#0c3d8a,#1a6b3c);border:none;">

@@ -583,7 +583,6 @@ body { background:#0a0a0f; }
                         $snapUrl = $record->snapshotUrl(); // Only use attendance snapshot, not registration photo
                         $snapSub = ($record->scan_type === 'time_out' ? 'Timed Out' : 'Timed In') . ' · ' . $record->arrived_at->format('h:i A');
                     @endphp
-                    @endphp
                     @if($snapUrl)
                         <img src="{{ $snapUrl }}"
                              alt="{{ $record->student->user->name }}"

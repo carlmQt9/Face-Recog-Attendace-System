@@ -84,9 +84,9 @@
                 @php
                     $faceUrl = null;
                     if ($user->role === 'student' && $user->student?->face_registered && $user->student?->face_encoding) {
-                        if (Storage::disk('public')->exists($user->student->face_encoding)) $faceUrl = Storage::url($user->student->face_encoding);
+                        if (\App\Providers\AppServiceProvider::faceImageExists($user->student->face_encoding)) $faceUrl = \App\Providers\AppServiceProvider::faceImageUrl($user->student->face_encoding);
                     } elseif ($user->role === 'teacher' && $user->teacher?->face_registered && $user->teacher?->face_encoding) {
-                        if (Storage::disk('public')->exists($user->teacher->face_encoding)) $faceUrl = Storage::url($user->teacher->face_encoding);
+                        if (\App\Providers\AppServiceProvider::faceImageExists($user->teacher->face_encoding)) $faceUrl = \App\Providers\AppServiceProvider::faceImageUrl($user->teacher->face_encoding);
                     }
                 @endphp
                 <tr>
@@ -129,9 +129,9 @@
             @php
                 $faceUrl = null;
                 if ($user->role === 'student' && $user->student?->face_registered && $user->student?->face_encoding) {
-                    if (Storage::disk('public')->exists($user->student->face_encoding)) $faceUrl = Storage::url($user->student->face_encoding);
+                    if (\App\Providers\AppServiceProvider::faceImageExists($user->student->face_encoding)) $faceUrl = \App\Providers\AppServiceProvider::faceImageUrl($user->student->face_encoding);
                 } elseif ($user->role === 'teacher' && $user->teacher?->face_registered && $user->teacher?->face_encoding) {
-                    if (Storage::disk('public')->exists($user->teacher->face_encoding)) $faceUrl = Storage::url($user->teacher->face_encoding);
+                    if (\App\Providers\AppServiceProvider::faceImageExists($user->teacher->face_encoding)) $faceUrl = \App\Providers\AppServiceProvider::faceImageUrl($user->teacher->face_encoding);
                 }
             @endphp
             <div class="user-row">

@@ -271,8 +271,8 @@ class FaceScanController extends Controller
     }
 
     /**
-     * Save base64 face_image to storage and return path
-     * Enhanced to ensure snapshots are always saved for attendance records
+     * Save base64 face_image to public/snapshots/ and return path.
+     * Uses public_path() so no storage symlink is needed — works on localhost AND InfinityFree.
      */
     private function saveSnapshot(?string $base64, int $studentId, string $type): ?string
     {
@@ -290,15 +290,21 @@ class FaceScanController extends Controller
                 return null;
             }
 
-            $path = 'snapshots/student_' . $studentId . '_' . $type . '_' . time() . '.jpg';
-            Storage::disk('public')->put($path, $decoded);
-            
-            // Verify the file was saved
-            if (!Storage::disk('public')->exists($path)) {
+            $path     = 'snapshots/student_' . $studentId . '_' . $type . '_' . time() . '.jpg';
+            $fullPath = public_path($path);
+            $dir      = dirname($fullPath);
+
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+
+            file_put_contents($fullPath, $decoded);
+
+            if (!file_exists($fullPath)) {
                 \Log::error("Snapshot file was not saved successfully: {$path}");
                 return null;
             }
-            
+
             \Log::info("Attendance snapshot saved successfully: {$path}");
             return $path;
         } catch (\Exception $e) {

@@ -140,8 +140,8 @@ class QrAttendanceController extends Controller
     private function faceUrl(Student $student): ?string
     {
         if (!$student->face_encoding) return null;
-        if (!Storage::disk('public')->exists($student->face_encoding)) return null;
-        return Storage::url($student->face_encoding);
+        if (!\App\Providers\AppServiceProvider::faceImageExists($student->face_encoding)) return null;
+        return \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding);
     }
 
     /**

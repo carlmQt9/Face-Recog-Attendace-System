@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class FaceRegistrationController extends Controller
 {
@@ -41,14 +40,13 @@ class FaceRegistrationController extends Controller
     public function store(Request $request, string $type, int $id)
     {
         $request->validate([
-            'face_image'        => 'required|string|min:100',  // base64 primary (front) image
+            'face_image'        => 'required|string|min:100',
             'liveness_verified' => 'nullable|in:0,1',
-            'extra_samples'     => 'nullable|string',          // JSON array of base64 images
+            'extra_samples'     => 'nullable|string',
         ]);
 
         $faceImage = $request->input('face_image');
 
-        // Guard: must be a non-empty base64 string
         if (empty($faceImage) || strlen($faceImage) < 100) {
             return back()->withErrors(['face_image' => 'No face image was captured. Please complete the verification steps.']);
         }
@@ -66,7 +64,7 @@ class FaceRegistrationController extends Controller
             if (is_array($extras)) {
                 $labels = ['left', 'right', 'blink'];
                 foreach ($extras as $i => $b64) {
-                    if (empty($b64) || strlen($b64) < 100) continue; // skip blank slots
+                    if (empty($b64) || strlen($b64) < 100) continue;
                     $label        = $labels[$i] ?? "sample_{$i}";
                     $extraPaths[] = $this->saveBase64Image(
                         $b64,
@@ -97,12 +95,15 @@ class FaceRegistrationController extends Controller
     }
 
     /**
-     * Decode a base64 image string and persist it to public storage.
-     * Returns the storage path, or throws if the data is invalid.
+     * Decode a base64 image string and save it directly into public/faces/.
+     * Saves to public_path($path) so the file is accessible via asset($path)
+     * on ANY host — no storage symlink required (works on localhost AND InfinityFree).
+     *
+     * Returns the relative path (e.g. "faces/student_1_primary_1234.jpg") which
+     * is stored in the DB and resolved to a URL by AppServiceProvider::faceImageUrl().
      */
     private function saveBase64Image(string $base64, string $path): string
     {
-        // Strip data URI prefix (data:image/jpeg;base64, or data:image/png;base64,)
         $data = preg_replace('/^data:image\/[a-zA-Z+]+;base64,/', '', $base64);
         $data = str_replace([' ', "\n", "\r"], ['+', '', ''], $data);
 
@@ -111,9 +112,15 @@ class FaceRegistrationController extends Controller
             throw new \RuntimeException("Invalid base64 image data for path: {$path}");
         }
 
-        Storage::disk('public')->put($path, $decoded);
+        $fullPath = public_path($path);
+        $dir      = dirname($fullPath);
 
-        // Ensure no newlines in the returned path
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        file_put_contents($fullPath, $decoded);
+
         return trim($path);
     }
 }

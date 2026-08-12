@@ -70,14 +70,14 @@
                             <tr>
                                 <td class="align-middle">
                                     <div style="width:38px;height:38px;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700;flex-shrink:0;"
-                                         @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
-                                             data-lightbox="{{ Storage::url($student->face_encoding) }}"
+                                         @if($student->face_registered && $student->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($student->face_encoding))
+                                             data-lightbox="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
                                              data-lightbox-caption="{{ $student->user->name }}"
                                              data-lightbox-sub="Registered Face · {{ $student->student_id }}"
                                              style="cursor:zoom-in;"
                                          @endif>
-                                        @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
-                                            <img src="{{ Storage::url($student->face_encoding) }}" alt="{{ $student->user->name }}" style="width:100%;height:100%;object-fit:cover;display:block;">
+                                        @if($student->face_registered && $student->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($student->face_encoding))
+                                            <img src="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}" alt="{{ $student->user->name }}" style="width:100%;height:100%;object-fit:cover;display:block;">
                                         @else
                                             {{ strtoupper(substr($student->user->name, 0, 1)) }}
                                         @endif
@@ -134,14 +134,14 @@
                     <div class="student-row">
                         {{-- Avatar --}}
                         <div class="sr-avatar"
-                             @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
-                                 data-lightbox="{{ Storage::url($student->face_encoding) }}"
+                             @if($student->face_registered && $student->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($student->face_encoding))
+                                 data-lightbox="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
                                  data-lightbox-caption="{{ $student->user->name }}"
                                  data-lightbox-sub="Registered Face · {{ $student->student_id }}"
                                  style="cursor:zoom-in;"
                              @endif>
-                            @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
-                                <img src="{{ Storage::url($student->face_encoding) }}" alt="{{ $student->user->name }}">
+                            @if($student->face_registered && $student->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($student->face_encoding))
+                                <img src="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}" alt="{{ $student->user->name }}">
                             @else
                                 {{ strtoupper(substr($student->user->name, 0, 1)) }}
                             @endif

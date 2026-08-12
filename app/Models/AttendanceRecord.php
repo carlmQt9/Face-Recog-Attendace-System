@@ -57,8 +57,8 @@ class AttendanceRecord extends Model
     public function snapshotUrl(): ?string
     {
         if (!$this->snapshot_path) return null;
-        return \Storage::disk('public')->exists($this->snapshot_path)
-            ? \Storage::url($this->snapshot_path)
+        return \App\Providers\AppServiceProvider::faceImageExists($this->snapshot_path)
+            ? \App\Providers\AppServiceProvider::faceImageUrl($this->snapshot_path)
             : null;
     }
 

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Test</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #0f0; }
+        img { border: 2px solid #0f0; max-width: 200px; }
+        .test { margin: 20px 0; padding: 10px; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <h1>Image Test Page</h1>
+    
+    <div class="test">
+        <h2>Test 1: Logo (should work)</h2>
+        <img src="/dmcmes-logo.png" alt="Logo" onerror="this.alt='FAILED: Logo not found'">
+    </div>
+    
+    <div class="test">
+        <h2>Test 2: Face Image (direct path)</h2>
+        <p>Try manually replacing FILENAME with an actual file from your faces folder</p>
+        <img src="/faces/student_1_primary_1786520575.jpg" alt="Face" onerror="this.alt='FAILED: Face image not found'">
+    </div>
+    
+    <div class="test">
+        <h2>What to check:</h2>
+        <ol>
+            <li>Is faces/ folder in htdocs/?</li>
+            <li>Are .jpg files inside faces/?</li>
+            <li>Are file permissions 644 for images?</li>
+            <li>Is folder permission 755?</li>
+        </ol>
+    </div>
+    
+    <script>
+        // Log to console
+        console.log('Current URL:', window.location.href);
+        console.log('Domain:', window.location.hostname);
+        
+        // Try to fetch an image to see the actual error
+        fetch('/faces/student_1_primary_1786520575.jpg')
+            .then(r => console.log('Image fetch response:', r.status, r.statusText))
+            .catch(e => console.error('Image fetch error:', e));
+    </script>
+</body>
+</html>

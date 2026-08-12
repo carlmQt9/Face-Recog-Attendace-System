@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ClassSession;
 use App\Models\Student;
+use App\Providers\AppServiceProvider;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class FaceDescriptorController extends Controller
 {
@@ -34,18 +34,20 @@ class FaceDescriptorController extends Controller
             $images = [];
 
             // Primary image
-            if ($student->face_encoding && Storage::disk('public')->exists($student->face_encoding)) {
-                $images[] = Storage::url($student->face_encoding);
+            if ($student->face_encoding && AppServiceProvider::faceImageExists($student->face_encoding)) {
+                $images[] = AppServiceProvider::faceImageUrl($student->face_encoding);
             }
 
-            // Extra samples: left, right, blink
-            $suffixes = ['left', 'right', 'blink'];
-            $files    = Storage::disk('public')->files('faces');
-            foreach ($suffixes as $suffix) {
-                foreach ($files as $file) {
-                    if (str_starts_with($file, "faces/student_{$student->id}_{$suffix}_")) {
-                        $images[] = Storage::url($file);
-                        break;
+            // Extra samples: left, right, blink — scan public/faces/ directly
+            $suffixes  = ['left', 'right', 'blink'];
+            $facesDir  = public_path('faces');
+            if (is_dir($facesDir)) {
+                foreach ($suffixes as $suffix) {
+                    $pattern = $facesDir . DIRECTORY_SEPARATOR
+                        . "student_{$student->id}_{$suffix}_*.jpg";
+                    $matches = glob($pattern);
+                    if (!empty($matches)) {
+                        $images[] = asset('faces/' . basename($matches[0]));
                     }
                 }
             }

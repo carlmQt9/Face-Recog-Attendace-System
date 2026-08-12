@@ -42,10 +42,10 @@
                             @forelse($students as $student)
                             <tr>
                                 <td class="align-middle">
-                                    @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
-                                        <img src="{{ Storage::url($student->face_encoding) }}"
+                                    @if($student->face_registered && $student->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($student->face_encoding))
+                                        <img src="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
                                              alt="{{ $student->user->name }}"
-                                             data-lightbox="{{ Storage::url($student->face_encoding) }}"
+                                             data-lightbox="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
                                              data-lightbox-caption="{{ $student->user->name }}"
                                              data-lightbox-sub="Registered Face"
                                              style="width:36px;height:36px;border-radius:8px;object-fit:cover;cursor:zoom-in;">
@@ -85,10 +85,10 @@
                     @forelse($students as $student)
                     <div class="item-row">
                         <div class="ir-icon" style="overflow:hidden;padding:0;">
-                            @if($student->face_registered && $student->face_encoding && Storage::disk('public')->exists($student->face_encoding))
-                                <img src="{{ Storage::url($student->face_encoding) }}"
+                            @if($student->face_registered && $student->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($student->face_encoding))
+                                <img src="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
                                      alt="{{ $student->user->name }}"
-                                     data-lightbox="{{ Storage::url($student->face_encoding) }}"
+                                     data-lightbox="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
                                      data-lightbox-caption="{{ $student->user->name }}"
                                      data-lightbox-sub="Registered Face"
                                      style="width:40px;height:40px;border-radius:10px;object-fit:cover;cursor:zoom-in;">
@@ -150,10 +150,10 @@
                             @forelse($teachers as $teacher)
                             <tr>
                                 <td class="align-middle">
-                                    @if($teacher->face_registered && $teacher->face_encoding && Storage::disk('public')->exists($teacher->face_encoding))
-                                        <img src="{{ Storage::url($teacher->face_encoding) }}"
+                                    @if($teacher->face_registered && $teacher->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($teacher->face_encoding))
+                                        <img src="{{ \App\Providers\AppServiceProvider::faceImageUrl($teacher->face_encoding) }}"
                                              alt="{{ $teacher->user->name }}"
-                                             data-lightbox="{{ Storage::url($teacher->face_encoding) }}"
+                                             data-lightbox="{{ \App\Providers\AppServiceProvider::faceImageUrl($teacher->face_encoding) }}"
                                              data-lightbox-caption="{{ $teacher->user->name }}"
                                              data-lightbox-sub="Registered Face — Teacher"
                                              style="width:36px;height:36px;border-radius:8px;object-fit:cover;cursor:zoom-in;">
@@ -193,10 +193,10 @@
                     @forelse($teachers as $teacher)
                     <div class="item-row">
                         <div class="ir-icon" style="overflow:hidden;padding:0;">
-                            @if($teacher->face_registered && $teacher->face_encoding && Storage::disk('public')->exists($teacher->face_encoding))
-                                <img src="{{ Storage::url($teacher->face_encoding) }}"
+                            @if($teacher->face_registered && $teacher->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($teacher->face_encoding))
+                                <img src="{{ \App\Providers\AppServiceProvider::faceImageUrl($teacher->face_encoding) }}"
                                      alt="{{ $teacher->user->name }}"
-                                     data-lightbox="{{ Storage::url($teacher->face_encoding) }}"
+                                     data-lightbox="{{ \App\Providers\AppServiceProvider::faceImageUrl($teacher->face_encoding) }}"
                                      data-lightbox-caption="{{ $teacher->user->name }}"
                                      data-lightbox-sub="Registered Face — Teacher"
                                      style="width:40px;height:40px;border-radius:10px;object-fit:cover;cursor:zoom-in;">

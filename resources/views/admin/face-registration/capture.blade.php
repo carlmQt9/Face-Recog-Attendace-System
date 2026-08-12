@@ -283,10 +283,10 @@
 const MODELS_URL  = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/';
 const STEPS       = ['front','left','right','blink'];
 const STEP_HINTS  = [
-    '👁️  Look straight at the camera',
-    '⬅️  Slowly turn your head to the LEFT',
-    '➡️  Slowly turn your head to the RIGHT',
-    '👁️  Look forward — get ready to BLINK'
+    '👁️  Step 1/4: Look straight at the camera (keep your face centered)',
+    '⬅️  Step 2/4: Slowly turn your head to the LEFT and hold',
+    '➡️  Step 3/4: Slowly turn your head to the RIGHT and hold', 
+    '👁️  Step 4/4: Look forward — get ready to BLINK'
 ];
 const BLINK_COUNTDOWN = 3;  // seconds to show countdown before blink detection
 
@@ -367,6 +367,12 @@ async function startWebcam() {
 
 // ─── Step management ─────────────────────────────────────────────────────────
 function advanceStep() {
+    // Strict validation: Don't advance if current step hasn't been captured
+    if (currentStep >= 0 && !capturedImages[currentStep]) {
+        setStatus('error', '❌ Current step not completed. Please complete the current step before proceeding.');
+        return;
+    }
+    
     currentStep++;
     updateStepUI();
     if (currentStep < 3) {
@@ -374,8 +380,14 @@ function advanceStep() {
         oval.className = 'face-oval';
         startDetectionLoop();
     } else {
-        // Step 3 = blink
-        startBlinkStep();
+        // Step 3 = blink - only start if all previous steps are captured
+        if (capturedImages[0] && capturedImages[1] && capturedImages[2]) {
+            startBlinkStep();
+        } else {
+            setStatus('error', '❌ Previous steps not completed. Please start over and complete all steps in order.');
+            currentStep = 2; // Reset to last incomplete step
+            updateStepUI();
+        }
     }
 }
 
@@ -406,10 +418,16 @@ function updateStepUI() {
 function startDetectionLoop() {
     stopDetectionLoop();
     let holdFrames = 0;
-    const HOLD_NEEDED = modelsLoaded ? 12 : 20;  // ~1s at 20fps for fallback
+    const HOLD_NEEDED = modelsLoaded ? 15 : 25;  // Increased hold time for better stability
 
     detectionLoop = setInterval(async () => {
         if (!stream || !video.videoWidth) return;
+        
+        // Extra safety: don't process if we've already captured this step
+        if (capturedImages[currentStep]) {
+            stopDetectionLoop();
+            return;
+        }
 
         let faceOk = false;
 
@@ -459,24 +477,52 @@ function stopDetectionLoop() {
 
 // ─── Pose checking via landmarks ──────────────────────────────────────────────
 function checkPose(det, step) {
-    const pts  = det.landmarks.positions;
+    const pts = det.landmarks.positions;
+    
+    // Ensure we have enough landmarks
+    if (!pts || pts.length < 68) return false;
+    
     // Nose tip = pts[30], left eye outer = pts[36], right eye outer = pts[45]
-    const noseTip     = pts[30];
-    const leftEyeOuter  = pts[36];
+    const noseTip = pts[30];
+    const leftEyeOuter = pts[36];
     const rightEyeOuter = pts[45];
+    
+    // Basic face quality checks
+    if (!noseTip || !leftEyeOuter || !rightEyeOuter) return false;
+    
     const faceWidth = rightEyeOuter.x - leftEyeOuter.x;
+    if (faceWidth < 50) return false; // Face too small/far
+    
     // Horizontal offset of nose from face centre
-    const centre    = (leftEyeOuter.x + rightEyeOuter.x) / 2;
-    const offset    = (noseTip.x - centre) / faceWidth;  // -0.5 .. +0.5
+    const centre = (leftEyeOuter.x + rightEyeOuter.x) / 2;
+    const offset = (noseTip.x - centre) / faceWidth; // -0.5 .. +0.5
 
-    if (step === 0) return Math.abs(offset) < 0.12;          // front: nose near centre
-    if (step === 1) return offset < -0.15;                   // turned left: nose right of centre in mirror
-    if (step === 2) return offset > 0.15;                    // turned right
+    // More strict pose validation for each step
+    if (step === 0) {
+        // Front: nose should be very close to center
+        return Math.abs(offset) < 0.08;
+    } else if (step === 1) {
+        // Left turn: nose should be significantly right of center (in mirrored view)
+        return offset < -0.18;
+    } else if (step === 2) {
+        // Right turn: nose should be significantly left of center (in mirrored view) 
+        return offset > 0.18;
+    }
+    
     return true;
 }
 
 // ─── Capture frame for current step ─────────────────────────────────────────
 function captureCurrentStep() {
+    // Double check we haven't already captured this step
+    if (capturedImages[currentStep]) {
+        setStatus('warn', '⚠️ Step already captured, advancing to next step...');
+        setTimeout(() => {
+            if (currentStep < 3) advanceStep();
+        }, 700);
+        return;
+    }
+    
     const snap = captureFrame();
     capturedImages[currentStep] = snap;
 
@@ -486,15 +532,35 @@ function captureCurrentStep() {
     thumb.className = 'thumb-item ok';
     oval.className  = 'face-oval verified';
 
-    setStatus('ok', `✅ Step ${currentStep + 1} captured! ${currentStep < 3 ? 'Moving to next step…' : ''}`);
+    setStatus('ok', `✅ Step ${currentStep + 1} captured! ${currentStep < 3 ? 'Moving to next step…' : 'All steps completed!'}`);
 
+    // Add a longer delay to ensure user sees the completion before advancing
     setTimeout(() => {
-        if (currentStep < 3) advanceStep();
-    }, 700);
+        if (currentStep < 3) {
+            // Validate that we actually captured something before advancing
+            if (capturedImages[currentStep] && capturedImages[currentStep].length > 100) {
+                advanceStep();
+            } else {
+                setStatus('error', '❌ Capture failed. Please try again.');
+                // Reset current step to try again
+                const thumb = document.getElementById('thumb' + currentStep);
+                thumb.className = 'thumb-item pending';
+                thumb.innerHTML = `<span style="font-size:28px;display:flex;align-items:center;justify-content:center;height:100%;color:#334155;">${currentStep+1}</span><div class="thumb-label">${['Front','Left','Right','Blink'][currentStep]}</div>`;
+                capturedImages[currentStep] = null; // Clear failed capture
+                startDetectionLoop(); // Restart detection for current step
+            }
+        }
+    }, 1200); // Increased delay to 1.2 seconds
 }
 
 // ─── Blink step (step 3) ─────────────────────────────────────────────────────
 function startBlinkStep() {
+    // Ensure all previous steps are completed before starting blink
+    if (!capturedImages[0] || !capturedImages[1] || !capturedImages[2]) {
+        setStatus('error', '❌ Cannot start blink detection. Previous steps not completed.');
+        return;
+    }
+    
     hintText.textContent = '👁️  Get ready to blink when countdown ends…';
     oval.className = 'face-oval liveness';
     setStatus('warn', '⏳ Blink countdown starting…');
@@ -645,58 +711,94 @@ function captureFrame() {
 
 // ─── Public button actions ────────────────────────────────────────────────────
 function startVerification() {
-    if (!stream) { setStatus('error','❌ Camera not available. Please allow camera access.'); return; }
+    if (!stream) { 
+        setStatus('error','❌ Camera not available. Please allow camera access.'); 
+        return; 
+    }
+    
+    // Reset everything to ensure clean start
     document.getElementById('startBtn').style.display  = 'none';
     document.getElementById('retakeBtn').style.display = 'flex';
-    capturedImages = [];
-    currentStep    = -1;
+    
+    // Initialize capture array with explicit nulls
+    capturedImages = [null, null, null, null];
+    currentStep = -1;
+    blinkDetected = false;
+    eyeHistoryOpen = [];
+    
+    // Clear any existing detection loops
+    stopDetectionLoop();
+    clearInterval(blinkTimer);
+    
+    setStatus('ready', '🔄 Starting verification process... Please position your face in the oval.');
+    
+    // Start from step 0
     advanceStep();
 }
 
 function resetAll() {
+    // Stop all detection processes
     stopDetectionLoop();
     clearInterval(blinkTimer);
     document.getElementById('blinkOverlay').classList.remove('show');
     document.getElementById('resultOverlay').classList.remove('show');
-    capturedImages = [];
+    
+    // Reset state completely
+    capturedImages = [null, null, null, null];
     currentStep    = -1;
     blinkDetected  = false;
     eyeHistoryOpen = [];
 
-    // Reset thumbnails
+    // Reset thumbnails to pending state
     ['Front','Left','Right','Blink✓'].forEach((lbl,i) => {
         const t = document.getElementById('thumb'+i);
         t.className = 'thumb-item pending';
         t.innerHTML = `<span style="font-size:28px;display:flex;align-items:center;justify-content:center;height:100%;color:#334155;">${i+1}</span><div class="thumb-label">${lbl}</div>`;
     });
 
+    // Reset UI elements
     oval.className = 'face-oval';
     hintText.textContent = 'Position your face inside the oval';
     document.getElementById('progFill').style.width  = '0%';
     document.getElementById('progLabel').textContent = 'Step 0 / 4';
     updateStepUI();
 
+    // Reset buttons
     document.getElementById('saveBtn').style.display   = 'none';
+    document.getElementById('saveBtn').disabled        = false;
+    document.getElementById('saveBtn').innerHTML       = '<i class="bi bi-check-circle-fill"></i> Save Face Registration';
     document.getElementById('startBtn').style.display  = 'flex';
     document.getElementById('retakeBtn').style.display = 'none';
-    setStatus('ready','Click <strong>Start Verification</strong> to begin.');
+    
+    setStatus('ready','Click <strong>Start Verification</strong> to begin. All steps will be completed in order: Front → Left → Right → Blink.');
 }
 
 function saveRegistration() {
-    // Validate every slot is a real base64 string (not undefined/null/empty)
-    const valid = [0,1,2,3].every(i => {
-        const v = capturedImages[i];
-        return typeof v === 'string' && v.length > 100;
-    });
-
-    if (!valid) {
-        setStatus('error', '❌ Some steps were not captured. Please click <strong>Start Over</strong> and complete all 4 steps.');
+    // Strict validation: Check that ALL 4 steps are captured with valid data
+    const requiredSteps = [0, 1, 2, 3];
+    const missingSteps = [];
+    
+    for (let i of requiredSteps) {
+        const img = capturedImages[i];
+        if (!img || typeof img !== 'string' || img.length < 100) {
+            missingSteps.push(['Front', 'Left', 'Right', 'Blink'][i]);
+        }
+    }
+    
+    if (missingSteps.length > 0) {
+        setStatus('error', `❌ Missing captures: ${missingSteps.join(', ')}. Please click <strong>Start Over</strong> and complete all 4 steps in order.`);
         return;
     }
 
     const primaryImg = capturedImages[0];
     if (!primaryImg || primaryImg.length < 100) {
-        setStatus('error', '❌ Front face image is missing. Please start over.');
+        setStatus('error', '❌ Front face image is missing or invalid. Please start over.');
+        return;
+    }
+
+    // Final validation: ensure we have exactly 4 captured images
+    if (capturedImages.filter(img => img && img.length > 100).length !== 4) {
+        setStatus('error', '❌ Not all verification steps completed. Please start over and complete the full sequence.');
         return;
     }
 
@@ -705,6 +807,8 @@ function saveRegistration() {
     document.getElementById('livenessInput').value     = '1';
     document.getElementById('saveBtn').disabled        = true;
     document.getElementById('saveBtn').innerHTML       = '<span class="spinner-border spinner-border-sm me-2"></span> Saving…';
+    
+    setStatus('ok', '💾 Saving face registration with all verification steps completed...');
     document.getElementById('regForm').submit();
 }
 
