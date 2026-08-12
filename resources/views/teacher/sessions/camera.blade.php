@@ -212,7 +212,7 @@ body { background:#0a0a0f; }
 .qr-frame {
     position:absolute; top:50%; left:50%;
     transform:translate(-50%,-55%);
-    width:54%; aspect-ratio:1;
+    width:75%; aspect-ratio:4/3;  /* Wider frame (not square) */
     border:3px solid #f5a800;
     border-radius:16px;
     box-shadow:0 0 0 3000px rgba(0,0,0,.55), 0 0 32px rgba(245,168,0,.8);
