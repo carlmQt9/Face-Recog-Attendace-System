@@ -1112,17 +1112,31 @@ async function runQrScan() {
         const data = await resp.json();
 
         if (data.result === 'success') {
-            playBeep('success');
-            wrapper.className = 'camera-wrapper matched';
-            const qrSnapshot = data.face_image || captureFrame();
-            addToRoster(data.student_name, 'qr_code', data.arrived_at, data.scan_type, data.time_out, data.duration, qrSnapshot);
-            const sub = data.scan_type === 'time_out'
-                ? `QR Time Out · ${data.time_out} · stayed ${data.duration}`
-                : `QR Time In · ${data.arrived_at}`;
-            showMatchPopup(data.student_name, sub, data.scan_type);
-            setStatus(`✅ ${data.student_name} — ${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'} (QR)`, 'ok');
-            if (data.student_id) markedIds.add(`${data.student_id}:${data.scan_type}`);
-            await nextPersonCooldown(NEXT_PERSON_SECS);
+            // Play appropriate beep: success for new record, single beep for already recorded
+            if (data.already_recorded) {
+                playBeep('success');  // Single beep - already recorded
+                wrapper.className = 'camera-wrapper matched';
+                // Show only status message, NO popup for already recorded
+                setStatus(`✅ ${data.student_name} — Already recorded (${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'} at ${data.arrived_at})`, 'ok');
+                if (data.student_id) markedIds.add(`${data.student_id}:${data.scan_type}`);
+                await nextPersonCooldown(2);  // Shorter cooldown for already recorded
+            } else {
+                playBeep('success');  // Success beep - new record
+                wrapper.className = 'camera-wrapper matched';
+                
+                // Add to roster for NEW records only
+                const qrSnapshot = data.face_image || captureFrame();
+                addToRoster(data.student_name, 'qr_code', data.arrived_at, data.scan_type, data.time_out, data.duration, qrSnapshot);
+                
+                // Show popup and status for NEW records
+                const sub = data.scan_type === 'time_out'
+                    ? `QR Time Out · ${data.time_out} · stayed ${data.duration}`
+                    : `QR Time In · ${data.arrived_at}`;
+                showMatchPopup(data.student_name, sub, data.scan_type);
+                setStatus(`✅ ${data.student_name} — ${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'} (QR)`, 'ok');
+                if (data.student_id) markedIds.add(`${data.student_id}:${data.scan_type}`);
+                await nextPersonCooldown(NEXT_PERSON_SECS);
+            }
 
         } else if (data.result === 'already_in') {
             playBeep('error');
@@ -1260,17 +1274,30 @@ async function recordAttendance(studentId, confidence, frame) {
         if (data.result === 'success') {
             // Track this student+type so we don't scan them again this session
             markedIds.add(`${studentId}:${data.scan_type}`);
-            playBeep('success');
-            wrapper.className = 'camera-wrapper matched';
-            // Use server-saved snapshot URL if available, else fall back to raw frame
-            const snapshot = data.snapshot_url || frame;
-            addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration, snapshot);
-            const sub = data.scan_type === 'time_out'
-                ? `Time Out: ${data.time_out} · stayed ${data.duration}`
-                : `Time In: ${data.arrived_at}`;
-            showMatchPopup(data.student_name, sub, data.scan_type);
-            setStatus(`✅ ${data.student_name} — ${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'}`, 'ok');
-            await nextPersonCooldown(NEXT_PERSON_SECS);
+            
+            // Play appropriate beep: success for new record, single beep for already recorded
+            if (data.already_recorded) {
+                playBeep('success');  // Single beep - already recorded
+                wrapper.className = 'camera-wrapper matched';
+                // Show only status message, NO popup for already recorded
+                setStatus(`✅ ${data.student_name} — Already recorded (${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'} at ${data.arrived_at})`, 'ok');
+                await nextPersonCooldown(2);  // Shorter cooldown for already recorded
+            } else {
+                playBeep('success');  // Success beep - new record
+                wrapper.className = 'camera-wrapper matched';
+                
+                // Add to roster for NEW records only
+                const snapshot = data.snapshot_url || frame;
+                addToRoster(data.student_name, 'face', data.arrived_at, data.scan_type, data.time_out, data.duration, snapshot);
+                
+                // Show popup and status for NEW records
+                const sub = data.scan_type === 'time_out'
+                    ? `Time Out: ${data.time_out} · stayed ${data.duration}`
+                    : `Time In: ${data.arrived_at}`;
+                showMatchPopup(data.student_name, sub, data.scan_type);
+                setStatus(`✅ ${data.student_name} — ${data.scan_type === 'time_out' ? 'Timed Out' : 'Timed In'}`, 'ok');
+                await nextPersonCooldown(NEXT_PERSON_SECS);
+            }
 
         } else if (data.result === 'already_in') {
             playBeep('error');

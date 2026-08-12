@@ -54,6 +54,29 @@ class QrAttendanceController extends Controller
 
         // ── TIME OUT via QR ───────────────────────────────────────────────────
         if ($scanType === 'time_out') {
+            // SILENT duplicate check: Check if already timed out
+            $alreadyOut = AttendanceRecord::where('student_id', $student->id)
+                ->whereNotNull('time_out')
+                ->where('class_session_id', $session->id)
+                ->first();
+
+            if ($alreadyOut) {
+                // Already timed out - return success without updating
+                return response()->json([
+                    'result'       => 'success',
+                    'scan_type'    => 'time_out',
+                    'student_id'   => $student->id,
+                    'student_name' => $student->user->name,
+                    'arrived_at'   => $alreadyOut->arrived_at->format('h:i A'),
+                    'time_out'     => $alreadyOut->time_out->format('h:i A'),
+                    'duration'     => $alreadyOut->durationLabel(),
+                    'method'       => 'qr_code',
+                    'face_image'   => $this->faceUrl($student),
+                    'message'      => "{$student->user->name} timed out ({$alreadyOut->durationLabel()}).",
+                    'already_recorded' => true,
+                ]);
+            }
+
             // Find open time-in record for THIS SESSION only
             $record = AttendanceRecord::where('student_id', $student->id)
                 ->where('scan_type', 'time_in')
@@ -93,20 +116,26 @@ class QrAttendanceController extends Controller
         }
 
         // ── TIME IN via QR ────────────────────────────────────────────────────
-        // Duplicate check removed to allow free scanning
-        // $existingRecord = AttendanceRecord::where('student_id', $student->id)
-        //     ->where('class_session_id', $session->id)
-        //     ->where('scan_type', 'time_in')
-        //     ->whereNull('time_out')
-        //     ->exists();
+        // SILENT duplicate check: only 1 time_in per session
+        $existingRecord = AttendanceRecord::where('student_id', $student->id)
+            ->where('class_session_id', $session->id)
+            ->where('scan_type', 'time_in')
+            ->first();
 
-        // if ($existingRecord) {
-        //     return response()->json([
-        //         'result'       => 'already_in',
-        //         'student_name' => $student->user->name,
-        //         'message'      => "{$student->user->name} already timed in this session.",
-        //     ]);
-        // }
+        if ($existingRecord) {
+            // Already recorded - return success without creating duplicate
+            return response()->json([
+                'result'       => 'success',
+                'scan_type'    => 'time_in',
+                'student_id'   => $student->id,
+                'student_name' => $student->user->name,
+                'arrived_at'   => $existingRecord->arrived_at->format('h:i A'),
+                'method'       => 'qr_code',
+                'face_image'   => $this->faceUrl($student),
+                'message'      => "{$student->user->name} timed in via QR.",
+                'already_recorded' => true,
+            ]);
+        }
 
         $record = AttendanceRecord::create([
             'student_id'       => $student->id,
