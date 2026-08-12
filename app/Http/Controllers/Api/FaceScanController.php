@@ -89,37 +89,34 @@ class FaceScanController extends Controller
         $cooldown = (int) SystemSetting::get('cooldown_seconds', 5);
 
         // Check if already timed-in in THIS SPECIFIC SESSION (not just today)
-        // This prevents ANY duplicate time_in records in the same session
-        $existing = AttendanceRecord::where('student_id', $student->id)
-            ->where('class_session_id', $session?->id)  // Check THIS session only
-            ->where('scan_type', 'time_in')
-            ->first();  // Check for ANY time_in record, regardless of time_out status
+        // Removed duplicate check to allow free scanning
+        // $existing = AttendanceRecord::where('student_id', $student->id)
+        //     ->where('class_session_id', $session?->id)
+        //     ->where('scan_type', 'time_in')
+        //     ->whereNull('time_out')
+        //     ->first();
 
-        if ($existing) {
-            $timeOutStatus = $existing->time_out 
-                ? " and timed out at {$existing->time_out->format('h:i A')}" 
-                : ". Use Time-Out mode to log departure";
-            
-            return response()->json([
-                'result'       => 'already_in',
-                'student_name' => $student->user->name,
-                'arrived_at'   => $existing->arrived_at->format('h:i A'),
-                'message'      => "{$student->user->name} already attended this session (timed in at {$existing->arrived_at->format('h:i A')}{$timeOutStatus}).",
-            ]);
-        }
+        // if ($existing) {
+        //     return response()->json([
+        //         'result'       => 'already_in',
+        //         'student_name' => $student->user->name,
+        //         'arrived_at'   => $existing->arrived_at->format('h:i A'),
+        //         'message'      => "{$student->user->name} already timed in at {$existing->arrived_at->format('h:i A')} in this session.",
+        //     ]);
+        // }
 
-        // Cooldown check (prevent double-tap within seconds) - check across all recent scans
-        $recentScan = AttendanceRecord::where('student_id', $student->id)
-            ->where('arrived_at', '>=', now()->subSeconds($cooldown))
-            ->exists();
+        // Cooldown check removed to allow free scanning
+        // $recentScan = AttendanceRecord::where('student_id', $student->id)
+        //     ->where('arrived_at', '>=', now()->subSeconds($cooldown))
+        //     ->exists();
 
-        if ($recentScan) {
-            return response()->json([
-                'result'  => 'cooldown',
-                'signal'  => 'double_beep',
-                'message' => "Cool-down active. Please wait {$cooldown} seconds.",
-            ]);
-        }
+        // if ($recentScan) {
+        //     return response()->json([
+        //         'result'  => 'cooldown',
+        //         'signal'  => 'double_beep',
+        //         'message' => "Cool-down active. Please wait {$cooldown} seconds.",
+        //     ]);
+        // }
         $record = AttendanceRecord::create([
             'student_id'        => $student->id,
             'class_session_id'  => $session?->id,
@@ -158,42 +155,41 @@ class FaceScanController extends Controller
 
     private function handleTimeOut($student, $session, $camera, $request)
     {
-        // ── Check short cooldown to prevent rapid duplicate scans ─────────────
-        $cooldown = (int) SystemSetting::get('cooldown_seconds', 5);
-        $recentAny = AttendanceRecord::where('student_id', $student->id)
-            ->where('updated_at', '>=', now()->subSeconds($cooldown))
-            ->exists();
+        // ── Cooldown check removed to allow free scanning ─────────────
+        // $cooldown = (int) SystemSetting::get('cooldown_seconds', 5);
+        // $recentAny = AttendanceRecord::where('student_id', $student->id)
+        //     ->where('updated_at', '>=', now()->subSeconds($cooldown))
+        //     ->exists();
 
-        if ($recentAny) {
-            return response()->json([
-                'result'  => 'cooldown',
-                'signal'  => 'double_beep',
-                'message' => "Cool-down active. Please wait {$cooldown} seconds.",
-            ]);
-        }
+        // if ($recentAny) {
+        //     return response()->json([
+        //         'result'  => 'cooldown',
+        //         'signal'  => 'double_beep',
+        //         'message' => "Cool-down active. Please wait {$cooldown} seconds.",
+        //     ]);
+        // }
 
         // ── Find open time-in record for THIS SESSION ────────────────────────────────
-        // Changed to check THIS session only, not just today
         $record = AttendanceRecord::where('student_id', $student->id)
             ->where('scan_type', 'time_in')
             ->whereNull('time_out')
-            ->where('class_session_id', $session?->id)  // Check THIS session only
+            ->where('class_session_id', $session?->id)
             ->latest('arrived_at')
             ->first();
 
-        // ── Already timed out in THIS SESSION? ──────────────────────────────
-        $alreadyOut = AttendanceRecord::where('student_id', $student->id)
-            ->whereNotNull('time_out')
-            ->where('class_session_id', $session?->id)  // Check THIS session only
-            ->exists();
+        // ── Already timed out check removed ──────────────────────────────
+        // $alreadyOut = AttendanceRecord::where('student_id', $student->id)
+        //     ->whereNotNull('time_out')
+        //     ->where('class_session_id', $session?->id)
+        //     ->exists();
 
-        if ($alreadyOut && !$record) {
-            return response()->json([
-                'result'       => 'already_out',
-                'student_name' => $student->user->name,
-                'message'      => "{$student->user->name} has already timed out in this session.",
-            ]);
-        }
+        // if ($alreadyOut && !$record) {
+        //     return response()->json([
+        //         'result'       => 'already_out',
+        //         'student_name' => $student->user->name,
+        //         'message'      => "{$student->user->name} has already timed out in this session.",
+        //     ]);
+        // }
 
         // ── No open time-in record — Special handling for afternoon time-out ───
         if (!$record) {

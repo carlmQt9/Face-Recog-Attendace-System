@@ -1205,20 +1205,19 @@ async function runScan() {
             return;
         }
 
-        // ── Client-side duplicate check for same session ──────────────────────
-        // Prevent redundant scans of students who already attended THIS session
-        const markKey = `${studentId}:${scanType}`;
-        if (markedIds.has(markKey)) {
-            const studentName = info?.name || 'Student';
-            const typeLabel = scanType === 'time_out' ? 'timed out' : 'timed in';
-            setStatus(`ℹ️ ${studentName} already ${typeLabel} in this session`, 'wait');
-            wrapper.className = 'camera-wrapper cooldown';
-            playBeep('error');
-            setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 1500);
-            // Don't scan again - wait 2 seconds and resume
-            resumeAfter(2);
-            return;
-        }
+        // ── Client-side duplicate check REMOVED ──────────────────────
+        // Allow free scanning without blocking
+        // const markKey = `${studentId}:${scanType}`;
+        // if (markedIds.has(markKey)) {
+        //     const studentName = info?.name || 'Student';
+        //     const typeLabel = scanType === 'time_out' ? 'timed out' : 'timed in';
+        //     setStatus(`ℹ️ ${studentName} already ${typeLabel} in this session`, 'wait');
+        //     wrapper.className = 'camera-wrapper cooldown';
+        //     playBeep('error');
+        //     setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 1500);
+        //     resumeAfter(2);
+        //     return;
+        // }
 
         // ── Record attendance ──────────────────────────────────
         stopAutoScan();
