@@ -174,14 +174,7 @@ body { background:#0a0a0f; }
 .scan-btn:hover{opacity:.85;transform:translateY(-1px);}
 .scan-btn:disabled{opacity:.35;cursor:not-allowed;}
 
-/* ── Camera switch / icon buttons ──────────────────── */
-.cam-switch-btn{
-    background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);
-    color:#fff;border-radius:10px;padding:7px 13px;font-size:13px;
-    cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px;
-}
-.cam-switch-btn:hover{background:rgba(255,255,255,.16);}
-
+/* ── Icon buttons ──────────────────── */
 /* Compact icon-only button */
 .cam-icon-btn{
     background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);
@@ -305,63 +298,6 @@ body { background:#0a0a0f; }
     background:#1e293b;border:1px solid rgba(255,255,255,.12);
     color:#fff;border-radius:8px;padding:5px 10px;font-size:12px;flex:1;min-width:160px;
 }
-
-/* ── Camera Switch Modal ─────────────────────────────– */
-.camera-modal-backdrop{
-    position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1100;
-    display:flex;align-items:center;justify-content:center;
-    padding:16px;
-    opacity:0;pointer-events:none;transition:opacity .25s;
-}
-.camera-modal-backdrop.open{opacity:1;pointer-events:all;}
-.camera-modal{
-    background:#0f172a;border:1px solid rgba(255,255,255,.1);
-    border-radius:24px;padding:32px 24px;text-align:center;
-    max-width:420px;width:100%;
-    animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;
-    position:relative;z-index:1101;
-}
-.camera-modal h6{color:#fff;font-weight:800;font-size:18px;margin-bottom:8px;}
-.camera-modal .camera-sub{color:#64748b;font-size:13px;margin-bottom:24px;}
-.camera-option{
-    display:flex;align-items:center;gap:16px;padding:16px;
-    background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);
-    border-radius:14px;margin-bottom:12px;cursor:pointer;
-    transition:all .2s;
-}
-.camera-option:hover{
-    background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);
-}
-.camera-option.selected{
-    background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.4);
-}
-.camera-option-icon{
-    font-size:28px;flex-shrink:0;
-}
-.camera-option-text{
-    text-align:left;flex:1;min-width:0;
-}
-.camera-option-text h5{
-    color:#fff;font-weight:700;font-size:14px;margin:0;line-height:1.2;
-}
-.camera-option-text p{
-    color:#64748b;font-size:11px;margin:2px 0 0 0;
-}
-.camera-modal-actions{
-    display:flex;gap:10px;margin-top:24px;
-}
-.camera-modal-actions button{
-    flex:1;padding:10px;border-radius:10px;border:none;font-weight:700;font-size:13px;
-    cursor:pointer;transition:all .2s;
-}
-.camera-modal-actions button.btn-primary{
-    background:linear-gradient(135deg,#0c3d8a,#1a6b3c);color:#fff;
-}
-.camera-modal-actions button.btn-primary:hover{opacity:.85;}
-.camera-modal-actions button.btn-secondary{
-    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#94a3b8;
-}
-.camera-modal-actions button.btn-secondary:hover{background:rgba(255,255,255,.08);}
 </style>
 @endpush
 
@@ -407,15 +343,7 @@ body { background:#0a0a0f; }
                 {{-- Compact PST clock --}}
                 <span class="cam-pill" style="font-family:monospace;color:#4ade80;min-width:76px;text-align:center;" id="camPhTime">--:-- --</span>
 
-                {{-- Flip Camera Button --}}
-                @if($session->camera->is_local_device)
-                <button class="cam-icon-btn" onclick="openCameraSwitchModal()" title="Switch front/rear camera">
-                    <i class="bi bi-arrow-repeat"></i> <span class="d-none d-sm-inline ms-1">Camera</span>
-                </button>
-                <button class="cam-icon-btn" onclick="quickSwapCamera()" title="Quick swap front/rear camera">
-                    <i class="bi bi-arrow-left-right"></i>
-                </button>
-                @endif
+                {{-- Camera switching buttons removed - using default front camera only --}}
 
                 {{-- Scan mode: Auto / Manual / QR --}}
                 <div class="mode-toggle">
@@ -672,40 +600,7 @@ body { background:#0a0a0f; }
 </div>
 @endif
 
-{{-- ── Camera Switch Modal ── --}}
-@if($session->camera->is_local_device)
-<div class="camera-modal-backdrop" id="cameraModalBackdrop" onclick="closeCameraSwitchModalOutside(event)">
-    <div class="camera-modal">
-        <h6><i class="bi bi-camera-video me-2 text-primary"></i>Switch Camera</h6>
-        <p class="camera-sub">Select which camera to use for face scanning</p>
-        
-        <div onclick="selectCamera('front')" class="camera-option" id="cameraOption-front">
-            <div class="camera-option-icon">📱</div>
-            <div class="camera-option-text">
-                <h5>Front Camera</h5>
-                <p>Built-in device camera (default)</p>
-            </div>
-        </div>
-        
-        <div onclick="selectCamera('rear')" class="camera-option" id="cameraOption-rear">
-            <div class="camera-option-icon">📹</div>
-            <div class="camera-option-text">
-                <h5>Rear Camera</h5>
-                <p>External USB/webcam device</p>
-            </div>
-        </div>
-
-        <div class="camera-modal-actions">
-            <button class="btn-secondary" onclick="closeCameraSwitchModal()">
-                <i class="bi bi-x-lg me-1"></i>Cancel
-            </button>
-            <button class="btn-primary" onclick="applyCameraSelection()">
-                <i class="bi bi-arrow-right me-1"></i>Apply
-            </button>
-        </div>
-    </div>
-</div>
-@endif
+{{-- Camera switching modal removed - using default front camera only --}}
 
 @endsection
 
@@ -1232,7 +1127,7 @@ async function runQrScan() {
         } else if (data.result === 'already_in') {
             playBeep('error');
             wrapper.className = 'camera-wrapper cooldown';
-            setStatus(`ℹ️ ${data.student_name} already timed in — switch to Time-Out mode`, 'wait');
+            setStatus(`ℹ️ ${data.student_name} already timed in THIS SESSION — switch to Time-Out mode`, 'wait');
             setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 2000);
             lastQrToken = null;
             resumeAfter(2);
@@ -1240,7 +1135,7 @@ async function runQrScan() {
         } else if (data.result === 'cooldown') {
             playBeep('error');
             wrapper.className = 'camera-wrapper cooldown';
-            setStatus(`ℹ️ ${data.student_name} already marked present`, 'wait');
+            setStatus(`⏳ Please wait a moment (cooldown active)`, 'wait');
             setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 1500);
             resumeAfter(2);
 
@@ -1310,9 +1205,18 @@ async function runScan() {
             return;
         }
 
-        // Already scanned for this type in this session? (client-side dedup)
-        if (markedIds.has(`${studentId}:${scanType}`)) {
-            setStatus(`ℹ️ ${info.name} already ${scanType === 'time_out' ? 'timed out' : 'timed in'} this session`, 'wait');
+        // ── Client-side duplicate check for same session ──────────────────────
+        // Prevent redundant scans of students who already attended THIS session
+        const markKey = `${studentId}:${scanType}`;
+        if (markedIds.has(markKey)) {
+            const studentName = info?.name || 'Student';
+            const typeLabel = scanType === 'time_out' ? 'timed out' : 'timed in';
+            setStatus(`ℹ️ ${studentName} already ${typeLabel} in this session`, 'wait');
+            wrapper.className = 'camera-wrapper cooldown';
+            playBeep('error');
+            setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 1500);
+            // Don't scan again - wait 2 seconds and resume
+            resumeAfter(2);
             return;
         }
 
@@ -1372,21 +1276,23 @@ async function recordAttendance(studentId, confidence, frame) {
         } else if (data.result === 'already_in') {
             playBeep('error');
             wrapper.className = 'camera-wrapper cooldown';
-            setStatus(`ℹ️ ${data.student_name} already timed in — switch to Time-Out mode`, 'wait');
+            setStatus(`ℹ️ ${data.student_name} already timed in THIS SESSION — switch to Time-Out mode`, 'wait');
             setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 2000);
+            // Add to markedIds to prevent rapid retries in this session
+            if (studentId) markedIds.add(`${studentId}:time_in`);
             resumeAfter(2);
 
         } else if (data.result === 'already_out') {
             playBeep('error');
             wrapper.className = 'camera-wrapper cooldown';
-            setStatus(`ℹ️ ${data.student_name} already timed out today`, 'wait');
-            // Add to markedIds so scanner skips this student
-            markedIds.add(`${studentId}:time_out`);
+            setStatus(`ℹ️ ${data.student_name} already timed out THIS SESSION`, 'wait');
             setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 2000);
+            // Add to markedIds to prevent rapid retries in this session
+            if (studentId) markedIds.add(`${studentId}:time_out`);
             resumeAfter(2);
 
         } else if (data.result === 'cooldown') {
-            setStatus('⏳ Already scanned recently', 'wait');
+            setStatus('⏳ Please wait a moment (cooldown active)', 'wait');
             wrapper.className = 'camera-wrapper cooldown';
             setTimeout(() => { wrapper.className = 'camera-wrapper'; }, 1500);
             resumeAfter(2);
@@ -1638,210 +1544,13 @@ setInterval(updateCamClock, 1000);
 
 // ── Warn only if leaving without intentionally going home ─────────────────────
 let leavingIntentionally = false;
-document.querySelector('a[href*="sessions/index"], a.cam-switch-btn')?.addEventListener('click', () => {
+document.querySelector('a[href*="sessions/index"]')?.addEventListener('click', () => {
     leavingIntentionally = true;
 });
 // Stop camera stream cleanly when navigating away
 window.addEventListener('beforeunload', () => {
     if (stream) stream.getTracks().forEach(t => t.stop());
 });
-
-// ═══════════════════════════════════════════════════════
-//  QR CODE ATTENDANCE
-// ═══════════════════════════════════════════════════════
-//  CAMERA SWITCH MODAL
-// ═══════════════════════════════════════════════════════
-let selectedCameraType = 'front'; // Track selected camera
-
-// Debug function to test modal visibility
-window.testCameraModal = function() {
-    const backdrop = document.getElementById('cameraModalBackdrop');
-    console.log('Modal element exists:', !!backdrop);
-    if (backdrop) {
-        console.log('Modal classes:', backdrop.className);
-        console.log('Modal style display:', getComputedStyle(backdrop).display);
-        console.log('Modal style opacity:', getComputedStyle(backdrop).opacity);
-        console.log('Modal style z-index:', getComputedStyle(backdrop).zIndex);
-        backdrop.classList.add('open');
-        console.log('Modal opened manually');
-    }
-};
-
-function openCameraSwitchModal() {
-    const backdrop = document.getElementById('cameraModalBackdrop');
-    console.log('Camera modal backdrop element:', backdrop); // Debug log
-    
-    if (!backdrop) {
-        console.error('Camera modal backdrop not found!');
-        // Fallback to simple confirm dialog
-        const useRear = confirm('Switch to rear camera?\n\nOK = Rear Camera\nCancel = Front Camera');
-        selectedCameraType = useRear ? 'rear' : 'front';
-        applyCameraSelection();
-        return;
-    }
-    
-    // Reset selection to current camera
-    updateCameraOptionUI();
-    backdrop.classList.add('open');
-    backdrop.style.display = 'flex'; // Force display
-    console.log('Camera modal opened, classes:', backdrop.className); // Debug log
-}
-
-function closeCameraSwitchModal() {
-    document.getElementById('cameraModalBackdrop')?.classList.remove('open');
-}
-
-function closeCameraSwitchModalOutside(e) {
-    if (e.target === document.getElementById('cameraModalBackdrop')) closeCameraSwitchModal();
-}
-
-function selectCamera(type) {
-    selectedCameraType = type;
-    updateCameraOptionUI();
-}
-
-function updateCameraOptionUI() {
-    const frontOption = document.getElementById('cameraOption-front');
-    const rearOption = document.getElementById('cameraOption-rear');
-    
-    if (frontOption) {
-        frontOption.classList.toggle('selected', selectedCameraType === 'front');
-    }
-    if (rearOption) {
-        rearOption.classList.toggle('selected', selectedCameraType === 'rear');
-    }
-}
-
-async function applyCameraSelection() {
-    setLoading(`Switching to ${selectedCameraType === 'front' ? 'front' : 'rear'} camera…`);
-    closeCameraSwitchModal();
-    
-    try {
-        // Stop current stream
-        if (stream) {
-            stream.getTracks().forEach(t => t.stop());
-            stream = null;
-        }
-        
-        // Get available devices
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        
-        if (videoDevices.length === 0) {
-            hideLoading();
-            setStatus('❌ No camera devices found', 'error');
-            return;
-        }
-        
-        // Select camera based on user choice
-        let constraints = {
-            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-            audio: false
-        };
-        
-        // If rear/external is selected and there are multiple devices, try to use the second one
-        if (selectedCameraType === 'rear' && videoDevices.length > 1) {
-            // Try to use external camera (usually at index 1 or higher)
-            constraints.video.deviceId = { exact: videoDevices[1].deviceId };
-        } else if (videoDevices.length > 0) {
-            // Use first device (usually front camera)
-            constraints.video.deviceId = { exact: videoDevices[0].deviceId };
-        }
-        
-        // Request camera stream
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
-        
-        // Wait for video to be ready
-        await new Promise(resolve => {
-            video.onloadedmetadata = () => resolve();
-        });
-        
-        hideLoading();
-        setStatus(`✅ ${selectedCameraType === 'front' ? 'Front' : 'Rear'} camera activated`, 'ok');
-        wrapper.style.setProperty('--scan-tint', 'rgba(74,222,128,.2)');
-        
-        // Resume scanning if in auto mode
-        if (scanMode === 'auto' && !inCooldown && IS_ACTIVE) {
-            startAutoScan();
-        }
-    } catch (e) {
-        hideLoading();
-        console.error('Camera switch error:', e);
-        setStatus('❌ Failed to switch camera — ' + e.message, 'error');
-        wrapper.className = 'camera-wrapper no-match';
-        
-        // Try to restart original camera
-        await startCamera();
-    }
-}
-
-// Quick swap between front and rear camera without modal
-async function quickSwapCamera() {
-    // Toggle the selected camera type
-    selectedCameraType = selectedCameraType === 'front' ? 'rear' : 'front';
-    
-    setLoading(`Switching to ${selectedCameraType === 'front' ? 'front' : 'rear'} camera…`);
-    
-    try {
-        // Stop current stream
-        if (stream) {
-            stream.getTracks().forEach(t => t.stop());
-            stream = null;
-        }
-        
-        // Get available devices
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        
-        if (videoDevices.length === 0) {
-            hideLoading();
-            setStatus('❌ No camera devices found', 'error');
-            return;
-        }
-        
-        // Select camera based on current type
-        let constraints = {
-            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-            audio: false
-        };
-        
-        if (selectedCameraType === 'rear' && videoDevices.length > 1) {
-            // Use external/rear camera (usually at index 1 or higher)
-            constraints.video.deviceId = { exact: videoDevices[1].deviceId };
-        } else if (videoDevices.length > 0) {
-            // Use front camera (usually at index 0)
-            constraints.video.deviceId = { exact: videoDevices[0].deviceId };
-        }
-        
-        // Request camera stream
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
-        
-        // Wait for video to be ready
-        await new Promise(resolve => {
-            video.onloadedmetadata = () => resolve();
-        });
-        
-        hideLoading();
-        setStatus(`📹 ${selectedCameraType === 'front' ? 'Front' : 'Rear'} camera active`, 'ok');
-        wrapper.style.setProperty('--scan-tint', 'rgba(74,222,128,.2)');
-        
-        // Resume scanning if in auto mode
-        if (scanMode === 'auto' && !inCooldown && IS_ACTIVE) {
-            startAutoScan();
-        }
-    } catch (e) {
-        hideLoading();
-        console.error('Quick camera swap error:', e);
-        setStatus('❌ Camera swap failed — ' + e.message, 'error');
-        wrapper.className = 'camera-wrapper no-match';
-        
-        // Revert the camera type and try to restart original camera
-        selectedCameraType = selectedCameraType === 'front' ? 'rear' : 'front';
-        await startCamera();
-    }
-}
 
 // ═══════════════════════════════════════════════════════
 //  QR CODE ATTENDANCE

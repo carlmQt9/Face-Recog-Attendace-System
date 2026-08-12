@@ -88,24 +88,27 @@ class FaceScanController extends Controller
     {
         $cooldown = (int) SystemSetting::get('cooldown_seconds', 5);
 
-        // Check if already timed-in today in this session (no time-out yet)
+        // Check if already timed-in in THIS SPECIFIC SESSION (not just today)
+        // This prevents ANY duplicate time_in records in the same session
         $existing = AttendanceRecord::where('student_id', $student->id)
-            ->when($session, fn($q) => $q->where('class_session_id', $session->id))
+            ->where('class_session_id', $session?->id)  // Check THIS session only
             ->where('scan_type', 'time_in')
-            ->whereNull('time_out')
-            ->whereDate('arrived_at', today())
-            ->first();
+            ->first();  // Check for ANY time_in record, regardless of time_out status
 
         if ($existing) {
+            $timeOutStatus = $existing->time_out 
+                ? " and timed out at {$existing->time_out->format('h:i A')}" 
+                : ". Use Time-Out mode to log departure";
+            
             return response()->json([
                 'result'       => 'already_in',
                 'student_name' => $student->user->name,
                 'arrived_at'   => $existing->arrived_at->format('h:i A'),
-                'message'      => "{$student->user->name} already timed in at {$existing->arrived_at->format('h:i A')}. Use Time-Out mode to log departure.",
+                'message'      => "{$student->user->name} already attended this session (timed in at {$existing->arrived_at->format('h:i A')}{$timeOutStatus}).",
             ]);
         }
 
-        // Cooldown check (prevent double-tap within seconds)
+        // Cooldown check (prevent double-tap within seconds) - check across all recent scans
         $recentScan = AttendanceRecord::where('student_id', $student->id)
             ->where('arrived_at', '>=', now()->subSeconds($cooldown))
             ->exists();
@@ -117,7 +120,6 @@ class FaceScanController extends Controller
                 'message' => "Cool-down active. Please wait {$cooldown} seconds.",
             ]);
         }
-
         $record = AttendanceRecord::create([
             'student_id'        => $student->id,
             'class_session_id'  => $session?->id,
@@ -170,68 +172,58 @@ class FaceScanController extends Controller
             ]);
         }
 
-        // ── Find open time-in record for today ────────────────────────────────
+        // ── Find open time-in record for THIS SESSION ────────────────────────────────
+        // Changed to check THIS session only, not just today
         $record = AttendanceRecord::where('student_id', $student->id)
             ->where('scan_type', 'time_in')
             ->whereNull('time_out')
-            ->whereDate('arrived_at', today())
-            ->when($session, fn($q) => $q->where('class_session_id', $session->id))
+            ->where('class_session_id', $session?->id)  // Check THIS session only
             ->latest('arrived_at')
             ->first();
 
-        // ── Already timed out today in this session? ──────────────────────────
+        // ── Already timed out in THIS SESSION? ──────────────────────────────
         $alreadyOut = AttendanceRecord::where('student_id', $student->id)
             ->whereNotNull('time_out')
-            ->whereDate('arrived_at', today())
-            ->when($session, fn($q) => $q->where('class_session_id', $session->id))
+            ->where('class_session_id', $session?->id)  // Check THIS session only
             ->exists();
 
         if ($alreadyOut && !$record) {
             return response()->json([
                 'result'       => 'already_out',
                 'student_name' => $student->user->name,
-                'message'      => "{$student->user->name} has already timed out today.",
+                'message'      => "{$student->user->name} has already timed out in this session.",
             ]);
         }
 
-        // ── No open time-in — check if student was marked absent in morning ───
+        // ── No open time-in record — Special handling for afternoon time-out ───
         if (!$record) {
-            // Check if this is an afternoon session and student was absent in morning
+            $wasMarkedLate = false;
+            
+            // Check if this is an afternoon session and student might have been absent in morning
             if ($session && $session->session_type === 'afternoon_out') {
-                // Try to update absent status to late
-                $wasAbsent = $session->updateAbsentToLate($student->id);
-                if ($wasAbsent) {
-                    // Create a new time_in record for the afternoon session
-                    $record = AttendanceRecord::create([
-                        'student_id'        => $student->id,
-                        'class_session_id'  => $session?->id,
-                        'camera_id'         => $camera->id,
-                        'scan_result'       => 'success',
-                        'scan_type'         => 'time_in',
-                        'status'           => 'late',
-                        'method'            => 'face_scan',
-                        'confidence_score'  => $request->confidence_score,
-                        'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'late_in'),
-                        'arrived_at'        => now()->subMinutes(1),
-                    ]);
-                }
+                // Try to update absent status to late in morning session
+                $wasMarkedLate = $session->updateAbsentToLate($student->id);
             }
             
-            // If still no record, create one
-            if (!$record) {
-                $record = AttendanceRecord::create([
-                    'student_id'        => $student->id,
-                    'class_session_id'  => $session?->id,
-                    'camera_id'         => $camera->id,
-                    'scan_result'       => 'success',
-                    'scan_type'         => 'time_in',
-                    'status'           => 'present',
-                    'method'            => 'face_scan',
-                    'confidence_score'  => $request->confidence_score,
-                    'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'out'),
-                    'arrived_at'        => now()->subMinutes(1),
-                ]);
-            }
+            // Create a new time_in record so we can record the time_out
+            $status = $wasMarkedLate ? 'late' : 'present';
+            $arrivalTime = now()->subMinutes(1); // Set arrival slightly before time-out
+            
+            $record = AttendanceRecord::create([
+                'student_id'        => $student->id,
+                'class_session_id'  => $session?->id,
+                'camera_id'         => $camera->id,
+                'scan_result'       => 'success',
+                'scan_type'         => 'time_in',
+                'status'            => $status,
+                'method'            => 'face_scan',
+                'confidence_score'  => $request->confidence_score,
+                'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, $wasMarkedLate ? 'late_in' : 'auto_in'),
+                'arrived_at'        => $arrivalTime,
+                'marked_by'         => $wasMarkedLate ? 'System - Late from afternoon timeout' : 'System - Auto time-in before timeout',
+            ]);
+            
+            \Log::info("Created auto time-in for student {$student->id} before time-out. Status: {$status}");
         } else {
             // Update snapshot on the existing record if not already set
             if (!$record->snapshot_path && $request->face_image) {
@@ -245,6 +237,7 @@ class FaceScanController extends Controller
         $record->update(['time_out' => now()]);
         $record->refresh();
 
+        // Send notification if applicable
         if ($student->parent && !$record->time_out_notification_sent) {
             try {
                 Mail::to($student->parent->gmail)->send(new AttendanceTimeOut($record));
@@ -271,13 +264,18 @@ class FaceScanController extends Controller
     }
 
     /**
-     * Save base64 face_image to public/snapshots/ and return path.
-     * Uses public_path() so no storage symlink is needed — works on localhost AND InfinityFree.
+     * Save base64 face_image directly into public/storage/time-in-photos/ or time-out-photos/.
+     *
+     * Writes directly with file_put_contents — no Storage facade needed.
+     * Files land in: public/storage/time-in-photos/student_5_in_xxx.jpg
+     * Served as: https://yourdomain.com/storage/time-in-photos/...
+     *
+     * Works on InfinityFree without any special configuration.
      */
     private function saveSnapshot(?string $base64, int $studentId, string $type): ?string
     {
         if (!$base64 || strlen($base64) < 100) {
-            \Log::warning("Attendance snapshot missing or invalid for student {$studentId}, type: {$type}");
+            \Log::warning("Snapshot missing/invalid for student {$studentId}, type: {$type}");
             return null;
         }
 
@@ -285,13 +283,18 @@ class FaceScanController extends Controller
             $data    = preg_replace('/^data:image\/[a-zA-Z+]+;base64,/', '', $base64);
             $data    = str_replace([' ', "\n", "\r"], ['+', '', ''], $data);
             $decoded = base64_decode($data, strict: true);
+
             if ($decoded === false) {
                 \Log::warning("Base64 decode failed for student {$studentId}, type: {$type}");
                 return null;
             }
 
-            $path     = 'snapshots/student_' . $studentId . '_' . $type . '_' . time() . '.jpg';
-            $fullPath = public_path($path);
+            // Route to the correct folder based on scan type
+            $folder = str_contains($type, 'out') ? 'time-out-photos' : 'time-in-photos';
+            $path   = "{$folder}/student_{$studentId}_{$type}_" . time() . '.jpg';
+
+            // Write directly into public/storage/ — no Storage facade, no disk config
+            $fullPath = public_path('storage/' . $path);
             $dir      = dirname($fullPath);
 
             if (!is_dir($dir)) {
@@ -301,12 +304,13 @@ class FaceScanController extends Controller
             file_put_contents($fullPath, $decoded);
 
             if (!file_exists($fullPath)) {
-                \Log::error("Snapshot file was not saved successfully: {$path}");
+                \Log::error("Snapshot not saved: {$path}");
                 return null;
             }
 
-            \Log::info("Attendance snapshot saved successfully: {$path}");
+            \Log::info("Snapshot saved: public/storage/{$path}");
             return $path;
+
         } catch (\Exception $e) {
             \Log::error('Snapshot save failed for student ' . $studentId . ': ' . $e->getMessage());
             return null;

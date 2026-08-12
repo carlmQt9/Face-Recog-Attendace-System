@@ -12,6 +12,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Set timezone explicitly to ensure accurate timestamps
+        date_default_timezone_set(config('app.timezone', 'Asia/Manila'));
+        
         // Use Bootstrap 5 pagination — clean text arrows, no broken SVG icons
         Paginator::useBootstrapFive();
 
@@ -25,17 +28,16 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Resolve a stored face/snapshot path to a public URL.
      *
-     * Handles both storage paths (legacy, need symlink) and the new
-     * public/faces|public/snapshots paths (no symlink required).
+     * All images are stored directly in public/storage/ subfolders.
+     * No symlink, no Storage facade — just asset() URLs.
      *
-     * Path stored in DB   → URL served
-     * -------------------   ------------------------------------------------
-     * faces/foo.jpg        → /faces/foo.jpg   (new: file lives in public/)
-     * snapshots/foo.jpg    → /snapshots/foo.jpg
-     * uploads/faces/foo.jpg→ /uploads/faces/foo.jpg  (old fix-paths migration)
+     * Path stored in DB              → Physical location                      → URL served
+     * ----------------------------     -------------------------------------     -----------------------------
+     * face-photos/foo.jpg            → public/storage/face-photos/foo.jpg    → /storage/face-photos/foo.jpg
+     * time-in-photos/foo.jpg         → public/storage/time-in-photos/...     → /storage/time-in-photos/...
+     * time-out-photos/foo.jpg        → public/storage/time-out-photos/...    → /storage/time-out-photos/...
      *
-     * Falls back to Storage::url() for any path that doesn't match the above,
-     * so existing localhost records using the storage symlink still work.
+     * Legacy paths (old public/faces, public/snapshots) still work via asset().
      */
     public static function faceImageUrl(?string $path): string
     {
@@ -46,38 +48,45 @@ class AppServiceProvider extends ServiceProvider
             return $path;
         }
 
-        // New-style: file lives directly in public/ — construct URL manually
+        // New storage paths — served via asset('storage/...')
         if (
-            str_starts_with($path, 'faces/')      ||
-            str_starts_with($path, 'snapshots/')  ||
-            str_starts_with($path, 'uploads/')
+            str_starts_with($path, 'face-photos/')     ||
+            str_starts_with($path, 'time-in-photos/')  ||
+            str_starts_with($path, 'time-out-photos/')
         ) {
-            // For InfinityFree and most hosting, we want just the domain + path
-            // Get the scheme and host (http://example.com or https://example.com)
-            if (app()->bound('request') && ($request = app('request'))) {
-                $baseUrl = $request->getSchemeAndHttpHost();
-            } else {
-                // Fallback to config
-                $baseUrl = rtrim(config('app.url'), '/');
-            }
-            
-            // Simply append /faces/file.jpg to the base URL
-            return $baseUrl . '/' . ltrim($path, '/');
+            return asset('storage/' . ltrim($path, '/'));
         }
 
-        // Legacy: file lives under storage/app/public/ — needs symlink.
-        // Works on localhost; on InfinityFree the symlink may be missing.
-        return \Illuminate\Support\Facades\Storage::url($path);
+        // Legacy: old public/faces or public/snapshots paths
+        if (
+            str_starts_with($path, 'faces/')     ||
+            str_starts_with($path, 'snapshots/') ||
+            str_starts_with($path, 'uploads/')
+        ) {
+            return asset(ltrim($path, '/'));
+        }
+
+        // Fallback
+        return asset('storage/' . ltrim($path, '/'));
     }
 
     /**
-     * Does the image file actually exist on disk?
-     * Checks the new public/ location first, then falls back to storage disk.
+     * Check if the image file exists on disk.
      */
     public static function faceImageExists(?string $path): bool
     {
         if (empty($path)) return false;
 
+        // New storage paths
+        if (
+            str_starts_with($path, 'face-photos/')     ||
+            str_starts_with($path, 'time-in-photos/')  ||
+            str_starts_with($path, 'time-out-photos/')
+        ) {
+            return file_exists(public_path('storage/' . $path));
+        }
+
+        // Legacy public/ paths
         if (
             str_starts_with($path, 'faces/')     ||
             str_starts_with($path, 'snapshots/') ||
@@ -86,6 +95,6 @@ class AppServiceProvider extends ServiceProvider
             return file_exists(public_path($path));
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('public')->exists($path);
+        return file_exists(public_path('storage/' . $path));
     }
 }

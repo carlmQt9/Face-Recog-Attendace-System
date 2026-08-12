@@ -6,12 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class FaceRegistrationController extends Controller
 {
-    /**
-     * Show the face registration page — lists all students and teachers.
-     */
     public function index()
     {
         $students = Student::with('user')->get();
@@ -20,9 +18,6 @@ class FaceRegistrationController extends Controller
         return view('admin.face-registration.index', compact('students', 'teachers'));
     }
 
-    /**
-     * Show the liveness-verified webcam capture form for a specific person.
-     */
     public function capture(string $type, int $id)
     {
         if ($type === 'student') {
@@ -34,9 +29,6 @@ class FaceRegistrationController extends Controller
         return view('admin.face-registration.capture', compact('person', 'type'));
     }
 
-    /**
-     * Store the captured face images (primary + extra samples) after liveness verification.
-     */
     public function store(Request $request, string $type, int $id)
     {
         $request->validate([
@@ -51,13 +43,13 @@ class FaceRegistrationController extends Controller
             return back()->withErrors(['face_image' => 'No face image was captured. Please complete the verification steps.']);
         }
 
-        // ── Decode and store primary face image ───────────────────────────────
+        // Save primary face image directly into public/storage/face-photos/
         $primaryPath = $this->saveBase64Image(
             $faceImage,
-            "faces/{$type}_{$id}_primary_" . time() . '.jpg'
+            "face-photos/{$type}_{$id}_primary_" . time() . '.jpg'
         );
 
-        // ── Store extra samples (left, right, blink) ──────────────────────────
+        // Save extra samples (left, right, blink)
         $extraPaths = [];
         if ($request->filled('extra_samples')) {
             $extras = json_decode($request->input('extra_samples'), true);
@@ -68,13 +60,12 @@ class FaceRegistrationController extends Controller
                     $label        = $labels[$i] ?? "sample_{$i}";
                     $extraPaths[] = $this->saveBase64Image(
                         $b64,
-                        "faces/{$type}_{$id}_{$label}_" . time() . '.jpg'
+                        "face-photos/{$type}_{$id}_{$label}_" . time() . '.jpg'
                     );
                 }
             }
         }
 
-        // ── Update the model record ───────────────────────────────────────────
         if ($type === 'student') {
             $person = Student::findOrFail($id);
         } else {
@@ -95,24 +86,26 @@ class FaceRegistrationController extends Controller
     }
 
     /**
-     * Decode a base64 image string and save it directly into public/faces/.
-     * Saves to public_path($path) so the file is accessible via asset($path)
-     * on ANY host — no storage symlink required (works on localhost AND InfinityFree).
+     * Save a base64 image directly into public/storage/{path}.
      *
-     * Returns the relative path (e.g. "faces/student_1_primary_1234.jpg") which
-     * is stored in the DB and resolved to a URL by AppServiceProvider::faceImageUrl().
+     * Writes directly with file_put_contents — no Storage facade, no disk config needed.
+     * Files land in: public/storage/face-photos/student_1_primary_xxx.jpg
+     * Served as: https://yourdomain.com/storage/face-photos/...
+     *
+     * Works on InfinityFree without any special configuration.
      */
     private function saveBase64Image(string $base64, string $path): string
     {
-        $data = preg_replace('/^data:image\/[a-zA-Z+]+;base64,/', '', $base64);
-        $data = str_replace([' ', "\n", "\r"], ['+', '', ''], $data);
-
+        $data    = preg_replace('/^data:image\/[a-zA-Z+]+;base64,/', '', $base64);
+        $data    = str_replace([' ', "\n", "\r"], ['+', '', ''], $data);
         $decoded = base64_decode($data, strict: true);
+
         if ($decoded === false) {
             throw new \RuntimeException("Invalid base64 image data for path: {$path}");
         }
 
-        $fullPath = public_path($path);
+        // Write directly into public/storage/ — no Storage facade, no disk config
+        $fullPath = public_path('storage/' . $path);
         $dir      = dirname($fullPath);
 
         if (!is_dir($dir)) {
@@ -121,6 +114,6 @@ class FaceRegistrationController extends Controller
 
         file_put_contents($fullPath, $decoded);
 
-        return trim($path);
+        return $path;
     }
 }

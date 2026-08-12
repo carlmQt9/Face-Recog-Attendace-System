@@ -16,7 +16,7 @@
     box-shadow:0 0 50px rgba(12,61,138,.25);
     border:2px solid rgba(255,255,255,.07);
 }
-#webcam   { width:100%; height:100%; object-fit:cover; display:block; transform:scaleX(-1); }
+#webcam   { width:100%; height:100%; object-fit:cover; display:block; }
 #faceCanvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
 
 /* face oval guide */
@@ -333,35 +333,75 @@ async function loadModels() {
 // ─── Webcam ───────────────────────────────────────────────────────────────────
 async function startWebcam() {
     try {
-        // Enumerate available cameras and use the first one (default device)
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        
         let videoConstraints = { width:{ideal:1280}, height:{ideal:720} };
         
-        // Use the first available camera device (default)
-        if (videoDevices.length > 0) {
-            videoConstraints.deviceId = { exact: videoDevices[0].deviceId };
-        } else {
-            // Fallback to any available camera
-            videoConstraints.facingMode = 'user';
+        // Always prioritize front camera for face registration, especially on mobile
+        try {
+            // Try to explicitly request front camera first
+            videoConstraints.facingMode = 'user'; // Front camera
+            
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: videoConstraints,
+                audio: false
+            });
+        } catch (frontCamError) {
+            console.warn('Front camera not available, trying device enumeration:', frontCamError);
+            
+            // Fallback: Enumerate devices and look for front camera
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            
+            if (videoDevices.length > 0) {
+                // Try each device to find front camera
+                let frontCameraFound = false;
+                for (const device of videoDevices) {
+                    if (device.label.toLowerCase().includes('front') || 
+                        device.label.toLowerCase().includes('user') ||
+                        device.label.toLowerCase().includes('facing')) {
+                        videoConstraints = { 
+                            deviceId: { exact: device.deviceId },
+                            width: {ideal:1280}, 
+                            height: {ideal:720} 
+                        };
+                        frontCameraFound = true;
+                        break;
+                    }
+                }
+                
+                // If no front camera found by label, use first device
+                if (!frontCameraFound) {
+                    videoConstraints.deviceId = { exact: videoDevices[0].deviceId };
+                }
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: videoConstraints,
+                    audio: false
+                });
+            } else {
+                throw new Error('No video devices found');
+            }
         }
-
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: videoConstraints,
-            audio: false
-        });
+        
         video.srcObject = stream;
         await new Promise(r => video.addEventListener('loadeddata', r, {once:true}));
 
         const track = stream.getVideoTracks()[0];
         const s     = track.getSettings();
+        
+        // Check if we successfully got front camera
+        const isFrontCamera = track.label.toLowerCase().includes('front') || 
+                             track.label.toLowerCase().includes('user') ||
+                             s.facingMode === 'user';
+        
         document.getElementById('camDevLabel').textContent =
-            (track.label || 'Default Camera') + (s.width ? ' · ' + s.width + 'px' : '');
+            (track.label || 'Camera') + 
+            (isFrontCamera ? ' (Front)' : '') + 
+            (s.width ? ' · ' + s.width + 'px' : '');
 
     } catch (err) {
         setStatus('error', '❌ Camera error: ' + err.message + '. Please allow camera access.');
         document.getElementById('startBtn').disabled = true;
+        console.error('Camera initialization failed:', err);
     }
 }
 
