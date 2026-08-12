@@ -685,7 +685,12 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     hideLoading();
 
-    if (scanMode === 'auto' && IS_ACTIVE) {
+    // Allow scanning even if face recognition failed (can use QR mode)
+    if (!modelsLoaded || !faceMatcher) {
+        console.warn('Face recognition not ready - QR and Manual modes available');
+        setStatus('⚠️ Face scan unavailable — use QR or Manual mode', 'wait');
+        if (scanBtn) { scanBtn.style.display = 'flex'; scanBtn.disabled = false; }
+    } else if (scanMode === 'auto' && IS_ACTIVE) {
         startAutoScan();
         setStatus('🔍 Auto-scanning — stand in front of the camera', 'info');
     } else {
@@ -706,14 +711,30 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ═══════════════════════════════════════════════════════
 async function loadModels() {
     try {
-        await faceapi.nets.tinyFaceDetector.loadFromUri(MODELS_URL);
-        await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODELS_URL);
-        await faceapi.nets.faceRecognitionNet.loadFromUri(MODELS_URL);
+        // Detect if mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const timeout = isMobile ? 60000 : 30000;  // 60s for mobile, 30s for desktop
+        
+        console.log(`Loading models... (Mobile: ${isMobile}, Timeout: ${timeout}ms)`);
+        
+        // Load with timeout
+        await Promise.race([
+            Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(MODELS_URL),
+                faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODELS_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(MODELS_URL)
+            ]),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Model load timeout')), timeout)
+            )
+        ]);
+        
         modelsLoaded = true;
+        console.log('✅ Models loaded successfully');
     } catch (e) {
-        console.warn('Models load failed:', e);
+        console.error('Models load failed:', e);
         modelsLoaded = false;
-        setStatus('⚠️ Face recognition unavailable — use Manual mode', 'error');
+        setStatus('⚠️ Face recognition unavailable — use QR or Manual mode', 'error');
     }
 }
 
@@ -721,13 +742,29 @@ async function loadModels() {
 //  BUILD FACE MATCHER from registered student images
 // ═══════════════════════════════════════════════════════
 async function buildMatcher() {
-    if (!modelsLoaded) return;
+    if (!modelsLoaded) {
+        console.warn('Models not loaded yet, skipping buildMatcher');
+        return;
+    }
+    
     try {
-        const resp = await fetch('/api/face-descriptors?session_id=' + SESSION_ID, { headers: { Accept: 'application/json' } });
+        console.log('Building face matcher...');
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const timeout = isMobile ? 90000 : 45000;  // 90s for mobile, 45s for desktop
+        
+        // Fetch with timeout
+        const resp = await Promise.race([
+            fetch('/api/face-descriptors?session_id=' + SESSION_ID, { headers: { Accept: 'application/json' } }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Face data fetch timeout')), timeout)
+            )
+        ]);
+        
         const data = await resp.json();
 
         if (!data.students || data.students.length === 0) {
-            setStatus('⚠️ No registered faces found. Register faces in Admin → Face Registration.', 'error');
+            setStatus('⚠️ No registered faces found. Use QR mode or register faces in Admin.', 'error');
+            faceMatcher = null;
             return;
         }
 
@@ -759,7 +796,8 @@ async function buildMatcher() {
         }
 
         if (labeledDescriptors.length === 0) {
-            setStatus('⚠️ Could not extract descriptors. Re-register faces with good lighting.', 'error');
+            setStatus('⚠️ Could not extract descriptors. Use QR mode or re-register faces.', 'error');
+            faceMatcher = null;
             return;
         }
 
@@ -768,7 +806,8 @@ async function buildMatcher() {
 
     } catch (e) {
         console.error('buildMatcher error:', e);
-        setStatus('⚠️ Failed to load face data — ' + e.message, 'error');
+        faceMatcher = null;
+        setStatus('⚠️ Face recognition failed — use QR or Manual mode instead', 'error');
     }
 }
 
