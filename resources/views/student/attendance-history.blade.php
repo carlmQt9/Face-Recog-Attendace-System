@@ -114,9 +114,7 @@
         {{-- Pinned: most recent record ─────────────────────── --}}
         @if($latest)
         @php
-            $latestSnap = $latest->snapshotUrl()
-                ?? ($student?->face_encoding && Storage::disk('public')->exists($student->face_encoding)
-                    ? Storage::url($student->face_encoding) : null);
+            $latestSnap = $latest->snapshotUrl(); // Only use attendance snapshot, not registration photo
         @endphp
         <div style="background:linear-gradient(135deg,rgba(12,61,138,.06),rgba(245,168,0,.04));
                     border-bottom:1px solid #e2e8f0;padding:14px 20px;">
@@ -200,9 +198,7 @@
                 @php $sortedRecords = $records->sortByDesc('arrived_at'); @endphp
                 @forelse($sortedRecords as $record)
                     @php
-                        $snap = $record->snapshotUrl()
-                            ?? ($student?->face_encoding && Storage::disk('public')->exists($student->face_encoding)
-                                ? Storage::url($student->face_encoding) : null);
+                        $snap = $record->snapshotUrl(); // Only use attendance snapshot, not registration photo
                         $snapSub = ($record->scan_type === 'time_out' ? 'Time Out' : 'Time In')
                             . ' · ' . $record->arrived_at->format('h:i A')
                             . ' · ' . $record->arrived_at->format('M j, Y');

@@ -113,6 +113,7 @@ class FaceRegistrationController extends Controller
 
         Storage::disk('public')->put($path, $decoded);
 
-        return $path;
+        // Ensure no newlines in the returned path
+        return trim($path);
     }
 }

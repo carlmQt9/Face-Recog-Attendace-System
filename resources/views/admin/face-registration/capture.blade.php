@@ -333,8 +333,22 @@ async function loadModels() {
 // ─── Webcam ───────────────────────────────────────────────────────────────────
 async function startWebcam() {
     try {
+        // Enumerate available cameras and use the first one (default device)
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        let videoConstraints = { width:{ideal:1280}, height:{ideal:720} };
+        
+        // Use the first available camera device (default)
+        if (videoDevices.length > 0) {
+            videoConstraints.deviceId = { exact: videoDevices[0].deviceId };
+        } else {
+            // Fallback to any available camera
+            videoConstraints.facingMode = 'user';
+        }
+
         stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode:'user', width:{ideal:1280}, height:{ideal:720} },
+            video: videoConstraints,
             audio: false
         });
         video.srcObject = stream;
@@ -343,7 +357,7 @@ async function startWebcam() {
         const track = stream.getVideoTracks()[0];
         const s     = track.getSettings();
         document.getElementById('camDevLabel').textContent =
-            (track.label || 'Front Camera') + (s.width ? ' · ' + s.width + 'px' : '');
+            (track.label || 'Default Camera') + (s.width ? ' · ' + s.width + 'px' : '');
 
     } catch (err) {
         setStatus('error', '❌ Camera error: ' + err.message + '. Please allow camera access.');

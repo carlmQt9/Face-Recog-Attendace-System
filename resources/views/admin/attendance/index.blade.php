@@ -70,9 +70,7 @@
                 <tr>
                     <td class="td-main">
                         @php
-                            $thumbUrl = $record->snapshotUrl()
-                                ?? ($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding)
-                                    ? Storage::url($record->student->face_encoding)
+                            $thumbUrl = $record->snapshotUrl(); // Only use attendance snapshot, not registration photo
                                     : null);
                         @endphp
                         <div class="d-flex align-items-center gap-2">

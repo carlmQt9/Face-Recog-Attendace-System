@@ -580,11 +580,9 @@ body { background:#0a0a0f; }
                 @forelse($attendance as $record)
                 <div class="roster-item">
                     @php
-                        $snapUrl = $record->snapshotUrl()
-                            ?? ($record->student->face_encoding && Storage::disk('public')->exists($record->student->face_encoding)
-                                ? Storage::url($record->student->face_encoding)
-                                : null);
+                        $snapUrl = $record->snapshotUrl(); // Only use attendance snapshot, not registration photo
                         $snapSub = ($record->scan_type === 'time_out' ? 'Timed Out' : 'Timed In') . ' · ' . $record->arrived_at->format('h:i A');
+                    @endphp
                     @endphp
                     @if($snapUrl)
                         <img src="{{ $snapUrl }}"

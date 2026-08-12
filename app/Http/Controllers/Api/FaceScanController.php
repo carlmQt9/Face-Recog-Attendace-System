@@ -270,24 +270,39 @@ class FaceScanController extends Controller
         ]);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Save base64 face_image to storage and return path
-    // ─────────────────────────────────────────────────────────────────────────
+    /**
+     * Save base64 face_image to storage and return path
+     * Enhanced to ensure snapshots are always saved for attendance records
+     */
     private function saveSnapshot(?string $base64, int $studentId, string $type): ?string
     {
-        if (!$base64 || strlen($base64) < 100) return null;
+        if (!$base64 || strlen($base64) < 100) {
+            \Log::warning("Attendance snapshot missing or invalid for student {$studentId}, type: {$type}");
+            return null;
+        }
 
         try {
             $data    = preg_replace('/^data:image\/[a-zA-Z+]+;base64,/', '', $base64);
             $data    = str_replace([' ', "\n", "\r"], ['+', '', ''], $data);
             $decoded = base64_decode($data, strict: true);
-            if ($decoded === false) return null;
+            if ($decoded === false) {
+                \Log::warning("Base64 decode failed for student {$studentId}, type: {$type}");
+                return null;
+            }
 
             $path = 'snapshots/student_' . $studentId . '_' . $type . '_' . time() . '.jpg';
             Storage::disk('public')->put($path, $decoded);
+            
+            // Verify the file was saved
+            if (!Storage::disk('public')->exists($path)) {
+                \Log::error("Snapshot file was not saved successfully: {$path}");
+                return null;
+            }
+            
+            \Log::info("Attendance snapshot saved successfully: {$path}");
             return $path;
         } catch (\Exception $e) {
-            \Log::warning('Snapshot save failed: ' . $e->getMessage());
+            \Log::error('Snapshot save failed for student ' . $studentId . ': ' . $e->getMessage());
             return null;
         }
     }
