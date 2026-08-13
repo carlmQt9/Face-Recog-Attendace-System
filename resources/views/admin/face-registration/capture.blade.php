@@ -745,8 +745,8 @@ function captureFrame() {
     const ctx = c.getContext('2d');
     // De-mirror for server
     ctx.translate(c.width,0); ctx.scale(-1,1);
-    ctx.drawImage(video,0,0);
-    return c.toDataURL('image/jpeg', 0.88);
+        ctx.drawImage(video,0,0);
+        return c.toDataURL('image/jpeg', 0.70);
 }
 
 // ─── Public button actions ────────────────────────────────────────────────────
@@ -842,14 +842,68 @@ function saveRegistration() {
         return;
     }
 
-    document.getElementById('faceImageInput').value    = primaryImg;
-    document.getElementById('extraSamplesInput').value = JSON.stringify(capturedImages.slice(1).filter(Boolean));
-    document.getElementById('livenessInput').value     = '1';
-    document.getElementById('saveBtn').disabled        = true;
-    document.getElementById('saveBtn').innerHTML       = '<span class="spinner-border spinner-border-sm me-2"></span> Saving…';
-    
-    setStatus('ok', '💾 Saving face registration with all verification steps completed...');
-    document.getElementById('regForm').submit();
+    // Use multipart/form-data upload via fetch to avoid base64 truncation on hosts
+    // like InfinityFree which may corrupt very long POST bodies. Convert dataURLs
+    // to Blobs and send files in FormData.
+    const fd = new FormData();
+    fd.append('_token', document.querySelector('input[name="_token"]').value);
+    fd.append('liveness_verified', '1');
+
+    // Helper: convert dataURL -> Blob
+    function dataURLToBlob(dataurl) {
+        const arr = dataurl.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) { u8arr[n] = bstr.charCodeAt(n); }
+        return new Blob([u8arr], { type: mime });
+    }
+
+    // Primary image
+    fd.append('face_image_file', dataURLToBlob(primaryImg), 'primary.jpg');
+
+    // Extra samples as files (left,right,blink)
+    const extras = capturedImages.slice(1).filter(Boolean);
+    extras.forEach((durl, idx) => {
+        fd.append('extra_files[]', dataURLToBlob(durl), `sample_${idx}.jpg`);
+    });
+
+    // Fallback: also include JSON fields for backward compatibility
+    fd.append('face_image', primaryImg);
+    fd.append('extra_samples', JSON.stringify(extras));
+
+    document.getElementById('saveBtn').disabled = true;
+    document.getElementById('saveBtn').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving…';
+    setStatus('ok', '💾 Uploading face registration (multipart) — this avoids host truncation.');
+
+    fetch(document.getElementById('regForm').action, { method: 'POST', body: fd })
+        .then(async res => {
+            if (!res.ok) {
+                const text = await res.text().catch(() => 'Server error');
+                throw new Error(text || res.statusText);
+            }
+            // On success, follow redirect or show success
+            const loc = res.headers.get('X-Redirect-Location');
+            if (loc) { window.location = loc; return; }
+            return res.text();
+        })
+        .then(body => {
+            // Best-effort: try to parse JSON flash message
+            try {
+                const json = JSON.parse(body);
+                if (json.redirect) window.location = json.redirect;
+            } catch (e) {
+                // If server returned HTML, redirect to index
+                window.location = '{{ route("admin.face-registration.index") }}';
+            }
+        })
+        .catch(err => {
+            console.error('Upload failed', err);
+            setStatus('error', '❌ Upload failed: ' + (err.message || 'Network error'));
+            document.getElementById('saveBtn').disabled = false;
+            document.getElementById('saveBtn').innerHTML = '<i class="bi bi-check-circle-fill"></i> Save Face Registration';
+        });
 }
 
 // ─── Status helper ────────────────────────────────────────────────────────────

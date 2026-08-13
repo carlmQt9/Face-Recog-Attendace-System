@@ -54,7 +54,11 @@ class AppServiceProvider extends ServiceProvider
             str_starts_with($path, 'time-in-photos/')  ||
             str_starts_with($path, 'time-out-photos/')
         ) {
-            return asset('storage/' . ltrim($path, '/'));
+            // Prefer the proxy route /s/ to avoid webroot/symlink issues.
+            // Encode path segments separately so slashes remain separators (some hosts
+            // reject encoded slashes like %2F). Example: face-photos/file.jpg
+            $segments = array_map(fn($s) => rawurlencode($s), explode('/', trim($path, '/')));
+            return asset('s/' . implode('/', $segments));
         }
 
         // Legacy: old public/faces or public/snapshots paths
@@ -67,7 +71,8 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Fallback
-        return asset('storage/' . ltrim($path, '/'));
+        $segments = array_map(fn($s) => rawurlencode($s), explode('/', trim($path, '/')));
+        return asset('s/' . implode('/', $segments));
     }
 
     /**

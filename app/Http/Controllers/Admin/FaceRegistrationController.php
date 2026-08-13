@@ -7,6 +7,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class FaceRegistrationController extends Controller
 {
@@ -32,36 +33,76 @@ class FaceRegistrationController extends Controller
     public function store(Request $request, string $type, int $id)
     {
         $request->validate([
-            'face_image'        => 'required|string|min:100',
+            'face_image'        => 'required_without:face_image_file|string|min:100',
+            'face_image_file'   => 'nullable|file|mimes:jpg,jpeg,png',
             'liveness_verified' => 'nullable|in:0,1',
             'extra_samples'     => 'nullable|string',
+            'extra_files.*'     => 'nullable|file|mimes:jpg,jpeg,png',
         ]);
 
-        $faceImage = $request->input('face_image');
+        // Prefer file uploads (multipart/form-data). Fall back to base64 strings for
+        // backwards compatibility.
+        $primaryPath = null;
+        $extraPaths  = [];
 
-        if (empty($faceImage) || strlen($faceImage) < 100) {
-            return back()->withErrors(['face_image' => 'No face image was captured. Please complete the verification steps.']);
+        // Handle uploaded primary image
+        if ($request->hasFile('face_image_file')) {
+            $file = $request->file('face_image_file');
+            $ext  = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+            $filename = "face-photos/{$type}_{$id}_primary_" . time() . '.' . $ext;
+            $fullPath = public_path('storage/' . $filename);
+            $dir = dirname($fullPath);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            $file->move($dir, basename($fullPath));
+            $primaryPath = $filename;
+            try { Log::info("FaceRegistration: saved primary image {$fullPath} (" . filesize($fullPath) . " bytes)"); } catch (\Exception $e) {}
         }
 
-        // Save primary face image directly into public/storage/face-photos/
-        $primaryPath = $this->saveBase64Image(
-            $faceImage,
-            "face-photos/{$type}_{$id}_primary_" . time() . '.jpg'
-        );
+        // Handle uploaded extra samples (array)
+        if ($request->hasFile('extra_files')) {
+            $files = $request->file('extra_files');
+            $labels = ['left', 'right', 'blink'];
+            foreach ($files as $i => $f) {
+                if (!$f || !$f->isValid()) continue;
+                $ext = strtolower($f->getClientOriginalExtension() ?: 'jpg');
+                $label = $labels[$i] ?? "sample_{$i}";
+                $filename = "face-photos/{$type}_{$id}_{$label}_" . time() . '.' . $ext;
+                $fullPath = public_path('storage/' . $filename);
+                $dir = dirname($fullPath);
+                if (!is_dir($dir)) { mkdir($dir, 0755, true); }
+                $f->move($dir, basename($fullPath));
+                $extraPaths[] = $filename;
+                try { Log::info("FaceRegistration: saved extra image {$fullPath} (" . filesize($fullPath) . " bytes)"); } catch (\Exception $e) {}
+            }
+        }
 
-        // Save extra samples (left, right, blink)
-        $extraPaths = [];
-        if ($request->filled('extra_samples')) {
-            $extras = json_decode($request->input('extra_samples'), true);
-            if (is_array($extras)) {
-                $labels = ['left', 'right', 'blink'];
-                foreach ($extras as $i => $b64) {
-                    if (empty($b64) || strlen($b64) < 100) continue;
-                    $label        = $labels[$i] ?? "sample_{$i}";
-                    $extraPaths[] = $this->saveBase64Image(
-                        $b64,
-                        "face-photos/{$type}_{$id}_{$label}_" . time() . '.jpg'
-                    );
+        // If no uploaded primary image, fall back to base64 in request body
+        if (!$primaryPath) {
+            $faceImage = $request->input('face_image');
+            if (empty($faceImage) || strlen($faceImage) < 100) {
+                return back()->withErrors(['face_image' => 'No face image was captured. Please complete the verification steps.']);
+            }
+            $primaryPath = $this->saveBase64Image(
+                $faceImage,
+                "face-photos/{$type}_{$id}_primary_" . time() . '.jpg'
+            );
+            try { $full = public_path('storage/' . $primaryPath); Log::info("FaceRegistration: saved primary (base64) {$full} (" . (file_exists($full)?filesize($full):0) . " bytes)"); } catch (\Exception $e) {}
+
+            // Save extra samples (base64)
+            if ($request->filled('extra_samples')) {
+                $extras = json_decode($request->input('extra_samples'), true);
+                if (is_array($extras)) {
+                    $labels = ['left', 'right', 'blink'];
+                    foreach ($extras as $i => $b64) {
+                        if (empty($b64) || strlen($b64) < 100) continue;
+                        $label        = $labels[$i] ?? "sample_{$i}";
+                        $extraPaths[] = $this->saveBase64Image(
+                            $b64,
+                            "face-photos/{$type}_{$id}_{$label}_" . time() . '.jpg'
+                        );
+                    }
                 }
             }
         }

@@ -14,6 +14,54 @@ use App\Http\Controllers\Teacher\ManualAttendanceController;
 use App\Http\Controllers\Teacher\StudentController as TeacherStudentController;
 use App\Http\Controllers\QrAttendanceController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Response;
+
+// Temporary: clear caches from the browser (run once, then remove)
+Route::get('temp/clear-caches', function () {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        $output = "OK: caches cleared";
+    } catch (\Exception $e) {
+        $output = 'ERROR: ' . $e->getMessage();
+    }
+    return response("<pre>" . htmlspecialchars($output) . "</pre>", 200)->header('Content-Type', 'text/html');
+});
+
+// Temporary debug: show last lines of laravel.log
+Route::get('debug/logs', function () {
+    $file = storage_path('logs/laravel.log');
+    if (!file_exists($file)) return response('laravel.log not found', 404);
+    $lines = 80;
+    $data = shell_exec("tail -n {$lines} " . escapeshellarg($file) . " 2>&1");
+    return response("<pre>" . htmlspecialchars($data) . "</pre>", 200)->header('Content-Type', 'text/html');
+});
+
+// Temporary debug: check a public/storage path exists and show size
+Route::get('debug/check/{path}', function ($path) {
+    $decoded = urldecode($path);
+    $file = public_path('storage/' . $decoded);
+    if (!file_exists($file)) return response("NOT FOUND: {$file}", 404);
+    $size = filesize($file);
+    return response("FOUND: {$file} ({$size} bytes)", 200)->header('Content-Type', 'text/plain');
+})->where('path', '.*');
+
+// Serve files stored under public/storage via a stable proxy path '/s/{path}'
+// This avoids problems when the site is served from a /public subfolder
+// or when symlinks are not available on the host.
+Route::get('s/{path}', function ($path) {
+    $decoded = urldecode($path);
+    $file = public_path('storage/' . $decoded);
+    if (!is_file($file) || !file_exists($file)) {
+        abort(404);
+    }
+    $mime = mime_content_type($file) ?: 'application/octet-stream';
+    return Response::file($file, ['Content-Type' => $mime]);
+})->where('path', '.*');
+
+// (debug routes removed)
 
 /*
 |--------------------------------------------------------------------------

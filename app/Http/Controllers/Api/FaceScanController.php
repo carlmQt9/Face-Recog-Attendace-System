@@ -13,6 +13,7 @@ use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class FaceScanController extends Controller
 {
@@ -23,10 +24,11 @@ class FaceScanController extends Controller
      * {
      *   "camera_id": 1,
      *   "student_id": 5,
-     *   "scan_type": "time_in"|"time_out",   // default: time_in
-     *   "session_id": 2,
+                $f->move($dir, basename($fullPath));
+                try { Log::info("FaceScan: saved uploaded snapshot {$fullPath} (" . filesize($fullPath) . " bytes)"); } catch (\Exception $e) {}
+                return $filename;
      *   "confidence_score": 94.5,
-     *   "face_image": "base64..."
+                Log::error('Uploaded snapshot save failed: ' . $e->getMessage());
      * }
      */
     public function process(Request $request)
@@ -38,6 +40,7 @@ class FaceScanController extends Controller
             'student_id'       => 'nullable|exists:students,id',
             'confidence_score' => 'nullable|numeric|min:0|max:100',
             'face_image'       => 'nullable|string',
+            'face_image_file'  => 'nullable|file|mimes:jpg,jpeg,png',
             'session_id'       => 'nullable|exists:class_sessions,id',
         ]);
 
@@ -120,7 +123,7 @@ class FaceScanController extends Controller
             'status'           => 'present',
             'method'            => 'face_scan',
             'confidence_score'  => $request->confidence_score,
-            'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, 'in'),
+            'snapshot_path'     => $this->storeSnapshotFromRequest($request, $student->id, 'in'),
             'arrived_at'        => now(),
         ]);
 
@@ -130,7 +133,7 @@ class FaceScanController extends Controller
                 Mail::to($student->parent->gmail)->send(new AttendanceTimeIn($record));
                 $record->update(['notification_sent' => true]);
             } catch (\Exception $e) {
-                \Log::error('Time-in email failed: ' . $e->getMessage());
+                Log::error('Time-in email failed: ' . $e->getMessage());
             }
         }
 
@@ -205,18 +208,19 @@ class FaceScanController extends Controller
                 'status'            => $status,
                 'method'            => 'face_scan',
                 'confidence_score'  => $request->confidence_score,
-                'snapshot_path'     => $this->saveSnapshot($request->face_image, $student->id, $wasMarkedLate ? 'late_in' : 'auto_in'),
+                'snapshot_path'     => $this->storeSnapshotFromRequest($request, $student->id, $wasMarkedLate ? 'late_in' : 'auto_in'),
                 'arrived_at'        => $arrivalTime,
                 'marked_by'         => $wasMarkedLate ? 'System - Late from afternoon timeout' : 'System - Auto time-in before timeout',
             ]);
             
-            \Log::info("Created auto time-in for student {$student->id} before time-out. Status: {$status}");
+            Log::info("Created auto time-in for student {$student->id} before time-out. Status: {$status}");
         } else {
             // Update snapshot on the existing record if not already set
-            if (!$record->snapshot_path && $request->face_image) {
-                $record->update([
-                    'snapshot_path' => $this->saveSnapshot($request->face_image, $student->id, 'out'),
-                ]);
+            if (!$record->snapshot_path) {
+                $snap = $this->storeSnapshotFromRequest($request, $student->id, 'out');
+                if ($snap) {
+                    $record->update(['snapshot_path' => $snap]);
+                }
             }
         }
 
@@ -230,7 +234,7 @@ class FaceScanController extends Controller
                 Mail::to($student->parent->gmail)->send(new AttendanceTimeOut($record));
                 $record->update(['time_out_notification_sent' => true]);
             } catch (\Exception $e) {
-                \Log::error('Time-out email failed: ' . $e->getMessage());
+                Log::error('Time-out email failed: ' . $e->getMessage());
             }
         }
 
@@ -262,7 +266,7 @@ class FaceScanController extends Controller
     private function saveSnapshot(?string $base64, int $studentId, string $type): ?string
     {
         if (!$base64 || strlen($base64) < 100) {
-            \Log::warning("Snapshot missing/invalid for student {$studentId}, type: {$type}");
+            Log::warning("Snapshot missing/invalid for student {$studentId}, type: {$type}");
             return null;
         }
 
@@ -272,7 +276,7 @@ class FaceScanController extends Controller
             $decoded = base64_decode($data, strict: true);
 
             if ($decoded === false) {
-                \Log::warning("Base64 decode failed for student {$studentId}, type: {$type}");
+                Log::warning("Base64 decode failed for student {$studentId}, type: {$type}");
                 return null;
             }
 
@@ -291,16 +295,44 @@ class FaceScanController extends Controller
             file_put_contents($fullPath, $decoded);
 
             if (!file_exists($fullPath)) {
-                \Log::error("Snapshot not saved: {$path}");
+                Log::error("Snapshot not saved: {$path}");
                 return null;
             }
 
-            \Log::info("Snapshot saved: public/storage/{$path}");
+            Log::info("Snapshot saved: public/storage/{$path}");
             return $path;
 
         } catch (\Exception $e) {
-            \Log::error('Snapshot save failed for student ' . $studentId . ': ' . $e->getMessage());
+            Log::error('Snapshot save failed for student ' . $studentId . ': ' . $e->getMessage());
             return null;
         }
+    }
+
+    /**
+     * Accept either an uploaded file (multipart) or a base64 string in the request.
+     * Returns the stored relative path (under storage/) or null.
+     */
+    private function storeSnapshotFromRequest(Request $request, int $studentId, string $type): ?string
+    {
+        // If multipart file provided, move it into storage folder
+        if ($request->hasFile('face_image_file') && $request->file('face_image_file')->isValid()) {
+            try {
+                $f = $request->file('face_image_file');
+                $ext = strtolower($f->getClientOriginalExtension() ?: 'jpg');
+                $folder = str_contains($type, 'out') ? 'time-out-photos' : 'time-in-photos';
+                $filename = "{$folder}/student_{$studentId}_{$type}_" . time() . '.' . $ext;
+                $fullPath = public_path('storage/' . $filename);
+                $dir = dirname($fullPath);
+                if (!is_dir($dir)) mkdir($dir, 0755, true);
+                $f->move($dir, basename($fullPath));
+                return $filename;
+            } catch (\Exception $e) {
+                Log::error('Uploaded snapshot save failed: ' . $e->getMessage());
+                return null;
+            }
+        }
+
+        // Fall back to base64 string
+        return $this->saveSnapshot($request->input('face_image'), $studentId, $type);
     }
 }

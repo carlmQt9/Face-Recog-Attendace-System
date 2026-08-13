@@ -1305,23 +1305,64 @@ async function runScan() {
 // ═══════════════════════════════════════════════════════
 async function recordAttendance(studentId, confidence, frame) {
     try {
-        const resp = await fetch('/api/face-scan', {
-            method:  'POST',
-            headers: {
-                'Content-Type':  'application/json',
-                'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]').content,
-                'Accept':        'application/json',
-            },
-            body: JSON.stringify({
-                camera_id:        CAMERA_ID,
-                session_id:       SESSION_ID,
-                student_id:       studentId,
-                scan_result:      'success',
-                scan_type:        scanType,
-                confidence_score: confidence,
-                face_image:       frame,
-            }),
-        });
+        // Try multipart upload first (preferred) to avoid base64 truncation on some hosts.
+        function dataURLToBlob(dataurl) {
+            const arr = dataurl.split(',');
+            if (arr.length !== 2) return null;
+            const mimeMatch = arr[0].match(/:(.*?);/);
+            const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) { u8arr[n] = bstr.charCodeAt(n); }
+            return new Blob([u8arr], { type: mime });
+        }
+
+        let resp;
+        try {
+            const fd = new FormData();
+            fd.append('camera_id', CAMERA_ID);
+            fd.append('session_id', SESSION_ID);
+            fd.append('student_id', studentId);
+            fd.append('scan_result', 'success');
+            fd.append('scan_type', scanType);
+            fd.append('confidence_score', confidence);
+
+            const blob = dataURLToBlob(frame);
+            if (blob) {
+                fd.append('face_image_file', blob, 'snapshot.jpg');
+            } else {
+                fd.append('face_image', frame);
+            }
+
+            resp = await fetch('/api/face-scan', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: fd,
+            });
+        } catch (e) {
+            // Fallback to original JSON POST if multipart fails
+            resp = await fetch('/api/face-scan', {
+                method:  'POST',
+                headers: {
+                    'Content-Type':  'application/json',
+                    'X-CSRF-TOKEN':  document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept':        'application/json',
+                },
+                body: JSON.stringify({
+                    camera_id:        CAMERA_ID,
+                    session_id:       SESSION_ID,
+                    student_id:       studentId,
+                    scan_result:      'success',
+                    scan_type:        scanType,
+                    confidence_score: confidence,
+                    face_image:       frame,
+                }),
+            });
+        }
 
         const data = await resp.json();
 
@@ -1515,7 +1556,7 @@ function captureFrame() {
     const ctx = c.getContext('2d');
     ctx.translate(c.width, 0); ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0);
-    return c.toDataURL('image/jpeg', 0.85);
+    return c.toDataURL('image/jpeg', 0.70);
 }
 
 function updateConfidence(pct) {

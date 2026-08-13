@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In — DMCMES Smart Attendance</title>
-    <link rel="icon" type="image/png" href="/donma logo.png">
+    <link rel="icon" type="image/png" href="{{ asset('donma logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -290,7 +290,7 @@
 <nav class="top-nav">
     <div class="nav-inner">
         <a href="{{ route('landing') }}" class="nav-brand">
-            <img src="/donma logo.png" alt="DMCMES Logo">
+            <img src="{{ asset('donma logo.png') }}" alt="DMCMES Logo">
             <div class="nav-brand-text">
                 <div class="nav-brand-abbr">DMCMES</div>
                 <span class="nav-brand-full">Smart Attendance System</span>
@@ -313,7 +313,7 @@
         <div class="panel-left">
             <div class="brand-row">
                 <div class="brand-logo-wrap">
-                    <img src="/donma logo.png" alt="DMCMES">
+                    <img src="{{ asset('donma logo.png') }}" alt="DMCMES">
                 </div>                <div class="brand-school">
                     <div class="abbr">DMCMES</div>
                     <span class="full">Don Marcelo C. Marty<br>Elementary School</span>

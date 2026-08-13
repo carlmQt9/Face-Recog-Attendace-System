@@ -43,7 +43,7 @@
                             <tr>
                                 <td class="align-middle">
                                     @if($student->face_registered && $student->face_encoding && \App\Providers\AppServiceProvider::faceImageExists($student->face_encoding))
-                                        <img src="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
+                                         <img src="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
                                              alt="{{ $student->user->name }}"
                                              data-lightbox="{{ \App\Providers\AppServiceProvider::faceImageUrl($student->face_encoding) }}"
                                              data-lightbox-caption="{{ $student->user->name }}"
