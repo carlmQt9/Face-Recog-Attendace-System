@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'DMCMES Attendance') | Smart Attendance System</title>
-    <link rel="icon" type="image/png" href="{{ asset(rawurlencode('donma logo.png')) }}">
+    <link rel="icon" type="image/png" href="{{ asset('dmcmes-logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -275,7 +275,7 @@
     <div class="sidebar" id="sidebar">
         <div class="brand">
             <a href="#" class="brand-logo">
-                <img src="{{ asset(rawurlencode('donma logo.png')) }}" alt="DMCMES Logo" style="width:40px;height:40px;object-fit:contain;">
+                <img src="<?php echo 'data:'.mime_content_type(public_path('dmcmes-logo.png')).';base64,'.base64_encode(file_get_contents(public_path('dmcmes-logo.png'))); ?>" alt="DMCMES Logo" style="width:40px;height:40px;object-fit:contain;">
                 <div class="brand-text">
                     <span class="school-abbr">DMCMES</span>
                     <span class="school-full">Don Marcelo C. Marty ES</span>

@@ -165,7 +165,7 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
 <nav class="navbar navbar-expand-lg">
   <div class="container">
     <a class="navbar-brand" href="#" style="display:flex;align-items:center;gap:12px;">
-      <img src="{{ asset(rawurlencode('donma logo.jpg') . '?v=' . time()) }}" alt="DMCMES Logo" style="width:44px;height:44px;object-fit:contain;border-radius:6px;">
+      <img src="<?php echo 'data:'.mime_content_type(public_path('dmcmes-logo.png')).';base64,'.base64_encode(file_get_contents(public_path('dmcmes-logo.png'))); ?>" alt="DMCMES Logo" style="width:44px;height:44px;object-fit:contain;border-radius:6px;">
       <div style="display:flex;flex-direction:column;line-height:1.1;">
         <span style="font-size:16px;font-weight:900;color:#f5a800;letter-spacing:0.05em;">DMCMES</span>
         <span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;">Smart Attendance</span>
@@ -454,7 +454,7 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
     <div class="row g-4">
       <div class="col-lg-4">
         <div class="foot-logo" style="display:flex;align-items:center;gap:12px;">
-          <img src="{{ asset(rawurlencode('donma logo.jpg') . '?v=' . time()) }}" alt="DMCMES Logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px;">
+          <img src="<?php echo 'data:'.mime_content_type(public_path('dmcmes-logo.png')).';base64,'.base64_encode(file_get_contents(public_path('dmcmes-logo.png'))); ?>" alt="DMCMES Logo" style="width:40px;height:40px;object-fit:contain;border-radius:6px;">
           <span>DMCMES</span>
         </div>
         <p>A modern, AI-powered face recognition attendance system built for schools. Fast, secure, and completely hands-free.</p>
