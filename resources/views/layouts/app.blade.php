@@ -275,7 +275,7 @@
     <div class="sidebar" id="sidebar">
         <div class="brand">
             <a href="#" class="brand-logo">
-                <img src="<?php echo 'data:'.mime_content_type(public_path('dmcmes-logo.png')).';base64,'.base64_encode(file_get_contents(public_path('dmcmes-logo.png'))); ?>" alt="DMCMES Logo" style="width:40px;height:40px;object-fit:contain;">
+                @logoImg('width:40px;height:40px;object-fit:contain;border-radius:6px;')
                 <div class="brand-text">
                     <span class="school-abbr">DMCMES</span>
                     <span class="school-full">Don Marcelo C. Marty ES</span>

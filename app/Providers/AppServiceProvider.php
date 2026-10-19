@@ -19,10 +19,35 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         // Register a Blade directive and global helper for face/snapshot image URLs.
-        // Saves to public/faces/ so no symlink is needed — works on localhost AND InfinityFree.
         Blade::directive('faceUrl', function ($expression) {
             return "<?php echo \App\Providers\AppServiceProvider::faceImageUrl($expression); ?>";
         });
+
+        // @logoImg($style) — renders the school logo as an inline base64 <img>
+        // Works on any host (InfinityFree, localhost, subdirectory) because no URL is needed.
+        Blade::directive('logoImg', function ($expression) {
+            return "<?php echo \App\Providers\AppServiceProvider::logoImg($expression); ?>";
+        });
+    }
+
+    /**
+     * Returns an <img> tag with the logo embedded as base64.
+     * Cached in memory so file is only read once per request.
+     */
+    public static function logoImg(string $style = ''): string
+    {
+        static $src = null;
+        if ($src === null) {
+            $file = public_path('dmcmes-logo.png');
+            if (file_exists($file)) {
+                $src = 'data:image/png;base64,' . base64_encode(file_get_contents($file));
+            } else {
+                $src = '';
+            }
+        }
+        if ($src === '') return '';
+        $styleAttr = $style ? " style=\"{$style}\"" : '';
+        return "<img src=\"{$src}\" alt=\"DMCMES Logo\"{$styleAttr}>";
     }
 
     /**

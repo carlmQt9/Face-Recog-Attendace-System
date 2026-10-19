@@ -337,7 +337,7 @@
 <nav class="top-nav">
     <div class="nav-inner">
         <a href="{{ route('landing') }}" class="nav-brand">
-            <img src="{{ asset('dmcmes-logo.png') }}" alt="DMCMES Logo">
+            @logoImg('width:40px;height:40px;object-fit:contain;border-radius:8px;')
             <div class="nav-brand-text">
                 <div class="nav-brand-abbr">DMCMES</div>
                 <span class="nav-brand-full">Smart Attendance System</span>
@@ -372,7 +372,7 @@
         <div class="panel-left">
             <div class="brand-row">
                 <div class="brand-logo-wrap">
-                    <img src="{{ asset('dmcmes-logo.png') }}" alt="DMCMES">
+                    @logoImg('width:100%;height:100%;object-fit:contain;')
                 </div>                <div class="brand-school">
                     <div class="abbr">DMCMES</div>
                     <span class="full">Don Marcelo C. Marty<br>Elementary School</span>
