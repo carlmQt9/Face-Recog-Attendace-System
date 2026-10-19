@@ -159,35 +159,170 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:var(--dark)}
 ::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 991.98px) {
+    /* Hero — center everything */
+    .hero { padding: 48px 0 40px; min-height: auto; }
+    .hero .col-lg-6:first-child { text-align: center; }
+    .hero-badge { justify-content: center; }
+    .hero p.lead { margin-left: auto; margin-right: auto; max-width: 100%; }
+    .hero .d-flex.flex-wrap { justify-content: center; }
+    .btn-primary-hero, .btn-secondary-hero { width: 100%; justify-content: center; }
+
+    /* Stats bar */
+    .stats-bar { padding: 28px 0; }
+    .stat-num  { font-size: 28px; }
+    .stat-lbl  { font-size: 13px; }
+
+    /* Sections */
+    section { padding: 64px 0; }
+    .section-title { font-size: clamp(24px, 6vw, 36px); }
+    .section-sub   { font-size: 15px; max-width: 100%; }
+
+    /* Section headers — center on mobile */
+    .section-label,
+    .section-title,
+    .section-sub { text-align: center; margin-left: auto; margin-right: auto; }
+
+    /* Feature cards */
+    .feat-card { padding: 22px 18px; }
+
+    /* Step cards */
+    .step-card { padding: 16px 8px; }
+
+    /* Role cards */
+    .role-card { padding: 24px 20px; }
+
+    /* CTA */
+    .cta-section { padding: 64px 0; }
+    .cta-section .d-flex { flex-direction: column; align-items: center; }
+    .cta-section .btn-primary-hero,
+    .cta-section .btn-secondary-hero { width: 100%; max-width: 320px; justify-content: center; }
+
+    /* Face mockup */
+    .face-mockup { max-width: 340px; }
+
+    /* Email card */
+    .email-card { max-width: 100%; }
+}
 </style>
 
 <!-- ══════════ NAVBAR ══════════ -->
-<nav class="navbar navbar-expand-lg">
+<nav class="navbar navbar-expand-lg" style="flex-wrap:wrap;">
   <div class="container">
-    <a class="navbar-brand" href="#" style="display:flex;align-items:center;gap:12px;">
-      <img src="<?php echo 'data:'.mime_content_type(public_path('dmcmes-logo.png')).';base64,'.base64_encode(file_get_contents(public_path('dmcmes-logo.png'))); ?>" alt="DMCMES Logo" style="width:44px;height:44px;object-fit:contain;border-radius:6px;">
+    <a class="navbar-brand" href="{{ route('landing') }}" style="display:flex;align-items:center;gap:12px;">
+      <img src="{{ asset('dmcmes-logo.png') }}" alt="DMCMES Logo" style="width:44px;height:44px;object-fit:contain;border-radius:6px;">
       <div style="display:flex;flex-direction:column;line-height:1.1;">
         <span style="font-size:16px;font-weight:900;color:#f5a800;letter-spacing:0.05em;">DMCMES</span>
         <span style="font-size:10px;color:rgba(255,255,255,0.6);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;">Smart Attendance</span>
       </div>
     </a>
-    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#nav" style="color:#94a3b8">
-      <i class="bi bi-list fs-4"></i>
-    </button>
-    <div class="collapse navbar-collapse" id="nav">
-      <ul class="navbar-nav mx-auto gap-1">
+    {{-- Desktop nav --}}
+    <div class="d-none d-lg-flex align-items-center gap-1">
+      <ul class="navbar-nav mx-auto gap-1 d-flex flex-row">
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
         <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
         <li class="nav-item"><a class="nav-link" href="#how">How It Works</a></li>
         <li class="nav-item"><a class="nav-link" href="#roles">For Schools</a></li>
         <li class="nav-item"><a class="nav-link" href="#notify">Notifications</a></li>
       </ul>
-      <div class="d-flex gap-3 align-items-center mt-3 mt-lg-0">
+      <div class="d-flex gap-3 align-items-center ms-4">
         <a href="{{ route('login') }}" class="nav-link">Sign In</a>
-        <a href="{{ route('login') }}" class="btn-nav">Get Started</a>
+        <a href="{{ route('register') }}" class="btn-nav">Register</a>
       </div>
     </div>
+    {{-- Mobile hamburger button --}}
+    <button class="d-lg-none border-0" id="landingMenuBtn" onclick="toggleLandingMenu()" aria-label="Menu"
+        style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2)!important;color:#fff;width:38px;height:38px;border-radius:8px;font-size:20px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+      <i class="bi bi-list" id="landingMenuIcon"></i>
+    </button>
+  </div>
+
+  {{-- Mobile dropdown — OUTSIDE container so it's full width --}}
+  <div id="landingMobileMenu" style="display:none;flex-direction:column;background:rgba(9,26,62,.98);border-top:1px solid rgba(245,168,0,.2);padding:8px 0;width:100%;">
+    <a href="{{ route('landing') }}" class="landing-nav-link landing-nav-active">
+      <i class="bi bi-house-fill"></i> Home
+    </a>
+    <a href="#features" class="landing-nav-link">
+      <i class="bi bi-stars"></i> Features
+    </a>
+    <a href="#about" class="landing-nav-link">
+      <i class="bi bi-info-circle"></i> About the System
+    </a>
+    <a href="#how" class="landing-nav-link">
+      <i class="bi bi-info-circle-fill"></i> How It Works
+    </a>
+    <a href="#roles" class="landing-nav-link">
+      <i class="bi bi-people-fill"></i> For Schools
+    </a>
+    <a href="#notify" class="landing-nav-link">
+      <i class="bi bi-bell-fill"></i> Notifications
+    </a>
+    <div style="border-top:1px solid rgba(255,255,255,.08);margin:6px 0;"></div>
+    <a href="{{ route('register') }}" class="landing-nav-link">
+      <i class="bi bi-person-plus-fill"></i> Register
+    </a>
+    <a href="{{ route('login') }}" class="landing-nav-link">
+      <i class="bi bi-box-arrow-in-right"></i> Sign In
+    </a>
   </div>
 </nav>
+
+<style>
+.landing-nav-link {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 24px;
+    color: rgba(255,255,255,.75);
+    text-decoration: none;
+    font-size: 14px; font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: all .2s;
+    width: 100%;
+}
+.landing-nav-link i { font-size: 15px; }
+.landing-nav-link:hover {
+    color: #f5a800;
+    background: rgba(245,168,0,.08);
+    border-left-color: #f5a800;
+}
+.landing-nav-active {
+    color: #f5a800 !important;
+    background: rgba(245,168,0,.08);
+    border-left-color: #f5a800 !important;
+    font-weight: 600 !important;
+}
+</style>
+<script>
+function toggleLandingMenu() {
+    const menu = document.getElementById('landingMobileMenu');
+    const icon = document.getElementById('landingMenuIcon');
+    const isOpen = menu.style.display === 'flex';
+    menu.style.display = isOpen ? 'none' : 'flex';
+    icon.className = isOpen ? 'bi bi-list' : 'bi bi-x-lg';
+}
+document.querySelectorAll('#landingMobileMenu a').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('landingMobileMenu').style.display = 'none';
+        document.getElementById('landingMenuIcon').className = 'bi bi-list';
+    });
+});
+</script>
+<script>
+function toggleLandingMenu() {
+    const menu = document.getElementById('landingMobileMenu');
+    const icon = document.getElementById('landingMenuIcon');
+    const isOpen = menu.style.display === 'flex';
+    menu.style.display = isOpen ? 'none' : 'flex';
+    icon.className = isOpen ? 'bi bi-list' : 'bi bi-x-lg';
+}
+document.querySelectorAll('#landingMobileMenu a').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('landingMobileMenu').style.display = 'none';
+        document.getElementById('landingMenuIcon').className = 'bi bi-list';
+    });
+});
+</script>
 
 <!-- ══════════ HERO ══════════ -->
 <section class="hero">
@@ -196,9 +331,9 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
   <div class="container position-relative">
     <div class="row align-items-center g-5">
       <div class="col-lg-6">
-        <div class="hero-badge fade-up"><span class="dot"></span> AI-Powered School Attendance</div>
+        <div class="hero-badge fade-up"><i class="bi bi-geo-alt-fill" style="color:#4ade80;font-size:10px;"></i> Sta. Cruz, Zambales · DepEd</div>
         <h1 class="fade-up d1">Attendance in<br><span class="gradient-text">One Glance.</span><br>Zero Effort.</h1>
-        <p class="lead fade-up d2">Students walk in, look at the camera, and they're marked present — instantly. No cards, no apps, no delays. Parents get notified in under a second.</p>
+        <p class="lead fade-up d2">The DMCMES Smart Attendance System helps Don Marcelo C. Marty Elementary School record student attendance with face recognition in under a second. Parents can receive an email when their child’s attendance is recorded.</p>
         <div class="d-flex flex-wrap gap-3 fade-up d3">
           <a href="{{ route('login') }}" class="btn-primary-hero"><i class="bi bi-play-circle-fill"></i> Launch System</a>
           <a href="#how" class="btn-secondary-hero"><i class="bi bi-arrow-down-circle"></i> See How It Works</a>
@@ -231,14 +366,59 @@ footer p { color:#475569; font-size:14px; line-height:1.6; }
   </div>
 </section>
 
+<!-- ══════════ ABOUT THE SYSTEM ══════════ -->
+<section id="about" style="background:rgba(255,255,255,.02);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-5 fade-up">
+        <div class="section-label">About the System</div>
+        <h2 class="section-title">Attendance made simpler for DMCMES</h2>
+        <p class="section-sub">Built for Don Marcelo C. Marty Elementary School in Sta. Cruz, Zambales, this system helps school staff record attendance and keep families informed. A registered student can be recognized by camera in under one second, with an email alert sent to the parent or guardian linked to their account.</p>
+      </div>
+      <div class="col-lg-7">
+        <div class="row g-3">
+          <div class="col-md-6 fade-up d1">
+            <div class="feat-card">
+              <div class="feat-ico ico-purple"><i class="bi bi-camera"></i></div>
+              <h5>Fast, camera-based check-in</h5>
+              <p>After a student's face is registered, the camera can recognize them and record the attendance event without requiring a sign-in at the camera.</p>
+            </div>
+          </div>
+          <div class="col-md-6 fade-up d2">
+            <div class="feat-card">
+              <div class="feat-ico ico-green"><i class="bi bi-envelope-check"></i></div>
+              <h5>Family email updates</h5>
+              <p>When a parent or guardian email is linked to a student, attendance notifications can share the student's name, event time, and scan location.</p>
+            </div>
+          </div>
+          <div class="col-md-6 fade-up d3">
+            <div class="feat-card">
+              <div class="feat-ico ico-orange"><i class="bi bi-people"></i></div>
+              <h5>Tools for school staff</h5>
+              <p>Administrators manage users, cameras, and attendance records, while teachers can monitor class sessions and student arrival activity.</p>
+            </div>
+          </div>
+          <div class="col-md-6 fade-up d4">
+            <div class="feat-card">
+              <div class="feat-ico ico-yellow"><i class="bi bi-upc-scan"></i></div>
+              <h5>Flexible attendance options</h5>
+              <p>Manual entry and QR attendance are available as alternatives when a face scan cannot be used.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ══════════ STATS ══════════ -->
 <div class="stats-bar">
   <div class="container">
     <div class="row g-4 text-center">
       <div class="col-6 col-md-3 fade-up"><div class="stat-num">&lt;1s</div><div class="stat-lbl">Recognition Speed</div></div>
-      <div class="col-6 col-md-3 fade-up d1"><div class="stat-num">99.7%</div><div class="stat-lbl">Accuracy Rate</div></div>
+      <div class="col-6 col-md-3 fade-up d1"><div class="stat-num">3</div><div class="stat-lbl">Attendance Methods</div></div>
       <div class="col-6 col-md-3 fade-up d2"><div class="stat-num">3</div><div class="stat-lbl">User Roles</div></div>
-      <div class="col-6 col-md-3 fade-up d3"><div class="stat-num">0</div><div class="stat-lbl">Physical ID Cards Needed</div></div>
+      <div class="col-6 col-md-3 fade-up d3"><div class="stat-num">QR</div><div class="stat-lbl">Optional Backup</div></div>
     </div>
   </div>
 </div>

@@ -7,14 +7,26 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with(['student', 'teacher'])->orderBy('role')->paginate(20);
-        return view('admin.users.index', compact('users'));
+        // Get ALL pending users (not yet approved), newest first
+        $pendingUsers = User::with(['student', 'teacher'])
+            ->where('is_approved', false)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Get all approved users for the main table
+        $users = User::with(['student', 'teacher'])
+            ->where('is_approved', true)
+            ->orderBy('role')
+            ->paginate(20);
+
+        return view('admin.users.index', compact('users', 'pendingUsers'));
     }
 
     public function create()
@@ -27,20 +39,26 @@ class UserController extends Controller
         $request->validate([
             'name'        => 'required|string|max:255',
             'email'       => 'required|email|unique:users,email',
-            'password'    => 'required|string|min:8|confirmed',
+            'password'    => ['required', 'string', 'confirmed', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/'],
             'role'        => 'required|in:admin,teacher,student',
             'employee_id' => 'required_if:role,teacher|nullable|string|unique:teachers,employee_id',
             'student_id'  => 'required_if:role,student|nullable|string|unique:students,student_id',
             'grade_level' => 'nullable|string|max:50',
             'section'     => 'nullable|string|max:50',
             'department'  => 'nullable|string|max:100',
+        ], [
+            'password.regex' => 'Password must be strong: include uppercase, lowercase, a number, and a special character.',
         ]);
 
+        // Users created directly by admin are auto-approved
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
+            'name'        => $request->name,
+            'email'       => $request->email,
+            'password'    => Hash::make($request->password),
+            'role'        => $request->role,
+            'is_approved' => true,
+            'approved_at' => now(),
+            'approved_by' => Auth::id(),
         ]);
 
         // Create role-specific profile
@@ -87,12 +105,14 @@ class UserController extends Controller
         $request->validate([
             'name'        => 'required|string|max:255',
             'email'       => 'required|email|unique:users,email,' . $user->id,
-            'password'    => 'nullable|string|min:8|confirmed',
+            'password'    => ['nullable', 'string', 'confirmed', 'min:8', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).+$/'],
             'student_id'  => 'nullable|string|unique:students,student_id,' . ($user->student?->id ?? 'NULL') . ',id',
             'grade_level' => 'nullable|string|max:50',
             'section'     => 'nullable|string|max:50',
             'employee_id' => 'nullable|string|unique:teachers,employee_id,' . ($user->teacher?->id ?? 'NULL') . ',id',
             'department'  => 'nullable|string|max:100',
+        ], [
+            'password.regex' => 'Password must be strong: include uppercase, lowercase, a number, and a special character.',
         ]);
 
         $user->name  = $request->name;
@@ -131,5 +151,49 @@ class UserController extends Controller
         $user->delete();
         return redirect()->route('admin.users.index')
             ->with('success', 'User removed.');
+    }
+
+    public function approve(User $user)
+    {
+        if ($user->is_approved) {
+            return back()->with('info', 'User is already approved.');
+        }
+
+        $user->update([
+            'is_approved' => true,
+            'approved_at' => now(),
+            'approved_by' => Auth::id(),
+        ]);
+
+        return back()->with('success', "{$user->name} has been approved and can now log in.");
+    }
+
+    public function approveAll()
+    {
+        $pendingUsers = User::where('is_approved', false)->get();
+
+        if ($pendingUsers->isEmpty()) {
+            return back()->with('info', 'No pending users to approve.');
+        }
+
+        foreach ($pendingUsers as $user) {
+            $user->update([
+                'is_approved' => true,
+                'approved_at' => now(),
+                'approved_by' => Auth::id(),
+            ]);
+        }
+
+        return back()->with('success', "Approved {$pendingUsers->count()} pending user(s).");
+    }
+
+    public function reject(User $user)
+    {
+        if ($user->is_approved) {
+            return back()->with('error', 'Cannot reject an already approved user.');
+        }
+
+        $user->delete();
+        return back()->with('success', 'User registration has been rejected and removed.');
     }
 }

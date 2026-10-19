@@ -10,18 +10,18 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         /* ── DMCMES Theme Colors ──
-           Primary  : #0c3d8a  (deep navy blue)
-           Accent   : #f5a800  (gold/yellow)
-           Secondary: #1a6b3c  (forest green)
-           Light bg : #f0f4f8
+           Primary  : #1a5c2a  (deep forest green — logo outer ring)
+           Accent   : #f5a800  (gold/yellow — logo flame)
+           Dark     : #0f3318  (very dark green — logo shadow)
+           Light bg : #f0f7f1  (very light green tint)
         ── */
 
-        body { background-color: #f0f4f8; }
+        body { background-color: #f0f7f1; }
 
         /* ── Sidebar ── */
         .sidebar {
             min-height: 100vh;
-            background: linear-gradient(180deg, #0c2d6b 0%, #0a2455 100%);
+            background: linear-gradient(180deg, #0f3318 0%, #1a5c2a 100%);
             color: #fff;
             width: 240px; position: fixed; top: 0; left: 0; z-index: 1050;
             display: flex; flex-direction: column;
@@ -60,10 +60,10 @@
             border-radius: 6px; font-size: 14px;
         }
         .sidebar .nav-link:hover {
-            color: #f5a800; background: rgba(245,168,0,0.1);
+            color: #f5a800; background: rgba(245,168,0,0.12);
         }
         .sidebar .nav-link.active {
-            color: #fff; background: rgba(245,168,0,0.2);
+            color: #fff; background: rgba(245,168,0,0.22);
             border-left: 3px solid #f5a800; padding-left: 13px;
         }
 
@@ -77,10 +77,10 @@
         /* ── Hamburger button ── */
         .hamburger-btn {
             display: none; background: none; border: none;
-            font-size: 24px; color: #0c3d8a; cursor: pointer;
+            font-size: 24px; color: #1a5c2a; cursor: pointer;
             padding: 4px 8px; border-radius: 8px; line-height: 1; flex-shrink: 0;
         }
-        .hamburger-btn:hover { background: #e8f0fe; }
+        .hamburger-btn:hover { background: #d4edda; }
 
         /* ── Main content ── */
         .main-content { margin-left: 240px; padding: 24px; min-width: 0; }
@@ -96,16 +96,16 @@
         .stat-card { border-radius: 12px; padding: 20px; color: #fff; }
         .badge-role { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
 
-        /* ── Override Bootstrap primary color to DMCMES navy ── */
-        .btn-primary { background-color: #0c3d8a; border-color: #0c3d8a; }
-        .btn-primary:hover { background-color: #0a3070; border-color: #0a3070; }
-        .btn-primary:focus, .btn-primary:active { background-color: #0a3070 !important; border-color: #0a3070 !important; box-shadow: 0 0 0 .25rem rgba(12,61,138,.35) !important; }
+        /* ── Override Bootstrap primary color to DMCMES green ── */
+        .btn-primary { background-color: #1a5c2a; border-color: #1a5c2a; }
+        .btn-primary:hover { background-color: #0f3318; border-color: #0f3318; }
+        .btn-primary:focus, .btn-primary:active { background-color: #0f3318 !important; border-color: #0f3318 !important; box-shadow: 0 0 0 .25rem rgba(26,92,42,.35) !important; }
 
-        .badge.bg-primary { background-color: #0c3d8a !important; }
-        .btn-outline-primary { color: #0c3d8a; border-color: #0c3d8a; }
-        .btn-outline-primary:hover { background-color: #0c3d8a; border-color: #0c3d8a; color: #fff; }
+        .badge.bg-primary { background-color: #1a5c2a !important; }
+        .btn-outline-primary { color: #1a5c2a; border-color: #1a5c2a; }
+        .btn-outline-primary:hover { background-color: #1a5c2a; border-color: #1a5c2a; color: #fff; }
 
-        .pagination .page-item.active .page-link { background: #0c3d8a; border-color: #0c3d8a; }
+        .pagination .page-item.active .page-link { background: #1a5c2a; border-color: #1a5c2a; }
 
         /* ── Pagination ── */
         .pagination { flex-wrap: wrap; gap: 4px; }
@@ -338,11 +338,11 @@
                 <button class="hamburger-btn" onclick="openSidebar()" title="Open menu">
                     <i class="bi bi-list"></i>
                 </button>
-                <h5 class="mb-0" style="font-size:clamp(14px,4vw,18px);">@yield('page-title', 'Dashboard')</h5>
+                <h5 class="mb-0" style="font-size:clamp(14px,4vw,18px);">@yield('page-title', 'Dashboard')@hasSection('page-title-extra')@yield('page-title-extra')@endif</h5>
             </div>
             @auth
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span class="badge badge-role" style="background:#0c3d8a;color:#f5a800;border:1px solid #f5a800;">{{ strtoupper(auth()->user()->role) }}</span>
+                    <span class="badge badge-role" style="background:#1a5c2a;color:#f5a800;border:1px solid #f5a800;">{{ strtoupper(auth()->user()->role) }}</span>
                     <span class="text-muted small d-none d-sm-inline">{{ auth()->user()->name }}</span>
                 </div>
             @endauth
@@ -585,7 +585,7 @@
         #confirmModalOk { flex:1;padding:10px 0;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer; }
         #confirmModalOk.danger  { background:linear-gradient(135deg,#dc2626,#f87171);color:#fff; }
         #confirmModalOk.warning { background:linear-gradient(135deg,#d97706,#fbbf24);color:#fff; }
-        #confirmModalOk.primary { background:linear-gradient(135deg,#0c3d8a,#1a6b3c);color:#fff; }
+        #confirmModalOk.primary { background:linear-gradient(135deg,#1a5c2a,#f5a800);color:#fff; }
         #confirmModalOk.success { background:linear-gradient(135deg,#059669,#34d399);color:#fff; }
     </style>
     <div id="confirmModalBackdrop">

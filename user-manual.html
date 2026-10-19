@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User's Guide — DMCMES Smart Attendance System</title>
+    <link rel="icon" href="public/dmcmes-logo.png" type="image/png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            color: #1e293b;
+            background: #f0f7f1;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.12);
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background: linear-gradient(135deg, #0f3318 0%, #1a5c2a 100%);
+            color: white;
+            padding: 52px 48px 44px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute; top: -100px; right: -100px;
+            width: 300px; height: 300px; border-radius: 50%;
+            background: rgba(245,168,0,.15); pointer-events: none;
+        }
+        .header::after {
+            content: '';
+            position: absolute; bottom: -80px; left: -80px;
+            width: 250px; height: 250px; border-radius: 50%;
+            background: rgba(255,255,255,.05); pointer-events: none;
+        }
+        .header-logo {
+            width: 80px; height: 80px; object-fit: contain;
+            border-radius: 50%; border: 3px solid rgba(245,168,0,.5);
+            margin-bottom: 16px;
+        }
+        .header-badge {
+            display: inline-block;
+            background: rgba(245,168,0,.25);
+            border: 1px solid rgba(245,168,0,.5);
+            color: #f5a800;
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .1em;
+            padding: 4px 14px; border-radius: 20px;
+            margin-bottom: 16px;
+        }
+        .header h1 { font-size: 2.4em; font-weight: 800; margin-bottom: 8px; }
+        .header .subtitle { font-size: 1.1em; opacity: .9; margin-bottom: 6px; color: #f5a800; font-weight: 600; }
+        .header .school { font-size: .95em; opacity: .75; }
+        .header .meta {
+            display: flex; justify-content: center; gap: 24px;
+            margin-top: 24px; flex-wrap: wrap;
+        }
+        .header .meta span {
+            font-size: 12px; opacity: .7;
+            background: rgba(255,255,255,.1);
+            padding: 4px 12px; border-radius: 20px;
+        }
+
+        /* ── CONTENT ── */
+        .content { padding: 52px 64px; }
+
+        /* ── TOC ── */
+        .toc {
+            background: #f0f7f1;
+            border-left: 4px solid #1a5c2a;
+            padding: 28px 32px;
+            margin-bottom: 48px;
+            border-radius: 0 12px 12px 0;
+        }
+        .toc h2 { color: #1a5c2a; font-size: 1.2em; margin-bottom: 16px; }
+        .toc ol { margin-left: 20px; }
+        .toc ol li { margin-bottom: 6px; font-size: 14px; }
+        .toc ol li a { color: #1a5c2a; text-decoration: none; }
+        .toc ol li a:hover { text-decoration: underline; }
+        .toc ol ol { margin-left: 20px; margin-top: 4px; }
+
+        /* ── SECTIONS ── */
+        .section { margin-bottom: 64px; scroll-margin-top: 20px; }
+        .section h2 {
+            color: #0f3318; font-size: 1.6em; font-weight: 800;
+            margin-bottom: 20px; padding-bottom: 12px;
+            border-bottom: 3px solid #1a5c2a;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section h3 { color: #1a5c2a; font-size: 1.2em; font-weight: 700; margin-top: 32px; margin-bottom: 14px; }
+        .section h4 { color: #334155; font-size: 1em; font-weight: 700; margin-top: 20px; margin-bottom: 10px; }
+        .section p { margin-bottom: 12px; font-size: 14.5px; }
+
+        /* ── CALLOUTS ── */
+        .note, .tip, .warning, .success {
+            padding: 14px 18px; margin: 20px 0;
+            border-radius: 8px; font-size: 14px;
+            display: flex; gap: 10px; align-items: flex-start;
+        }
+        .note    { background: #fefce8; border-left: 4px solid #eab308; }
+        .tip     { background: #f0f7f1; border-left: 4px solid #1a5c2a; }
+        .warning { background: #fef2f2; border-left: 4px solid #ef4444; }
+        .success { background: #f0fdf4; border-left: 4px solid #22c55e; }
+        .note strong    { color: #854d0e; }
+        .tip strong     { color: #1a5c2a; }
+        .warning strong { color: #991b1b; }
+        .success strong { color: #15803d; }
+
+        /* ── ROLE CARDS ── */
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+        .role-card {
+            background: linear-gradient(135deg, #0f3318, #1a5c2a);
+            color: white; padding: 18px 20px; border-radius: 12px;
+            display: flex; align-items: flex-start; gap: 14px;
+        }
+        .role-card .emoji { font-size: 2em; flex-shrink: 0; }
+        .role-card h4 { color: #f5a800; font-size: 1em; margin: 0 0 4px 0; }
+        .role-card p  { margin: 0; opacity: .9; font-size: 13px; }
+
+        /* ── STEPS ── */
+        .steps { margin: 16px 0; }
+        .step { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+        .step-num {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: #1a5c2a; color: white;
+            font-size: 13px; font-weight: 700; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .step-body { flex: 1; font-size: 14.5px; padding-top: 3px; }
+
+        /* ── TABLES ── */
+        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+        table th { background: #1a5c2a; color: white; padding: 12px 14px; text-align: left; font-weight: 600; }
+        table td { padding: 11px 14px; border-bottom: 1px solid #e2e8f0; }
+        table tr:last-child td { border-bottom: none; }
+        table tr:hover td { background: #f0f7f1; }
+
+        /* ── BADGES ── */
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .badge-green  { background: #dcfce7; color: #166534; }
+        .badge-yellow { background: #fef9c3; color: #854d0e; }
+        .badge-red    { background: #fee2e2; color: #991b1b; }
+
+        /* ── SCREENSHOT PLACEHOLDER ── */
+        .screenshot {
+            border: 2px dashed #cbd5e1; background: #f8fafc;
+            padding: 28px 20px; margin: 20px 0;
+            text-align: center; border-radius: 10px; color: #94a3b8;
+        }
+        .screenshot .icon { font-size: 2.4em; display: block; margin-bottom: 8px; }
+        .screenshot p { font-size: 13px; margin: 0; font-style: italic; }
+
+        /* ── FLOW ── */
+        .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+        .flow-step {
+            background: #f0f7f1; border: 1px solid #bbf7d0;
+            padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; color: #0f3318;
+        }
+        .flow-arrow { color: #94a3b8; font-size: 18px; }
+
+        /* ── FEATURE BOX ── */
+        .feature-box {
+            background: #f0f7f1; border-radius: 12px;
+            padding: 16px 20px; margin: 12px 0;
+            border-left: 4px solid #1a5c2a;
+            font-size: 14px;
+        }
+        .feature-box strong { color: #0f3318; }
+
+        /* ── SCREEN MOCKUP ── */
+        .screen-mockup {
+            background: linear-gradient(135deg, #0f3318, #1a5c2a);
+            border-radius: 16px; padding: 20px 24px; margin: 20px 0;
+            color: white; font-size: 13px;
+        }
+        .screen-mockup .mockup-label {
+            font-size: 10px; color: rgba(255,255,255,.5);
+            text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px;
+        }
+        .screen-mockup .mockup-title { font-size: 18px; font-weight: 800; color: #f5a800; margin-bottom: 4px; }
+        .screen-mockup .mockup-sub   { font-size: 12px; color: rgba(255,255,255,.6); }
+
+        /* ── FOOTER ── */
+        .footer {
+            background: #0f3318; color: rgba(255,255,255,.75);
+            text-align: center; padding: 28px;
+        }
+        .footer p { margin: 4px 0; font-size: 13px; }
+        .footer .gold { color: #f5a800; }
+
+        .canva-export {
+            position: fixed; top: 18px; right: 18px; z-index: 10;
+            border: 0; border-radius: 999px; padding: 12px 18px;
+            background: #0f5f2c; color: #fff; font: inherit;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 6px 20px rgba(15, 51, 24, .24);
+        }
+        .canva-export:hover { background: #1a5c2a; }
+        .canva-export:focus-visible { outline: 3px solid #f5a800; outline-offset: 3px; }
+
+        @media (max-width: 768px) {
+            .content { padding: 28px 20px; }
+            .role-grid { grid-template-columns: 1fr; }
+            .header { padding: 36px 24px; }
+            .canva-export { top: auto; right: 12px; bottom: 12px; font-size: 13px; }
+        }
+        @media print {
+            @page { size: A4 portrait; margin: 14mm; }
+            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .container { max-width: none; box-shadow: none; }
+            .canva-export { display: none !important; }
+            .header { break-after: page; }
+            .toc { break-after: page; }
+            .section { break-before: page; }
+            .section:first-child { break-before: auto; }
+            h2, h3, h4 { break-after: avoid; }
+            table, tr, .role-card, .feature-box, .step { break-inside: avoid; }
+            thead { display: table-header-group; }
+            p, li { orphans: 3; widows: 3; }
+        }
+    </style>
+</head>
+<body>
+<button class="canva-export" type="button" onclick="window.print()" title="Choose Save as PDF, then upload the A4 PDF to Canva to edit it" aria-label="Export this guide as an A4 PDF for Canva">📄 Export A4 PDF for Canva</button>
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-badge">Official User Guide — v3.0</div>
+        <h1>📋 User's Guide</h1>
+        <p class="subtitle">DMCMES Smart Attendance System</p>
+        <p class="school">Don Marcelo C. Marty Elementary School · Sta. Cruz, Zambales · DepEd</p>
+        <div class="meta">
+            <span>📅 2026 Edition</span>
+            <span>🎨 Green Theme — Logo Aligned</span>
+            <span>🔒 Multi-Role Access</span>
+            <span>📄 PDF Export Ready</span>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <!-- TABLE OF CONTENTS -->
+        <div class="toc">
+            <h2>📋 Table of Contents</h2>
+            <ol>
+                <li><a href="#intro">Introduction</a></li>
+                <li><a href="#requirements">System Requirements</a></li>
+                <li><a href="#landing">Landing Page</a></li>
+                <li><a href="#getting-started">Getting Started</a>
+                    <ol>
+                        <li><a href="#accessing-system">Accessing the System</a></li>
+                        <li><a href="#registration">Registration</a></li>
+                        <li><a href="#after-reg">After Registration — Approval System</a></li>
+                        <li><a href="#login">Logging In</a></li>
+                    </ol>
+                </li>
+                <li><a href="#student">Student Guide</a></li>
+                <li><a href="#teacher">Teacher Guide</a>
+                    <ol>
+                        <li><a href="#teacher-dashboard">Dashboard & Welcome Banner</a></li>
+                        <li><a href="#sessions">Class Sessions</a></li>
+                        <li><a href="#manual">Manual Attendance</a></li>
+                    </ol>
+                </li>
+                <li><a href="#admin">Administrator Guide</a>
+                    <ol>
+                        <li><a href="#admin-dashboard">Dashboard & Welcome Banner</a></li>
+                        <li><a href="#user-mgmt">User Management & Approvals</a></li>
+                        <li><a href="#cameras">Camera Management</a></li>
+                        <li><a href="#attendance-archive">Attendance Archive & PDF Export</a></li>
+                        <li><a href="#settings">System Settings</a></li>
+                    </ol>
+                </li>
+                <li><a href="#faq">Troubleshooting & FAQ</a></li>
+            </ol>
+        </div>
+
+        <!-- 1. INTRODUCTION -->
+        <section class="section" id="intro">
+            <h2>1. Introduction</h2>
+
+            <p>The <strong>DMCMES Smart Attendance System</strong> is built for <strong>Don Marcelo C. Marty Elementary School</strong>, Sta. Cruz, Zambales. It uses face recognition to mark student attendance in under one second and can notify parents or guardians by email when an address is linked to the student's account.</p>
+
+            <p>The system provides separate access for administrators, teachers, and students. Administrators manage accounts, cameras, and attendance records; teachers monitor class sessions and student arrivals. If a face scan cannot be used, attendance can also be recorded manually or with a QR code. Email alerts can include the attendance event, time, and scan location.</p>
+
+            <h3>Key Features</h3>
+            <table style="border: 1px solid #d9e5db; border-radius: 12px; overflow: hidden;">
+                <thead>
+                    <tr>
+                        <th style="background: #0f5f2c; color: #fff; width: 38%;">Feature</th>
+                        <th style="background: #0f5f2c; color: #fff; width: 62%;">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="padding: 14px 16px; vertical-align: middle;"><span style="display:inline-flex; align-items:center; gap:8px;"><span>📷</span> Face Recognition</span></td><td style="padding: 14px 16px;">Automatic attendance — students look at the camera, done.</td></tr>
+                    <tr><td style="padding: 14px 16px; vertical-align: middle;"><span style="display:inline-flex; align-items:center; gap:8px;"><span>📧</span> Parent Notifications</span></td><td style="padding: 14px 16px;">Instant email on time-in and time-out events</td></tr>
+                    <tr><td style="padding: 14px 16px; vertical-align: middle;"><span style="display:inline-flex; align-items:center; gap:8px;"><span>👥</span> Multi-Role Access</span></td><td style="padding: 14px 16px;">Separate dashboards for Admin, Teacher, and Student</td></tr>
+                    <tr><td style="padding: 14px 16px; vertical-align: middle;"><span style="display:inline-flex; align-items:center; gap:8px;"><span>✅</span> Approval System</span></td><td style="padding: 14px 16px;">ALL new accounts require admin approval before access</td></tr>
+                    <tr><td style="padding: 14px 16px; vertical-align: middle;"><span style="display:inline-flex; align-items:center; gap:8px;"><span>🟢</span> Welcome Banners</span></td><td style="padding: 14px 16px;">Personalized greeting with time-of-day on each dashboard</td></tr>
+                    <tr><td style="padding: 14px 16px; vertical-align: middle;"><span style="display:inline-flex; align-items:center; gap:8px;"><span>📄</span> PDF Export</span></td><td style="padding: 14px 16px;">Download attendance reports as PDF directly in the browser</td></tr>
+                    <tr><td style="padding: 14px 16px; vertical-align: middle;"><span style="display:inline-flex; align-items:center; gap:8px;"><span>📱</span> QR Code</span></td><td style="padding: 14px 16px;">Alternative attendance marking using printed QR cards</td></tr>
+                    <tr><td style="padding: 14px 16px; vertical-align: middle;"><span style="display:inline-flex; align-items:center; gap:8px;"><span>🎨</span> Green Theme</span></td><td style="padding: 14px 16px;">UI colors aligned to the school logo (forest green + gold)</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 2. SYSTEM REQUIREMENTS -->
+        <section class="section" id="requirements">
+            <h2>2. System Requirements</h2>
+
+            <table>
+                <thead><tr><th>Component</th><th>Minimum</th><th>Recommended</th></tr></thead>
+                <tbody>
+                    <tr><td>Browser</td><td>Chrome 90+, Edge 90+, Firefox 88+, Safari 14+</td><td>Chrome (latest)</td></tr>
+                    <tr><td>Processor</td><td>Intel Core i3</td><td>Intel Core i5+</td></tr>
+                    <tr><td>RAM</td><td>4 GB</td><td>8 GB+</td></tr>
+                    <tr><td>Webcam</td><td>720p</td><td>1080p</td></tr>
+                    <tr><td>Internet</td><td>5 Mbps</td><td>10 Mbps+</td></tr>
+                    <tr><td>OS</td><td>Windows 10, macOS 10.15, Android 9, iOS 13</td><td>Latest version</td></tr>
+                </tbody>
+            </table>
+
+            <div class="warning">
+                <span>⚠️</span><div>Internet Explorer is <strong>not supported</strong>. Use Chrome or Edge.</div>
+            </div>
+        </section>
+
+        <!-- 3. LANDING PAGE -->
+        <section class="section" id="landing">
+            <h2>3. Landing Page</h2>
+
+            <p>The landing page is the public home of the system. It introduces the system and provides access to Sign In and Register.</p>
+
+            <div class="screenshot">
+                <span class="icon">🖼️</span>
+                <p>Landing page hero — "Attendance in One Glance. Zero Effort." with face scan mockup</p>
+            </div>
+
+            <h3>Navigation</h3>
+            <p>The top navigation bar contains:</p>
+            <table>
+                <thead><tr><th>Link</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Features</strong></td><td>Scroll to features section</td></tr>
+                    <tr><td><strong>How It Works</strong></td><td>Step-by-step process explanation</td></tr>
+                    <tr><td><strong>For Schools</strong></td><td>Role-based section for admins, teachers, students</td></tr>
+                    <tr><td><strong>Notifications</strong></td><td>Parent email notification preview</td></tr>
+                    <tr><td><strong>Sign In</strong></td><td>Go to the login page</td></tr>
+                    <tr><td><strong>Register</strong></td><td>Create a new account</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Mobile Navigation</h3>
+            <p>On mobile, the navigation links collapse into a <strong>☰ hamburger menu</strong>. Tapping it opens a full-width dropdown with icons for each section. The current page is highlighted in gold. Tapping <strong>✕</strong> closes the menu.</p>
+
+            <div class="feature-box">
+                <strong>📍 Location Badge:</strong> The hero section shows a location badge — "Sta. Cruz, Zambales · DepEd" — identifying the school's location.
+            </div>
+        </section>
+
+        <!-- 4. GETTING STARTED -->
+        <section class="section" id="getting-started">
+            <h2>4. Getting Started</h2>
+
+            <h3 id="accessing-system">4.0 Accessing the System</h3>
+
+            <p>To access the DMCMES Smart Attendance System, visit <a href="https://smartattendacedmcmes.freehosting.dev/" target="_blank" rel="noopener noreferrer">https://smartattendacedmcmes.freehosting.dev/</a> in your browser. From there, users can either sign in with an existing account or create a new one if they are not yet registered.</p>
+
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Open the system in your browser and land on the public homepage.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Use the <strong>Sign In</strong> button to access the dashboard if you already have an account.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">If you are a new user, click <strong>Register</strong> and complete the form with your personal information and role details.</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-body">After registration, the account remains <strong>pending approval</strong> until an administrator approves it.</div></div>
+                <div class="step"><div class="step-num">5</div><div class="step-body">Once approved, the user is redirected to the correct dashboard based on their role: <strong>Student</strong>, <strong>Teacher</strong>, or <strong>Administrator</strong>.</div></div>
+            </div>
+
+            <div class="tip">
+                <span>💡</span><div><strong>Role Access:</strong> Each account is assigned a role, and after login, the user sees only the tools and pages relevant to that role.</div>
+            </div>
+
+            <h3 id="registration">4.1 Registration</h3>
+
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Go to the login page and click <strong>Register here</strong>, or click <strong>Register</strong> in the landing page navbar.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Fill in your <strong>Full Name</strong>, <strong>Email Address</strong>, select your <strong>Role</strong>, and enter role-specific fields (Student ID / Employee ID).</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Enter a <strong>Password</strong> (min. 8 chars). A live <strong>strength bar</strong> shows Weak / Good / Strong as you type.</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-body">Enter <strong>Confirm Password</strong>. A live indicator shows <span style="color:#22c55e;">✅ Passwords match</span> or <span style="color:#ef4444;">✗ Passwords do not match</span>. The form won't submit if they don't match.</div></div>
+                <div class="step"><div class="step-num">5</div><div class="step-body">Accept the <strong>Terms and Conditions</strong> and click <strong>Create Account</strong>.</div></div>
+            </div>
+
+            <div class="screenshot">
+                <span class="icon">🖼️</span>
+                <p>Registration form showing password strength bar and live "Passwords match" indicator</p>
+            </div>
+
+            <h4>Role-Specific Fields</h4>
+            <div class="role-grid">
+                <div class="role-card"><div class="emoji">🎓</div><div><h4>Student</h4><p>Requires: Student ID, Grade Level, Section</p></div></div>
+                <div class="role-card"><div class="emoji">👨‍🏫</div><div><h4>Teacher</h4><p>Requires: Employee ID (must be unique)</p></div></div>
+                <div class="role-card"><div class="emoji">👨‍💼</div><div><h4>Administrator</h4><p>No extra fields required</p></div></div>
+                <div class="role-card"><div class="emoji">⚠️</div><div><h4>Duplicate IDs</h4><p>Student/Employee IDs must be unique. Duplicates are rejected with a clear error.</p></div></div>
+            </div>
+
+            <h3 id="after-reg">4.2 After Registration — Approval System</h3>
+
+            <p><strong>ALL roles</strong> (student, teacher, admin) require administrator approval before login is allowed. No exceptions.</p>
+
+            <table>
+                <thead><tr><th>Role</th><th>After Registration</th><th>Can Login?</th></tr></thead>
+                <tbody>
+                    <tr><td>Student</td><td><span class="badge badge-yellow">⏳ Pending</span></td><td>After admin approves</td></tr>
+                    <tr><td>Teacher</td><td><span class="badge badge-yellow">⏳ Pending</span></td><td>After admin approves</td></tr>
+                    <tr><td>Administrator</td><td><span class="badge badge-yellow">⏳ Pending</span></td><td>After existing admin approves</td></tr>
+                </tbody>
+            </table>
+
+            <div class="flow">
+                <div class="flow-step">📝 Register</div><div class="flow-arrow">→</div>
+                <div class="flow-step">⏳ Pending</div><div class="flow-arrow">→</div>
+                <div class="flow-step">✅ Admin Approves</div><div class="flow-arrow">→</div>
+                <div class="flow-step">🔓 Login Access</div>
+            </div>
+
+            <div class="warning">
+                <span>⚠️</span><div><strong>Cannot Login While Pending:</strong> Trying to log in before approval shows a yellow warning: <em>"Your account is pending admin approval. Please wait for an administrator to confirm your account."</em></div>
+            </div>
+
+            <h3 id="login">4.3 Logging In</h3>
+
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Enter your <strong>Email Address</strong> and <strong>Password</strong>. Use the 👁️ toggle to show/hide your password.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Optionally check <strong>Keep me logged in</strong>.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>Sign In</strong>. You are redirected to your role's dashboard.</div></div>
+            </div>
+
+            <h4>Login Messages</h4>
+            <table>
+                <thead><tr><th>Message</th><th>Meaning</th><th>Fix</th></tr></thead>
+                <tbody>
+                    <tr><td>"These credentials do not match."</td><td>Wrong email or password</td><td>Check spelling and CAPS LOCK</td></tr>
+                    <tr><td>Yellow warning about pending approval</td><td>Account not approved yet</td><td>Wait for admin</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Mobile Hamburger Menu</h4>
+            <p>On the login and register pages on mobile, the navbar shows a <strong>☰ hamburger button</strong> instead of the Sign In button. Tapping it opens a dropdown with links to: Home, Features, How It Works, Register / Sign In, with icons for each item.</p>
+        </section>
+
+        <!-- 5. STUDENT GUIDE -->
+        <section class="section" id="student">
+            <h2>5. Student Guide</h2>
+
+            <div class="warning">
+                <span>⚠️</span><div><strong>Approval Required:</strong> Account must be approved by an admin before first login.</div>
+            </div>
+
+            <p>After logging in, students are taken directly to their <strong>Attendance History</strong> page.</p>
+
+            <div class="screenshot">
+                <span class="icon">🖼️</span>
+                <p>Student attendance history table — time-in, time-out, method, duration, notifications</p>
+            </div>
+
+            <table>
+                <thead><tr><th>Column</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>Student</td><td>Your name and attendance snapshot photo</td></tr>
+                    <tr><td>ID</td><td>Your student ID number</td></tr>
+                    <tr><td>Location</td><td>Camera location where attendance was recorded</td></tr>
+                    <tr><td>Method</td><td>Face Scan, QR Code, or Manual</td></tr>
+                    <tr><td>Time In</td><td>Date and time marked present</td></tr>
+                    <tr><td>Time Out</td><td>Date and time marked leaving</td></tr>
+                    <tr><td>Duration</td><td>Total time present</td></tr>
+                    <tr><td>Notified</td><td>✉️ Whether parent was emailed</td></tr>
+                </tbody>
+            </table>
+
+            <div class="tip">
+                <span>💡</span><div><strong>Missing attendance?</strong> Contact your teacher to add it manually.</div>
+            </div>
+        </section>
+
+        <!-- 6. TEACHER GUIDE -->
+        <section class="section" id="teacher">
+            <h2>6. Teacher Guide</h2>
+
+            <div class="warning">
+                <span>⚠️</span><div><strong>Approval Required:</strong> Account must be approved by an admin before first login.</div>
+            </div>
+
+            <h3 id="teacher-dashboard">6.1 Dashboard & Welcome Banner</h3>
+
+            <p>After logging in, teachers see a personalized <strong>Welcome Banner</strong> at the top of the Class Sessions page.</p>
+
+            <div class="screen-mockup">
+                <div class="mockup-label">☀️ Good Morning</div>
+                <div class="mockup-title">Welcome, [FirstName] 👋</div>
+                <div class="mockup-sub">Monday, October 13, 2026 · Teacher Portal</div>
+            </div>
+
+            <p>The banner shows:</p>
+            <ul style="margin-left:20px;font-size:14px;">
+                <li><strong>Dynamic greeting</strong> — Good Morning / Afternoon / Evening based on time</li>
+                <li><strong>First name</strong> from the logged-in account</li>
+                <li><strong>Current date</strong> and "Teacher Portal" label</li>
+                <li><strong>Profile card</strong> — gold initial avatar, full name, "Teacher" role label</li>
+            </ul>
+
+            <h3 id="sessions">6.2 Class Sessions</h3>
+
+            <h4>Starting a Session</h4>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Fill in <strong>Subject</strong>, <strong>Section</strong>, select a <strong>Camera</strong>, and choose <strong>Type</strong> (In or Out).</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Optionally set a <strong>Schedule</strong> time range.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>▶ Start</strong>. The session becomes live.</div></div>
+            </div>
+
+            <h4>Live Face Recognition Camera</h4>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Open an active session and click the <strong>📷 Camera</strong> button.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">The face recognition camera opens — students stand in front and the system auto-detects and records attendance.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">A confirmation shows the student's name when recognized.</div></div>
+            </div>
+
+            <h4>Stopping a Session</h4>
+            <p>Click <strong>Stop Session</strong> — all records are saved and the session is marked as Ended.</p>
+
+            <h3 id="manual">6.3 Manual Attendance Entry</h3>
+            <p>For situations where face recognition is unavailable:</p>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Open the active session.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Find the student and click <strong>Mark Manually</strong>.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Attendance is recorded with current timestamp and labeled "Manual".</div></div>
+            </div>
+
+            <h4>Session History</h4>
+            <p>All past sessions appear in the <strong>Session History</strong> table with Subject, Section, Type, Camera, Start/End time, and Status (Active / Ended).</p>
+        </section>
+
+        <!-- 7. ADMIN GUIDE -->
+        <section class="section" id="admin">
+            <h2>7. Administrator Guide</h2>
+
+            <h3 id="admin-dashboard">7.1 Dashboard & Welcome Banner</h3>
+
+            <p>The admin dashboard shows a personalized <strong>Welcome Banner</strong> above the stat cards.</p>
+
+            <div class="screen-mockup">
+                <div class="mockup-label">☀️ Good Afternoon</div>
+                <div class="mockup-title">Welcome back, [FirstName] 👋</div>
+                <div class="mockup-sub">Monday, October 13, 2026 · DMCMES Smart Attendance</div>
+            </div>
+
+            <h4>Stat Cards</h4>
+            <table>
+                <thead><tr><th>Card</th><th>Shows</th></tr></thead>
+                <tbody>
+                    <tr><td>🎒 Total Students</td><td>All registered students</td></tr>
+                    <tr><td>👩‍🏫 Total Teachers</td><td>All registered teachers</td></tr>
+                    <tr><td>📷 Active Cameras</td><td>Active / Total cameras</td></tr>
+                    <tr><td>✅ Present Today</td><td>Students marked present today</td></tr>
+                </tbody>
+            </table>
+
+            <h3 id="user-mgmt">7.2 User Management & Approvals</h3>
+
+            <p>Go to <strong>Users</strong> in the sidebar. The page has two sections:</p>
+            <ul style="margin-left:20px;font-size:14px;line-height:2;">
+                <li><strong>Pending Approvals</strong> — amber card at the top showing all unapproved users</li>
+                <li><strong>All Users</strong> — table of all approved users</li>
+            </ul>
+
+            <h4>Approving a User</h4>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Find the user in <strong>Pending Approvals</strong> and click <strong>Approve</strong>.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">A <strong>confirmation modal</strong> appears: "Are you sure?" with a green Approve button.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Confirm — the user can now log in.</div></div>
+            </div>
+
+            <h4>Approving All Users at Once</h4>
+            <p>Click <strong>✓ Approve All</strong> in the Pending Approvals header → confirm in the modal → all pending users approved.</p>
+
+            <h4>Denying a User</h4>
+            <p>Click <strong>Deny</strong> → confirm in the modal → account is <strong>permanently deleted</strong>.</p>
+
+            <div class="success">
+                <span>✅</span><div><strong>Confirmation Modals:</strong> All critical actions (Approve, Deny, Delete, Approve All) show a clean "Are you sure?" modal before proceeding — no accidental actions.</div>
+            </div>
+
+            <div class="warning">
+                <span>⚠️</span><div><strong>Denial is permanent.</strong> The user must re-register if denied by mistake.</div>
+            </div>
+
+            <h4>Adding a User Directly (Admin-Created)</h4>
+            <p>Click <strong>+ Add User</strong> → fill in details → <strong>Create User</strong>. Admin-created accounts are auto-approved and can log in immediately.</p>
+
+            <h4>Editing / Deleting Users</h4>
+            <p>✏️ Edit button → update fields → Save. 🗑️ Delete button → confirm modal → user permanently removed.</p>
+
+            <h3 id="cameras">7.3 Camera Management</h3>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Go to <strong>Cameras</strong> in the sidebar.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Click <strong>Add Camera</strong> → fill Name and Location → Save.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Use the <strong>Toggle</strong> to enable/disable cameras.</div></div>
+            </div>
+
+            <h3 id="attendance-archive">7.4 Attendance Archive & PDF Export</h3>
+
+            <p>Go to <strong>Attendance Archive</strong> to view all attendance records system-wide.</p>
+
+            <h4>Filtering</h4>
+            <table>
+                <thead><tr><th>Filter</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>Date</td><td>Show records for a specific date</td></tr>
+                    <tr><td>Student</td><td>Filter by student</td></tr>
+                    <tr><td>Camera</td><td>Filter by camera/location</td></tr>
+                    <tr><td>Type</td><td>Time-In or Time-Out</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Exporting to PDF</h4>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Apply filters (optional) then click the red <strong>📄 PDF</strong> button.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">The button shows <em>"Generating..."</em> while the PDF is built in the browser using jsPDF.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">The PDF downloads automatically with school name, date, table headers in <strong>forest green</strong>, and all records.</div></div>
+            </div>
+
+            <div class="tip">
+                <span>💡</span><div><strong>Tip:</strong> Filter by date before exporting for a focused daily report.</div>
+            </div>
+
+            <h3 id="settings">7.5 System Settings</h3>
+            <table>
+                <thead><tr><th>Setting</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>School Hours</td><td>Define attendance tracking start/end time</td></tr>
+                    <tr><td>Late Threshold</td><td>Time after which a student is marked late</td></tr>
+                    <tr><td>Email Notifications</td><td>Enable/disable parent email alerts</td></tr>
+                    <tr><td>Face Recognition Sensitivity</td><td>Adjust matching threshold</td></tr>
+                </tbody>
+            </table>
+            <div class="warning">
+                <span>⚠️</span><div>Settings changes apply system-wide immediately.</div>
+            </div>
+        </section>
+
+        <!-- 8. FAQ -->
+        <section class="section" id="faq">
+            <h2>8. Troubleshooting & FAQ</h2>
+
+            <h3>Common Issues</h3>
+
+            <div class="feature-box">
+                <strong>🚫 Face Not Recognized</strong><br>
+                Ensure proper front-facing lighting. Remove glasses/hats. Check camera permissions. Contact admin to re-register face.
+            </div>
+            <div class="feature-box">
+                <strong>📷 Camera Not Working</strong><br>
+                Check browser camera permissions (click camera icon in address bar). Close other apps using camera. Try refreshing.
+            </div>
+            <div class="feature-box">
+                <strong>🔒 Cannot Log In</strong><br>
+                Check email/password spelling. If yellow warning shows — wait for admin approval. Clear browser cache if needed.
+            </div>
+            <div class="feature-box">
+                <strong>📄 PDF Not Downloading</strong><br>
+                Allow pop-ups/downloads from this site in browser settings. Wait for "Generating..." to finish before clicking again.
+            </div>
+            <div class="feature-box">
+                <strong>🔑 Passwords Don't Match on Register</strong><br>
+                Watch for the live indicator below the Confirm Password field. Red = mismatch, Green = match. Form won't submit if mismatched.
+            </div>
+
+            <h3>FAQ</h3>
+            <table>
+                <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+                <tbody>
+                    <tr><td>Is facial data secure?</td><td>Yes. Only mathematical descriptors are stored, not photos. Data is encrypted.</td></tr>
+                    <tr><td>Can I use glasses?</td><td>Yes, but register with and without glasses for best accuracy.</td></tr>
+                    <tr><td>Why is my account pending?</td><td>Admin hasn't approved it yet. Contact your school admin directly.</td></tr>
+                    <tr><td>Can someone mark attendance for me?</td><td>No. Face recognition ensures only you can mark your own attendance.</td></tr>
+                    <tr><td>Can a new admin register?</td><td>Yes, but they must wait for an existing approved admin to approve them first.</td></tr>
+                    <tr><td>How accurate is face recognition?</td><td>95%+ under normal lighting. Accuracy drops in dim/backlit environments.</td></tr>
+                    <tr><td>What does "Method: System" mean?</td><td>Attendance was recorded automatically by the system (face scan).</td></tr>
+                    <tr><td>What does the green theme mean?</td><td>The UI colors are aligned to the school logo — forest green + gold flame.</td></tr>
+                </tbody>
+            </table>
+
+            <div class="warning">
+                <span>🛟</span><div><strong>Still need help?</strong> Contact your school's system administrator or IT support.</div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p class="gold">DMCMES Smart Attendance System</p>
+        <p>Don Marcelo C. Marty Elementary School · Sta. Cruz, Zambales · DepEd</p>
+        <p style="margin-top:8px;font-size:12px;">© 2026 · Version 3.0 · All Rights Reserved</p>
+    </div>
+
+</div>
+</body>
+</html>

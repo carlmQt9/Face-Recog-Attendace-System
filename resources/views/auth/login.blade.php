@@ -5,9 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In — DMCMES Smart Attendance</title>
     <link rel="icon" type="image/png" href="{{ asset('dmcmes-logo.png') }}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Preconnect to CDN for faster loading -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" crossorigin="anonymous">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    </style>
     <style>
         /* ── DMCMES Theme Colors ──
            Navy    : #0c2d6b / #0c3d8a
@@ -81,7 +89,7 @@
         }
         .nav-links a:hover { color: #f5a800; }
         .nav-links .btn-nav {
-            background: linear-gradient(135deg, #0c3d8a, #1a6b3c);
+            background: linear-gradient(135deg, #1a5c2a, #0f3318);
             color: #fff !important;
             border-radius: 9px; padding: 7px 20px;
             font-weight: 600;
@@ -162,21 +170,20 @@
 
         /* Dedication badge */
         .dedication-badge {
-            background: rgba(245,168,0,.12);
-            border: 1px solid rgba(245,168,0,.3);
-            border-radius: 10px;
-            padding: 10px 14px;
+            background: rgba(255,255,255,.06);
+            border-radius: 12px;
+            padding: 14px 16px;
             font-size: 11px; color: rgba(255,255,255,.8);
             position: relative; z-index: 1;
             margin-bottom: 24px;
         }
         .dedication-badge .ded-title {
-            font-size: 9px; font-weight: 700;
+            font-size: 10px; font-weight: 700;
             color: #f5a800; text-transform: uppercase;
-            letter-spacing: .1em; margin-bottom: 3px;
+            letter-spacing: .1em; margin-bottom: 5px;
         }
         .dedication-badge .ded-name {
-            font-size: 12px; font-weight: 700; color: #fff;
+            font-size: 13px; font-weight: 700; color: #fff;
         }
 
         .left-stats {
@@ -194,7 +201,7 @@
         }
         .welcome-title {
             font-size: 26px; font-weight: 800;
-            color: #0c2d6b; margin-bottom: 4px;
+            color: #0f3318; margin-bottom: 4px;
         }
         .welcome-sub {
             font-size: 13px; color: #64748b;
@@ -208,7 +215,7 @@
             color: #475569; margin-bottom: 6px;
         }
         .input-group-text {
-            background: #f8fafc; border-color: #e2e8f0; color: #0c3d8a;
+            background: #f8fafc; border-color: #e2e8f0; color: #1a5c2a;
         }
         .form-control {
             border-color: #e2e8f0; font-size: 14px;
@@ -218,21 +225,21 @@
         input[type="password"]::-ms-clear { display: none; }
         input::-webkit-password-toggle-button { display: none !important; }
         .form-control:focus {
-            border-color: #0c3d8a;
-            box-shadow: 0 0 0 3px rgba(12,61,138,.12);
+            border-color: #1a5c2a;
+            box-shadow: 0 0 0 3px rgba(26,92,42,.12);
             background: #fff;
         }
 
         .btn-signin {
-            background: linear-gradient(135deg, #0c3d8a, #1a6b3c);
+            background: linear-gradient(135deg, #1a5c2a, #0f3318);
             border: none; color: #fff; font-weight: 700;
             font-size: 15px; padding: 13px; border-radius: 12px;
             width: 100%; cursor: pointer;
             transition: transform .15s, box-shadow .15s;
-            box-shadow: 0 6px 20px rgba(12,61,138,.35);
+            box-shadow: 0 6px 20px rgba(26,92,42,.35);
             display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .btn-signin:hover   { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(12,61,138,.45); }
+        .btn-signin:hover   { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(26,92,42,.45); }
         .btn-signin:active  { transform: scale(.98); }
         .btn-signin:disabled{ opacity: .6; cursor: not-allowed; }
 
@@ -268,6 +275,46 @@
             .left-stats { justify-content: center; }
             .panel-right { padding: 32px 28px 28px; }
         }
+
+        /* ── Mobile hamburger ── */
+        .hamburger-nav {
+            display: none;
+            background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.2);
+            color: #fff;
+            width: 38px; height: 38px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            align-items: center; justify-content: center;
+        }
+        .mobile-menu {
+            display: none;
+            flex-direction: column;
+            background: rgba(9,26,62,.98);
+            border-top: 1px solid rgba(245,168,0,.2);
+            padding: 8px 0;
+        }
+        .mobile-menu a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 13px 24px;
+            color: rgba(255,255,255,.75);
+            text-decoration: none;
+            font-size: 14px; font-weight: 500;
+            border-left: 3px solid transparent;
+            transition: all .2s;
+        }
+        .mobile-menu a:hover, .mobile-menu a.active {
+            color: #f5a800;
+            background: rgba(245,168,0,.08);
+            border-left-color: #f5a800;
+        }
+        .mobile-menu.open { display: flex; }
+
+        @media (max-width: 540px) {
+            .nav-hide-sm { display: none !important; }
+            .hamburger-nav { display: inline-flex; }
+        }
     </style>
 </head>
 <body>
@@ -290,18 +337,30 @@
 <nav class="top-nav">
     <div class="nav-inner">
         <a href="{{ route('landing') }}" class="nav-brand">
-                    <img src="<?php echo 'data:'.mime_content_type(public_path('dmcmes-logo.png')).';base64,'.base64_encode(file_get_contents(public_path('dmcmes-logo.png'))); ?>" alt="DMCMES Logo">
+            <img src="{{ asset('dmcmes-logo.png') }}" alt="DMCMES Logo">
             <div class="nav-brand-text">
                 <div class="nav-brand-abbr">DMCMES</div>
                 <span class="nav-brand-full">Smart Attendance System</span>
             </div>
         </a>
-        <div class="nav-links">
-            <a href="{{ route('landing') }}" class="nav-hide-sm">Home</a>
-            <a href="{{ route('landing') }}#features" class="nav-hide-sm">Features</a>
-            <a href="{{ route('landing') }}#how" class="nav-hide-sm">How It Works</a>
+        <div class="nav-links nav-hide-sm">
+            <a href="{{ route('landing') }}">Home</a>
+            <a href="{{ route('landing') }}#features">Features</a>
+            <a href="{{ route('landing') }}#how">How It Works</a>
             <a href="{{ route('login') }}" class="btn-nav">Sign In</a>
         </div>
+        {{-- Mobile hamburger --}}
+        <button class="hamburger-nav" id="mobileMenuBtn" onclick="toggleMobileMenu()" aria-label="Menu">
+            <i class="bi bi-list" id="menuIcon"></i>
+        </button>
+    </div>
+    {{-- Mobile dropdown menu --}}
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="{{ route('landing') }}"><i class="bi bi-house-fill"></i> Home</a>
+        <a href="{{ route('landing') }}#features"><i class="bi bi-stars"></i> Features</a>
+        <a href="{{ route('landing') }}#how"><i class="bi bi-info-circle-fill"></i> How It Works</a>
+        <a href="{{ route('register') }}"><i class="bi bi-person-plus-fill"></i> Register</a>
+        <a href="{{ route('login') }}" class="active"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
     </div>
 </nav>
 
@@ -313,7 +372,7 @@
         <div class="panel-left">
             <div class="brand-row">
                 <div class="brand-logo-wrap">
-                    <img src="<?php echo 'data:'.mime_content_type(public_path('dmcmes-logo.png')).';base64,'.base64_encode(file_get_contents(public_path('dmcmes-logo.png'))); ?>" alt="DMCMES">
+                    <img src="{{ asset('dmcmes-logo.png') }}" alt="DMCMES">
                 </div>                <div class="brand-school">
                     <div class="abbr">DMCMES</div>
                     <span class="full">Don Marcelo C. Marty<br>Elementary School</span>
@@ -353,6 +412,30 @@
 
             <div class="welcome-title">Welcome Back</div>
             <div class="welcome-sub">Sign in to your DMCMES portal</div>
+
+            @if(session('success'))
+                <div class="alert alert-success d-flex align-items-start gap-2" role="alert" style="background: #d1e7dd; border: 1px solid #198754; color: #0a3622; border-radius: 10px; padding: 12px 14px; font-size: 13px; margin-bottom: 18px;">
+                    <i class="bi bi-check-circle-fill" style="font-size: 18px; flex-shrink: 0;"></i>
+                    <div>{{ session('success') }}</div>
+                </div>
+            @endif
+
+            @if(session('info'))
+                <div class="alert alert-info d-flex align-items-start gap-2" role="alert" style="background: #cff4fc; border: 1px solid #0dcaf0; color: #055160; border-radius: 10px; padding: 12px 14px; font-size: 13px; margin-bottom: 18px;">
+                    <i class="bi bi-info-circle-fill" style="font-size: 18px; flex-shrink: 0;"></i>
+                    <div>{{ session('info') }}</div>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="alert alert-warning d-flex align-items-start gap-2" role="alert" style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; border-radius: 10px; padding: 12px 14px; font-size: 13px; margin-bottom: 18px;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 18px; flex-shrink: 0;"></i>
+                    <div>
+                        <strong>Account Pending Approval</strong><br>
+                        {{ session('warning') }}
+                    </div>
+                </div>
+            @endif
 
             @if($errors->any())
                 <div class="alert-err">
@@ -401,6 +484,9 @@
             </form>
 
             <div class="foot">
+                <div style="margin-top: 20px; color: #64748b; font-size: 13px;">
+                    Don't have an account? <a href="{{ route('register') }}" style="color: #1a5c2a; font-weight: 600; text-decoration: none;">Register here</a>
+                </div>
                 <div class="role-pills mt-2">
                     <span class="role-pill rp-admin">Admin</span>
                     <span class="role-pill rp-teacher">Teacher</span>
@@ -433,6 +519,20 @@ document.getElementById('loginForm').addEventListener('submit', function() {
     const btn = document.getElementById('signInBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in…';
+});
+
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    const icon = document.getElementById('menuIcon');
+    menu.classList.toggle('open');
+    icon.className = menu.classList.contains('open') ? 'bi bi-x-lg' : 'bi bi-list';
+}
+// Close menu when a link is tapped
+document.querySelectorAll('.mobile-menu a').forEach(link => {
+    link.addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.remove('open');
+        document.getElementById('menuIcon').className = 'bi bi-list';
+    });
 });
 </script>
 </body>

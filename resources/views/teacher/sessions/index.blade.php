@@ -66,6 +66,38 @@
 
 @section('content')
 
+{{-- ══ WELCOME BANNER ══ --}}
+@php
+    $hour = now()->format('G');
+    $greeting = $hour < 12 ? 'Good Morning' : ($hour < 18 ? 'Good Afternoon' : 'Good Evening');
+    $greetingIcon = $hour < 12 ? '🌤️' : ($hour < 18 ? '☀️' : '🌙');
+    $firstName = explode(' ', auth()->user()->name)[0];
+@endphp
+<div class="mb-4" style="background:linear-gradient(135deg,#0f3318 0%,#1a5c2a 100%);border-radius:16px;padding:20px 24px;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(245,168,0,.1);pointer-events:none;"></div>
+    <div style="position:absolute;bottom:-40px;left:20%;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.04);pointer-events:none;"></div>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3" style="position:relative;z-index:1;">
+        <div>
+            <div style="font-size:12px;color:rgba(255,255,255,.55);font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px;">
+                {{ $greetingIcon }} {{ $greeting }}
+            </div>
+            <div style="font-size:22px;font-weight:800;color:#fff;line-height:1.15;">
+                Welcome, <span style="color:#f5a800;">{{ $firstName }}</span> 👋
+            </div>
+            <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:4px;">
+                {{ now()->format('l, F j, Y') }} &nbsp;·&nbsp; Teacher Portal
+            </div>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 14px;">
+            <div style="width:28px;height:28px;border-radius:7px;background:#f5a800;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#0f3318;">{{ strtoupper(substr(auth()->user()->name,0,1)) }}</div>
+            <div>
+                <div style="font-size:13px;font-weight:700;color:#fff;">{{ auth()->user()->name }}</div>
+                <div style="font-size:11px;color:#f5a800;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Teacher</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Start New Session --}}
 <div class="card mb-4">
     <div class="card-header bg-white">

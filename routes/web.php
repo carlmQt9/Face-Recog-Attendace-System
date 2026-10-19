@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ParentController;
 use App\Http\Controllers\Admin\SystemSettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Student\AttendanceHistoryController;
 use App\Http\Controllers\Teacher\ClassSessionController;
 use App\Http\Controllers\Teacher\ManualAttendanceController;
@@ -80,8 +81,12 @@ Route::get('/login',  [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post')->middleware('guest');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
+// Registration routes
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register')->middleware('guest');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.post')->middleware('guest');
+
 // ─── ADMIN ROUTES ────────────────────────────────────────────────────────────
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'approved', 'role:admin'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
@@ -110,10 +115,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
     // User Management
     Route::resource('users', UserController::class)->except(['show']);
+    Route::post('users/approve-all', [UserController::class, 'approveAll'])->name('users.approve-all');
+    Route::post('users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
+    Route::post('users/{user}/reject', [UserController::class, 'reject'])->name('users.reject');
 });
 
 // ─── TEACHER ROUTES ───────────────────────────────────────────────────────────
-Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'role:teacher'])->group(function () {
+Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'approved', 'role:teacher'])->group(function () {
 
     Route::get('/sessions', [ClassSessionController::class, 'index'])->name('sessions.index');
     Route::get('/sessions/stats', [ClassSessionController::class, 'sessionStats'])->name('sessions.stats');
@@ -135,7 +143,7 @@ Route::prefix('teacher')->name('teacher.')->middleware(['auth', 'role:teacher'])
 });
 
 // ─── STUDENT ROUTES ───────────────────────────────────────────────────────────
-Route::prefix('student')->name('student.')->middleware(['auth', 'role:student'])->group(function () {
+Route::prefix('student')->name('student.')->middleware(['auth', 'approved', 'role:student'])->group(function () {
     Route::get('/attendance', [AttendanceHistoryController::class, 'index'])->name('attendance.index');
 });
 
@@ -145,5 +153,5 @@ Route::post('/attend/student/{token}', [QrAttendanceController::class, 'markByTo
 
 // Print page — admin prints QR card for a student
 Route::get('/admin/students/{student}/qr-print', [QrAttendanceController::class, 'printCard'])
-    ->middleware(['auth', 'role:admin'])
+    ->middleware(['auth', 'approved', 'role:admin'])
     ->name('admin.students.qr-print');

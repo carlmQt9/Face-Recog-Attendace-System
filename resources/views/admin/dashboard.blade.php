@@ -16,17 +16,53 @@
 
 @section('content')
 
+{{-- ══ WELCOME BANNER ══ --}}
+@php
+    $hour = now()->format('G');
+    $greeting = $hour < 12 ? 'Good Morning' : ($hour < 18 ? 'Good Afternoon' : 'Good Evening');
+    $greetingIcon = $hour < 12 ? '🌤️' : ($hour < 18 ? '☀️' : '🌙');
+    $firstName = explode(' ', auth()->user()->name)[0];
+@endphp
+<div class="mb-4" style="background:linear-gradient(135deg,#0f3318 0%,#1a5c2a 100%);border-radius:16px;padding:24px 28px;position:relative;overflow:hidden;">
+    {{-- decorative orbs --}}
+    <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(245,168,0,.12);pointer-events:none;"></div>
+    <div style="position:absolute;bottom:-50px;left:30%;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;"></div>
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3" style="position:relative;z-index:1;">
+        <div>
+            <div style="font-size:13px;color:rgba(255,255,255,.6);font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;">
+                {{ $greetingIcon }} {{ $greeting }}
+            </div>
+            <div style="font-size:26px;font-weight:800;color:#fff;line-height:1.1;">
+                Welcome back, <span style="color:#f5a800;">{{ $firstName }}</span> 👋
+            </div>
+            <div style="font-size:13px;color:rgba(255,255,255,.55);margin-top:6px;">
+                {{ now()->format('l, F j, Y') }} &nbsp;·&nbsp; DMCMES Smart Attendance
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:11px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Logged in as</div>
+            <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:8px 14px;">
+                <div style="width:30px;height:30px;border-radius:8px;background:#f5a800;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#0f3318;">{{ strtoupper(substr(auth()->user()->name,0,1)) }}</div>
+                <div>
+                    <div style="font-size:13px;font-weight:700;color:#ffffff;">{{ auth()->user()->name }}</div>
+                    <div style="font-size:11px;color:#f5a800;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">Administrator</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- ══ STAT CARDS ══ --}}
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#0c3d8a,#0a2d6b)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#1a5c2a,#0f3318)">
             <div class="stat-num" id="stat-students">{{ $stats['total_students'] }}</div>
             <div class="stat-lbl">Total Students</div>
             <div class="stat-icon">🎒</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#1a6b3c,#14532d)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#2d7a3a,#1a5c2a)">
             <div class="stat-num" id="stat-teachers">{{ $stats['total_teachers'] }}</div>
             <div class="stat-lbl">Total Teachers</div>
             <div class="stat-icon">👩‍🏫</div>
@@ -36,9 +72,6 @@
         <div class="stat-card" style="background:linear-gradient(135deg,#b45309,#d97706)">
             <div class="stat-num" id="stat-cameras">{{ $stats['active_cameras'] }}<span style="font-size:18px;opacity:.7;">/{{ $stats['total_cameras'] }}</span></div>
             <div class="stat-lbl">Active Cameras</div>
-            @if($stats['local_cameras'] > 0)
-                <div style="font-size:10px;opacity:.8;margin-top:2px;">{{ $stats['local_cameras'] }} Local Ready</div>
-            @endif
             <div class="stat-icon">📷</div>
         </div>
     </div>
@@ -295,24 +328,6 @@ async function pollAdminDashboard() {
         // Update cameras stat with local camera info
         const cameraEl = document.getElementById('stat-cameras');
         cameraEl.innerHTML = `${data.stats.active_cameras}<span style="font-size:18px;opacity:.7;">/${data.stats.total_cameras}</span>`;
-        
-        // Update local camera indicator if exists
-        const cameraCard = cameraEl.closest('.stat-card');
-        const existingLocal = cameraCard.querySelector('[style*="font-size:10px"]');
-        if (existingLocal) {
-            if (data.stats.local_cameras > 0) {
-                existingLocal.textContent = `${data.stats.local_cameras} Local Ready`;
-            } else {
-                existingLocal.remove();
-            }
-        } else if (data.stats.local_cameras > 0) {
-            const localDiv = document.createElement('div');
-            localDiv.style.fontSize = '10px';
-            localDiv.style.opacity = '.8';
-            localDiv.style.marginTop = '2px';
-            localDiv.textContent = `${data.stats.local_cameras} Local Ready`;
-            cameraCard.querySelector('.stat-lbl').after(localDiv);
-        }
 
         // Update hourly chart live
         if (data.hourData) {

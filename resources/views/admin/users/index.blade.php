@@ -57,6 +57,92 @@
 
 @section('content')
 
+{{-- ── PENDING APPROVALS SECTION ── --}}
+@if(isset($pendingUsers) && $pendingUsers->count() > 0)
+<div class="card mb-4 border-0 shadow-sm" style="border-radius:14px;overflow:hidden;border-left:4px solid #f59e0b!important;border-left-style:solid!important;">
+    <div class="card-header d-flex align-items-center justify-content-between py-3 px-4" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border-bottom:1px solid #fde68a;">
+        <div class="d-flex align-items-center gap-2">
+            <span style="width:36px;height:36px;border-radius:10px;background:#f59e0b;display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-hourglass-split text-white fs-6"></i>
+            </span>
+            <div>
+                <h6 class="mb-0 fw-bold" style="color:#92400e;">Pending Approvals
+                    <span class="badge ms-1" style="background:#f59e0b;color:#fff;font-size:12px;">{{ $pendingUsers->count() }}</span>
+                </h6>
+                <div class="small" style="color:#b45309;">New registrations waiting for your review</div>
+            </div>
+        </div>
+        @if($pendingUsers->count() > 1)
+        <form action="{{ route('admin.users.approve-all') }}" method="POST" id="approveAllForm">
+            @csrf
+            <button type="button" class="btn btn-sm btn-success fw-semibold" onclick="confirmApproveAll({{ $pendingUsers->count() }})">
+                <i class="bi bi-check-all me-1"></i>Approve All
+            </button>
+        </form>
+        @endif
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="min-width:560px;">
+                <thead>
+                    <tr style="background:#fef9ec;">
+                        <th class="ps-4 py-2" style="font-size:11px;color:#92400e;text-transform:uppercase;letter-spacing:.05em;font-weight:700;border-bottom:1px solid #fde68a;">User</th>
+                        <th class="py-2"       style="font-size:11px;color:#92400e;text-transform:uppercase;letter-spacing:.05em;font-weight:700;border-bottom:1px solid #fde68a;">Email</th>
+                        <th class="py-2"       style="font-size:11px;color:#92400e;text-transform:uppercase;letter-spacing:.05em;font-weight:700;border-bottom:1px solid #fde68a;">Role</th>
+                        <th class="py-2"       style="font-size:11px;color:#92400e;text-transform:uppercase;letter-spacing:.05em;font-weight:700;border-bottom:1px solid #fde68a;">Registered</th>
+                        <th class="py-2 pe-4 text-end" style="font-size:11px;color:#92400e;text-transform:uppercase;letter-spacing:.05em;font-weight:700;border-bottom:1px solid #fde68a;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($pendingUsers as $pending)
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:800;flex-shrink:0;">
+                                    {{ strtoupper(substr($pending->name,0,1)) }}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold" style="font-size:14px;color:#0f172a;">{{ $pending->name }}</div>
+                                    @if($pending->role==='teacher' && $pending->teacher?->employee_id)
+                                        <div class="small" style="color:#64748b;"><i class="bi bi-person-badge"></i> {{ $pending->teacher->employee_id }}</div>
+                                    @elseif($pending->role==='student' && $pending->student?->student_id)
+                                        <div class="small" style="color:#64748b;"><i class="bi bi-card-text"></i> {{ $pending->student->student_id }}</div>
+                                    @endif
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 small text-muted" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $pending->email }}</td>
+                        <td class="py-3">
+                            <span class="badge rounded-pill bg-{{ $pending->role==='admin'?'danger':($pending->role==='teacher'?'success':'primary') }}">
+                                {{ ucfirst($pending->role) }}
+                            </span>
+                        </td>
+                        <td class="py-3 small text-muted">{{ $pending->created_at->diffForHumans() }}</td>
+                        <td class="py-3 pe-4 text-end">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <form action="{{ route('admin.users.approve', $pending) }}" method="POST" id="approveForm{{ $pending->id }}">
+                                    @csrf
+                                    <button type="button" class="btn btn-sm btn-success fw-semibold px-3" onclick="confirmApprove('{{ addslashes($pending->name) }}', '{{ ucfirst($pending->role) }}', {{ $pending->id }})">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Approve
+                                    </button>
+                                </form>
+                                <form action="{{ route('admin.users.reject', $pending) }}" method="POST" id="rejectForm{{ $pending->id }}">
+                                    @csrf
+                                    <button type="button" class="btn btn-sm btn-outline-danger fw-semibold px-3" onclick="confirmReject('{{ addslashes($pending->name) }}', '{{ ucfirst($pending->role) }}', {{ $pending->id }})">
+                                        <i class="bi bi-x-circle-fill me-1"></i>Deny
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="d-flex justify-content-end mb-3">
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
         <i class="bi bi-person-plus-fill me-1"></i> Add User
@@ -103,14 +189,14 @@
                     <td class="d-none d-md-table-cell text-muted small">{{ $user->created_at->format('M d, Y') }}</td>
                     <td>
                         <div class="d-flex gap-1" style="white-space:nowrap;">
-                            <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="openEditModal({{ $user->id }},'{{ addslashes($user->name) }}','{{ addslashes($user->email) }}','{{ $user->role }}','{{ addslashes($user->student?->student_id??'') }}','{{ addslashes($user->student?->grade_level??'') }}','{{ addslashes($user->student?->section??'') }}','{{ addslashes($user->teacher?->employee_id??'') }}','{{ addslashes($user->teacher?->department??'') }}')"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" title="Edit" style="width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;" onclick="openEditModal({{ $user->id }},'{{ addslashes($user->name) }}','{{ addslashes($user->email) }}','{{ $user->role }}','{{ addslashes($user->student?->student_id??'') }}','{{ addslashes($user->student?->grade_level??'') }}','{{ addslashes($user->student?->section??'') }}','{{ addslashes($user->teacher?->employee_id??'') }}','{{ addslashes($user->teacher?->department??'') }}')"><i class="bi bi-pencil-fill"></i></button>
                             @if($user->role==='student'&&$user->student?->qr_token)
-                                <button class="btn btn-sm btn-outline-info" title="QR Card" onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level??'') }}','{{ addslashes($user->student->section??'') }}','{{ $user->student->qrUrl() }}')"><i class="bi bi-qr-code"></i></button>
+                                <button class="btn btn-sm btn-outline-info" title="QR Card" style="width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;" onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level??'') }}','{{ addslashes($user->student->section??'') }}','{{ $user->student->qrUrl() }}')"><i class="bi bi-qr-code"></i></button>
                             @endif
                             @if(auth()->id()!==$user->id)
                             <form action="{{ route('admin.users.destroy',$user) }}" method="POST" class="d-inline" onsubmit="return false" data-confirm-title="Delete User" data-confirm-message="Permanently delete {{ $user->name }}? All data will be removed." data-confirm-ok="Delete" data-confirm-type="danger" data-confirm-icon="🗑️">
                                 @csrf @method('DELETE')
-                                <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" title="Delete" style="width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;"><i class="bi bi-trash-fill"></i></button>
                             </form>
                             @endif
                         </div>
@@ -150,14 +236,14 @@
                     <span class="badge bg-{{ $user->role==='admin'?'danger':($user->role==='teacher'?'success':'primary') }}">{{ ucfirst($user->role) }}</span>
                 </div>
                 <div class="u-actions">
-                    <button class="btn btn-sm btn-outline-primary" title="Edit" onclick="openEditModal({{ $user->id }},'{{ addslashes($user->name) }}','{{ addslashes($user->email) }}','{{ $user->role }}','{{ addslashes($user->student?->student_id??'') }}','{{ addslashes($user->student?->grade_level??'') }}','{{ addslashes($user->student?->section??'') }}','{{ addslashes($user->teacher?->employee_id??'') }}','{{ addslashes($user->teacher?->department??'') }}')"><i class="bi bi-pencil-fill"></i></button>
+                    <button class="btn btn-sm btn-outline-primary" title="Edit" style="width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;" onclick="openEditModal({{ $user->id }},'{{ addslashes($user->name) }}','{{ addslashes($user->email) }}','{{ $user->role }}','{{ addslashes($user->student?->student_id??'') }}','{{ addslashes($user->student?->grade_level??'') }}','{{ addslashes($user->student?->section??'') }}','{{ addslashes($user->teacher?->employee_id??'') }}','{{ addslashes($user->teacher?->department??'') }}')"><i class="bi bi-pencil-fill"></i></button>
                     @if($user->role==='student'&&$user->student?->qr_token)
-                        <button class="btn btn-sm btn-outline-info" title="QR Card" onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level??'') }}','{{ addslashes($user->student->section??'') }}','{{ $user->student->qrUrl() }}')"><i class="bi bi-qr-code"></i></button>
+                        <button class="btn btn-sm btn-outline-info" title="QR Card" style="width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;" onclick="openQrModal('{{ addslashes($user->name) }}','{{ addslashes($user->student->student_id) }}','{{ addslashes($user->student->grade_level??'') }}','{{ addslashes($user->student->section??'') }}','{{ $user->student->qrUrl() }}')"><i class="bi bi-qr-code"></i></button>
                     @endif
                     @if(auth()->id()!==$user->id)
                     <form action="{{ route('admin.users.destroy',$user) }}" method="POST" class="d-inline" onsubmit="return false" data-confirm-title="Delete User" data-confirm-message="Permanently delete {{ $user->name }}? All data will be removed." data-confirm-ok="Delete" data-confirm-type="danger" data-confirm-icon="🗑️">
                         @csrf @method('DELETE')
-                        <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash-fill"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" title="Delete" style="width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;"><i class="bi bi-trash-fill"></i></button>
                     </form>
                     @endif
                 </div>
@@ -607,3 +693,77 @@ document.addEventListener('DOMContentLoaded', () => {
     @endif
 });</script>
 @endpush
+
+<script>
+// ── Confirmation Modal Functions for Pending Users ────────────────────────────
+function confirmApproveAll(count) {
+    showConfirmModal({
+        title: 'Are you sure?',
+        message: `Approve all ${count} pending users?`,
+        icon: '✅',
+        confirmText: 'Approve All',
+        confirmColor: '#10b981',
+        onConfirm: () => document.getElementById('approveAllForm').submit()
+    });
+}
+
+function confirmApprove(name, role, userId) {
+    showConfirmModal({
+        title: 'Are you sure?',
+        message: `Approve ${name} (${role})?`,
+        icon: '✅',
+        confirmText: 'Approve',
+        confirmColor: '#10b981',
+        onConfirm: () => document.getElementById(`approveForm${userId}`).submit()
+    });
+}
+
+function confirmReject(name, role, userId) {
+    showConfirmModal({
+        title: 'Are you sure?',
+        message: `Deny ${name}? This action cannot be undone.`,
+        icon: '⚠️',
+        confirmText: 'Delete',
+        confirmColor: '#ef4444',
+        onConfirm: () => document.getElementById(`rejectForm${userId}`).submit()
+    });
+}
+
+function showConfirmModal({title, message, icon, confirmText, confirmColor, onConfirm}) {
+    const modal = document.getElementById('customConfirmModal');
+    document.getElementById('confirmModalTitle').textContent = title;
+    document.getElementById('confirmModalIcon').textContent = icon;
+    document.getElementById('confirmModalMessage').textContent = message;
+    
+    const confirmBtn = document.getElementById('confirmModalBtn');
+    confirmBtn.textContent = confirmText;
+    confirmBtn.style.background = `linear-gradient(to right, ${confirmColor}, ${confirmColor})`;
+    confirmBtn.style.color = '#fff';
+    confirmBtn.style.border = 'none';
+    
+    confirmBtn.onclick = () => {
+        const modalInstance = bootstrap.Modal.getInstance(modal);
+        if (modalInstance) modalInstance.hide();
+        if (onConfirm) setTimeout(onConfirm, 200);
+    };
+    
+    new bootstrap.Modal(modal).show();
+}
+</script>
+
+{{-- ── Custom Confirmation Modal ── --}}
+<div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:260px; margin: 1.5rem auto;">
+        <div class="modal-content" style="border-radius:14px;border:none;box-shadow:0 18px 45px rgba(0,0,0,.2);overflow:hidden;">
+            <div class="modal-body text-center" style="padding:18px 16px!important;">
+                <div style="font-size:34px;margin-bottom:10px;" id="confirmModalIcon">⚠️</div>
+                <h5 class="fw-bold mb-2" style="color:#1f2937;font-size:16px;" id="confirmModalTitle">Are you sure?</h5>
+                <p class="text-muted mb-3" style="font-size:12.5px;line-height:1.4;" id="confirmModalMessage">This action cannot be undone.</p>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn fw-semibold flex-fill" data-bs-dismiss="modal" style="border-radius:8px;padding:10px 8px;background:#eeeff1;color:#6b7280;border:none;font-size:13px;">Cancel</button>
+                    <button type="button" class="btn fw-semibold flex-fill" id="confirmModalBtn" style="border-radius:8px;padding:10px 8px;font-size:13px;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

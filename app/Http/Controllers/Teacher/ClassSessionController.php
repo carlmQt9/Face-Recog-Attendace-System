@@ -11,7 +11,13 @@ class ClassSessionController extends Controller
 {
     public function index()
     {
-        $teacher  = auth()->user()->teacher;
+        $teacher = auth()->user()->teacher;
+        
+        // If teacher record doesn't exist, redirect with error
+        if (!$teacher) {
+            return redirect()->route('login')->with('error', 'Teacher profile not found. Please contact administrator.');
+        }
+        
         $sessions = ClassSession::with('camera')
             ->where('teacher_id', $teacher->id)
             ->orderByRaw("FIELD(status, 'active', 'ended') ASC")  // Active sessions first
