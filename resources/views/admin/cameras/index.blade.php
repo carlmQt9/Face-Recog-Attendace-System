@@ -122,7 +122,7 @@
 
     </div>
 </div>
-{{ $cameras->links() }}
+<div class="pagination-wrapper">{{ $cameras->links() }}</div>
 
 {{-- ── Add Camera Modal ── --}}
 <div class="modal fade" id="addCameraModal" tabindex="-1" aria-labelledby="addCameraModalLabel" aria-hidden="true">

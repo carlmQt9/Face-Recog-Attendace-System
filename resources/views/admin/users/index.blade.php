@@ -255,7 +255,7 @@
 
     </div>
 </div>
-{{ $users->links() }}
+<div class="pagination-wrapper">{{ $users->links() }}</div>
 
 {{-- ── Add User Modal ── --}}
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">

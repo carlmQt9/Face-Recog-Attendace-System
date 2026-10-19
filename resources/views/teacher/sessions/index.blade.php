@@ -320,7 +320,7 @@
         </div>
     </div>
 </div>
-{{ $sessions->links() }}
+<div class="pagination-wrapper">{{ $sessions->links() }}</div>
 
 {{-- ── Slide-in Drawer ── --}}
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>

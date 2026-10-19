@@ -89,6 +89,8 @@
             margin: -24px -24px 24px;
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 2px solid #f5a800; flex-wrap: wrap; gap: 8px;
+            position: sticky; top: 0; z-index: 999;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
         }
 
         /* ── Cards / badges ── */
@@ -114,7 +116,43 @@
             color: #475569; font-size: 13px; padding: 6px 12px;
         }
         .pagination .page-item.disabled .page-link { color: #cbd5e1; }
-        .pagination .page-item.disabled .page-link { color: #cbd5e1; }
+        .pagination .page-item.active .page-link { background: #1a5c2a; border-color: #1a5c2a; }
+
+        /* Mobile pagination — right aligned, compact, pill style */
+        @media (max-width: 767px) {
+            .pagination-wrapper {
+                display: flex;
+                justify-content: flex-end;
+                padding: 12px 16px 4px;
+            }
+            .pagination {
+                gap: 3px;
+                margin: 0;
+            }
+            .pagination .page-link {
+                font-size: 12px;
+                padding: 5px 10px;
+                border-radius: 8px !important;
+                border-color: #e2e8f0;
+                min-width: 34px;
+                text-align: center;
+            }
+            /* Hide page numbers on mobile, keep only prev/next + active */
+            .pagination .page-item:not(.active):not(:first-child):not(:last-child) {
+                display: none;
+            }
+            /* Show active page number */
+            .pagination .page-item.active {
+                display: block;
+            }
+            /* Show "..." items */
+            .pagination .page-item.disabled span.page-link {
+                display: none;
+            }
+            /* Style prev/next as icon buttons */
+            .pagination .page-item:first-child .page-link::before { content: '‹'; }
+            .pagination .page-item:last-child  .page-link::after  { content: '›'; }
+        }
 
         /* ── Mobile ── */
         @media (max-width: 768px) {

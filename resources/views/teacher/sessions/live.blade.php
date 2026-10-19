@@ -2,6 +2,65 @@
 @section('title', 'Live Roster')
 @section('page-title', 'Live Class Roster — ' . $session->subject)
 
+@push('styles')
+<style>
+/* ── Desktop: normal table ── */
+.roster-table-wrap { display: block; }
+.roster-cards-wrap { display: none; }
+
+/* ── Mobile: card layout ── */
+@media (max-width: 767px) {
+    .roster-table-wrap { display: none; }
+    .roster-cards-wrap { display: block; }
+}
+
+/* Student card */
+.student-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.student-card:last-child { border-bottom: none; }
+.student-card .sc-num {
+    font-size: 11px; color: #94a3b8; font-weight: 600;
+    width: 18px; flex-shrink: 0; text-align: center;
+}
+.student-card .sc-avatar {
+    flex-shrink: 0;
+}
+.student-card .sc-avatar img,
+.student-card .sc-avatar .sc-initials {
+    width: 40px; height: 40px; border-radius: 10px;
+    object-fit: cover; border: 1px solid #e2e8f0;
+}
+.student-card .sc-initials {
+    background: linear-gradient(135deg,#1a5c2a,#0f3318);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px;
+}
+.student-card .sc-info { flex: 1; min-width: 0; }
+.student-card .sc-name {
+    font-size: 14px; font-weight: 700; color: #0f172a;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.student-card .sc-meta {
+    display: flex; align-items: center; gap: 6px;
+    flex-wrap: wrap; margin-top: 4px;
+}
+.student-card .sc-time {
+    font-size: 12px; font-weight: 600;
+    color: #1a5c2a;
+}
+.student-card .sc-time.out { color: #dc2626; }
+.student-card .sc-right {
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 4px; flex-shrink: 0;
+}
+</style>
+@endpush
+
 @section('content')
 <div class="row g-4">
 
@@ -55,100 +114,120 @@
             </div>
 
             <div class="card-body p-0">
-                <div class="table-responsive">
-                <table class="table table-hover mb-0 table-card-mobile" id="rosterTable">
+
+                {{-- ── DESKTOP TABLE (md+) ── --}}
+                <div class="roster-table-wrap table-responsive">
+                <table class="table table-hover mb-0" id="rosterTable">
                     <thead class="table-light">
                         <tr>
                             <th style="width:32px;">#</th>
                             <th>Student</th>
-                            <th class="d-none d-sm-table-cell">Method</th>
+                            <th>Method</th>
                             <th>Status</th>
                             <th>In</th>
-                            <th class="d-none d-sm-table-cell">Out</th>
-                            <th class="d-none d-md-table-cell">Duration</th>
-                            <th class="d-none d-lg-table-cell">Notified</th>
+                            <th>Out</th>
+                            <th>Duration</th>
+                            <th>Notified</th>
                         </tr>
                     </thead>
                     <tbody id="rosterTableBody">
                         @forelse($attendance as $i => $record)
+                        @php
+                            $methodMap = ['face_scan'=>['bg-primary','Face'],'manual'=>['bg-warning text-dark','Manual'],'qr_code'=>['bg-info text-dark','QR']];
+                            [$cls,$lbl] = $methodMap[$record->method] ?? ['bg-secondary','—'];
+                            $statusBadgeClass = match($record->status ?? 'present') {
+                                'present' => 'bg-success', 'absent' => 'bg-danger',
+                                'late'    => 'bg-warning text-dark', default => 'bg-secondary'
+                            };
+                            $thumbUrl = $record->snapshotUrl();
+                        @endphp
                         <tr>
-                            <td class="text-muted" style="font-size:12px;width:32px;">{{ $i + 1 }}</td>
-                            <td class="td-main">
-                                @php
-                                    $thumbUrl = $record->snapshotUrl(); // Only use attendance snapshot, not registration photo
-                                @endphp
+                            <td class="text-muted" style="font-size:12px;vertical-align:middle;">{{ $i + 1 }}</td>
+                            <td style="vertical-align:middle;">
                                 <div class="d-flex align-items-center gap-2">
                                     @if($thumbUrl)
-                                        <img src="{{ $thumbUrl }}"
-                                             alt="{{ $record->student->user->name }}"
+                                        <img src="{{ $thumbUrl }}" alt="{{ $record->student->user->name }}"
                                              data-lightbox="{{ $thumbUrl }}"
                                              data-lightbox-caption="{{ $record->student->user->name }}"
-                                             data-lightbox-sub="{{ $record->scan_type === 'time_out' ? 'Timed Out' : 'Timed In' }} · {{ $record->arrived_at->format('h:i A') }}"
                                              style="width:34px;height:34px;border-radius:8px;object-fit:cover;flex-shrink:0;border:1px solid #dee2e6;">
                                     @else
-                                        <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#0c3d8a,#1a6b3c);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                            <i class="bi bi-person-fill text-white" style="font-size:15px;"></i>
-                                        </div>
+                                        <div style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#1a5c2a,#0f3318);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="bi bi-person-fill text-white" style="font-size:15px;"></i></div>
                                     @endif
-                                    <div>
-                                        <div class="fw-semibold" style="line-height:1.2;">{{ $record->student->user->name }}</div>
-                                        <div class="d-sm-none" style="font-size:11px;color:#64748b;">
-                                            @php $methodMap=['face_scan'=>['bg-primary','Face'],'manual'=>['bg-warning text-dark','Manual'],'qr_code'=>['bg-info text-dark','QR']];[$cls,$lbl]=$methodMap[$record->method]??['bg-secondary','—']; @endphp
-                                            <span class="badge {{ $cls }}" style="font-size:9px;">{{ $lbl }}</span>
-                                        </div>
-                                    </div>
+                                    <span class="fw-semibold" style="font-size:13px;">{{ $record->student->user->name }}</span>
                                 </div>
                             </td>
-                            <td class="td-hide d-none d-sm-table-cell">
-                                @php $methodMap=['face_scan'=>['bg-primary','Face'],'manual'=>['bg-warning text-dark','Manual'],'qr_code'=>['bg-info text-dark','QR']];[$cls,$lbl]=$methodMap[$record->method]??['bg-secondary','—']; @endphp
-                                <span class="badge {{ $cls }}">{{ $lbl }}</span>
+                            <td style="vertical-align:middle;"><span class="badge {{ $cls }}">{{ $lbl }}</span></td>
+                            <td style="vertical-align:middle;"><span class="badge {{ $statusBadgeClass }}">{{ ucfirst($record->status ?? 'present') }}</span></td>
+                            <td style="vertical-align:middle;white-space:nowrap;"><span class="badge bg-success">{{ $record->arrived_at->format('h:i A') }}</span></td>
+                            <td style="vertical-align:middle;white-space:nowrap;">
+                                @if($record->time_out)<span class="badge bg-danger">{{ $record->time_out->format('h:i A') }}</span>@else<span class="text-muted small">—</span>@endif
                             </td>
-                            <td class="td-badge">
-                                @php
-                                    $statusBadgeClass = match($record->status ?? 'present') {
-                                        'present' => 'bg-success',
-                                        'absent' => 'bg-danger',
-                                        'late' => 'bg-warning text-dark',
-                                        default => 'bg-secondary'
-                                    };
-                                    $statusLabel = ucfirst($record->status ?? 'present');
-                                @endphp
-                                <span class="badge {{ $statusBadgeClass }}">{{ $statusLabel }}</span>
-                            </td>
-                            <td class="td-badge"><span class="badge bg-success" style="white-space:nowrap;">{{ $record->arrived_at->format('h:i A') }}</span></td>
-                            <td class="td-hide d-none d-sm-table-cell">
-                                @if($record->time_out)
-                                    <span class="badge bg-danger">{{ $record->time_out->format('h:i A') }}</span>
-                                @else
-                                    <span class="text-muted small">—</span>
-                                @endif
-                            </td>
-                            <td class="td-hide d-none d-md-table-cell"><span class="text-muted small">{{ $record->durationLabel() }}</span></td>
-                            <td class="td-hide d-none d-lg-table-cell">
-                                <div class="d-flex gap-1 align-items-center">
-                                    @if($record->notification_sent)
-                                        <i class="bi bi-envelope-check-fill text-success" title="Time-in email sent"></i>
-                                    @else
-                                        <i class="bi bi-envelope text-secondary" title="Time-in email not sent"></i>
-                                    @endif
-                                    @if($record->time_out)
-                                        @if($record->time_out_notification_sent)
-                                            <i class="bi bi-envelope-check-fill text-primary" title="Time-out email sent"></i>
-                                        @else
-                                            <i class="bi bi-envelope-dash text-warning" title="Time-out email pending"></i>
-                                        @endif
-                                    @endif
+                            <td style="vertical-align:middle;"><span class="text-muted small">{{ $record->durationLabel() }}</span></td>
+                            <td style="vertical-align:middle;">
+                                <div class="d-flex gap-1">
+                                    <i class="bi bi-{{ $record->notification_sent ? 'envelope-check-fill text-success' : 'envelope text-secondary' }}"></i>
+                                    @if($record->time_out)<i class="bi bi-{{ $record->time_out_notification_sent ? 'envelope-check-fill text-primary' : 'envelope-dash text-warning' }}"></i>@endif
                                 </div>
                             </td>
                         </tr>
                         @empty
-                        <tr id="emptyRow">
-                            <td colspan="8" class="text-center text-muted py-4">Waiting for students to scan in…</td>
-                        </tr>
+                        <tr id="emptyRow"><td colspan="8" class="text-center text-muted py-4">Waiting for students to scan in…</td></tr>
                         @endforelse
                     </tbody>
                 </table>
                 </div>
+
+                {{-- ── MOBILE CARDS (< md) ── --}}
+                <div class="roster-cards-wrap" id="rosterCardBody">
+                    @forelse($attendance as $i => $record)
+                    @php
+                        $methodMap = ['face_scan'=>['bg-primary','Face'],'manual'=>['bg-warning text-dark','Manual'],'qr_code'=>['bg-info text-dark','QR']];
+                        [$cls,$lbl] = $methodMap[$record->method] ?? ['bg-secondary','—'];
+                        $statusBadgeClass = match($record->status ?? 'present') {
+                            'present' => 'bg-success', 'absent' => 'bg-danger',
+                            'late'    => 'bg-warning text-dark', default => 'bg-secondary'
+                        };
+                        $thumbUrl = $record->snapshotUrl();
+                    @endphp
+                    <div class="student-card">
+                        <div class="sc-num">{{ $i + 1 }}</div>
+                        <div class="sc-avatar">
+                            @if($thumbUrl)
+                                <img src="{{ $thumbUrl }}" alt="{{ $record->student->user->name }}"
+                                     data-lightbox="{{ $thumbUrl }}"
+                                     data-lightbox-caption="{{ $record->student->user->name }}">
+                            @else
+                                <div class="sc-initials"><i class="bi bi-person-fill"></i></div>
+                            @endif
+                        </div>
+                        <div class="sc-info">
+                            <div class="sc-name">{{ $record->student->user->name }}</div>
+                            <div class="sc-meta">
+                                <span class="badge {{ $cls }}" style="font-size:10px;">{{ $lbl }}</span>
+                                <span class="badge {{ $statusBadgeClass }}" style="font-size:10px;">{{ ucfirst($record->status ?? 'present') }}</span>
+                                @if($record->durationLabel() && $record->durationLabel() !== '—')
+                                    <span style="font-size:11px;color:#64748b;">⏱ {{ $record->durationLabel() }}</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="sc-right">
+                            <span class="sc-time">▲ {{ $record->arrived_at->format('h:i A') }}</span>
+                            @if($record->time_out)
+                                <span class="sc-time out">▼ {{ $record->time_out->format('h:i A') }}</span>
+                            @endif
+                            <div style="display:flex;gap:4px;margin-top:2px;">
+                                <i class="bi bi-{{ $record->notification_sent ? 'envelope-check-fill text-success' : 'envelope text-secondary' }}" style="font-size:12px;"></i>
+                                @if($record->time_out)
+                                    <i class="bi bi-{{ $record->time_out_notification_sent ? 'envelope-check-fill text-primary' : 'envelope-dash text-warning' }}" style="font-size:12px;"></i>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="text-center text-muted py-4">Waiting for students to scan in…</div>
+                    @endforelse
+                </div>
+
             </div>
         </div>
     </div>

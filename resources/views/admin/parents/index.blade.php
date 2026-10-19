@@ -114,7 +114,7 @@
 
     </div>
 </div>
-{{ $parents->links() }}
+<div class="pagination-wrapper">{{ $parents->links() }}</div>
 
 {{-- ── Link Parent Modal ── --}}
 <div class="modal fade" id="linkParentModal" tabindex="-1" aria-labelledby="linkParentModalLabel" aria-hidden="true">

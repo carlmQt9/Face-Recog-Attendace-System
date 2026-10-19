@@ -141,7 +141,7 @@
         </div>{{-- /table-responsive --}}
     </div>
 </div>
-{{ $records->links() }}
+<div class="pagination-wrapper">{{ $records->links() }}</div>
 @endsection
 
 
