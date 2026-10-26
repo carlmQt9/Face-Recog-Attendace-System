@@ -231,7 +231,7 @@
     </style>
 </head>
 <body>
-<button class="canva-export" type="button" onclick="window.print()" title="Choose Save as PDF, then upload the A4 PDF to Canva to edit it" aria-label="Export this guide as an A4 PDF for Canva">📄 Export A4 PDF for Canva</button>
+<button class="canva-export" type="button" onclick="window.print()" aria-label="Export PDF">📄 Export PDF</button>
 <div class="container">
 
     <!-- HEADER -->
@@ -242,7 +242,6 @@
         <p class="school">Don Marcelo C. Marty Elementary School · Sta. Cruz, Zambales · DepEd</p>
         <div class="meta">
             <span>📅 2026 Edition</span>
-            <span>🎨 Green Theme — Logo Aligned</span>
             <span>🔒 Multi-Role Access</span>
             <span>📄 PDF Export Ready</span>
         </div>
@@ -253,46 +252,98 @@
         <!-- TABLE OF CONTENTS -->
         <div class="toc">
             <h2>📋 Table of Contents</h2>
-            <ol>
-                <li><a href="#intro">Introduction</a></li>
-                <li><a href="#requirements">System Requirements</a></li>
-                <li><a href="#landing">Landing Page</a></li>
-                <li><a href="#getting-started">Getting Started</a>
-                    <ol>
-                        <li><a href="#accessing-system">Accessing the System</a></li>
-                        <li><a href="#registration">Registration</a></li>
-                        <li><a href="#after-reg">After Registration — Approval System</a></li>
-                        <li><a href="#login">Logging In</a></li>
-                    </ol>
+            <style>
+                .toc-list { list-style: none; margin: 0; padding: 0; }
+                .toc-list li { margin-bottom: 5px; }
+                .toc-entry {
+                    display: flex; align-items: baseline;
+                    font-size: 13.5px; line-height: 1.4;
+                }
+                .toc-entry .toc-label { flex-shrink: 0; color: #0f3318; font-weight: 700; margin-right: 4px; }
+                .toc-entry .toc-title { flex-shrink: 0; color: #0f3318; font-weight: 700; }
+                .toc-entry .toc-dots  { flex: 1; border-bottom: 1.5px dotted #5a8a6a; margin: 0 4px; position: relative; top: -2px; min-width: 20px; }
+                .toc-entry .toc-page  { flex-shrink: 0; color: #0f3318; font-weight: 700; font-size: 13px; }
+                .toc-entry a { text-decoration: none; }
+                .toc-entry a:hover .toc-title { text-decoration: underline; }
+
+                /* Sub-entries */
+                .toc-sub { list-style: none; margin: 4px 0 4px 20px; padding: 0; }
+                .toc-sub li { margin-bottom: 4px; }
+                .toc-sub .toc-entry .toc-label { font-weight: 600; color: #1a5c2a; font-size: 13px; }
+                .toc-sub .toc-entry .toc-title { font-weight: 500; color: #1a5c2a; font-size: 13px; }
+                .toc-sub .toc-entry .toc-page  { color: #1a5c2a; font-size: 12px; }
+                .toc-sub .toc-entry .toc-dots  { border-bottom: 1.5px dotted #8ab89a; }
+            </style>
+
+            <ul class="toc-list">
+                <li>
+                    <a href="#intro" style="display:block;">
+                        <div class="toc-entry"><span class="toc-label">1.</span><span class="toc-title">Introduction</span><span class="toc-dots"></span><span class="toc-page">1</span></div>
+                    </a>
                 </li>
-                <li><a href="#student">Student Guide</a></li>
-                <li><a href="#teacher">Teacher Guide</a>
-                    <ol>
-                        <li><a href="#teacher-dashboard">Dashboard & Welcome Banner</a></li>
-                        <li><a href="#sessions">Class Sessions</a></li>
-                        <li><a href="#manual">Manual Attendance</a></li>
-                    </ol>
+                <li>
+                    <a href="#requirements" style="display:block;">
+                        <div class="toc-entry"><span class="toc-label">2.</span><span class="toc-title">System Requirements</span><span class="toc-dots"></span><span class="toc-page">2</span></div>
+                    </a>
                 </li>
-                <li><a href="#admin">Administrator Guide</a>
-                    <ol>
-                        <li><a href="#admin-dashboard">Dashboard & Welcome Banner</a></li>
-                        <li><a href="#user-mgmt">User Management & Approvals</a></li>
-                        <li><a href="#cameras">Camera Management</a></li>
-                        <li><a href="#attendance-archive">Attendance Archive & PDF Export</a></li>
-                        <li><a href="#settings">System Settings</a></li>
-                    </ol>
+                <li>
+                    <a href="#landing" style="display:block;">
+                        <div class="toc-entry"><span class="toc-label">3.</span><span class="toc-title">Landing Page</span><span class="toc-dots"></span><span class="toc-page">3</span></div>
+                    </a>
                 </li>
-                <li><a href="#faq">Troubleshooting & FAQ</a></li>
-            </ol>
+                <li>
+                    <a href="#getting-started" style="display:block;">
+                        <div class="toc-entry"><span class="toc-label">4.</span><span class="toc-title">Getting Started</span><span class="toc-dots"></span><span class="toc-page">4</span></div>
+                    </a>
+                    <ul class="toc-sub">
+                        <li><a href="#registration" style="display:block;"><div class="toc-entry"><span class="toc-label">4.1</span>&nbsp;<span class="toc-title">Registration</span><span class="toc-dots"></span><span class="toc-page">4</span></div></a></li>
+                        <li><a href="#after-reg" style="display:block;"><div class="toc-entry"><span class="toc-label">4.2</span>&nbsp;<span class="toc-title">After Registration — Approval System</span><span class="toc-dots"></span><span class="toc-page">5</span></div></a></li>
+                        <li><a href="#login" style="display:block;"><div class="toc-entry"><span class="toc-label">4.3</span>&nbsp;<span class="toc-title">Logging In</span><span class="toc-dots"></span><span class="toc-page">6</span></div></a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#student" style="display:block;">
+                        <div class="toc-entry"><span class="toc-label">5.</span><span class="toc-title">Student Guide</span><span class="toc-dots"></span><span class="toc-page">7</span></div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#teacher" style="display:block;">
+                        <div class="toc-entry"><span class="toc-label">6.</span><span class="toc-title">Teacher Guide</span><span class="toc-dots"></span><span class="toc-page">8</span></div>
+                    </a>
+                    <ul class="toc-sub">
+                        <li><a href="#teacher-dashboard" style="display:block;"><div class="toc-entry"><span class="toc-label">6.1</span>&nbsp;<span class="toc-title">Dashboard & Welcome Banner</span><span class="toc-dots"></span><span class="toc-page">8</span></div></a></li>
+                        <li><a href="#sessions" style="display:block;"><div class="toc-entry"><span class="toc-label">6.2</span>&nbsp;<span class="toc-title">Class Sessions</span><span class="toc-dots"></span><span class="toc-page">9</span></div></a></li>
+                        <li><a href="#manual" style="display:block;"><div class="toc-entry"><span class="toc-label">6.3</span>&nbsp;<span class="toc-title">Manual Attendance</span><span class="toc-dots"></span><span class="toc-page">11</span></div></a></li>
+                        <li><a href="#my-students" style="display:block;"><div class="toc-entry"><span class="toc-label">6.4</span>&nbsp;<span class="toc-title">My Students</span><span class="toc-dots"></span><span class="toc-page">12</span></div></a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#admin" style="display:block;">
+                        <div class="toc-entry"><span class="toc-label">7.</span><span class="toc-title">Administrator Guide</span><span class="toc-dots"></span><span class="toc-page">14</span></div>
+                    </a>
+                    <ul class="toc-sub">
+                        <li><a href="#admin-dashboard" style="display:block;"><div class="toc-entry"><span class="toc-label">7.1</span>&nbsp;<span class="toc-title">Dashboard</span><span class="toc-dots"></span><span class="toc-page">14</span></div></a></li>
+                        <li><a href="#user-mgmt" style="display:block;"><div class="toc-entry"><span class="toc-label">7.2</span>&nbsp;<span class="toc-title">Users</span><span class="toc-dots"></span><span class="toc-page">15</span></div></a></li>
+                        <li><a href="#face-reg" style="display:block;"><div class="toc-entry"><span class="toc-label">7.3</span>&nbsp;<span class="toc-title">Face Registration</span><span class="toc-dots"></span><span class="toc-page">16</span></div></a></li>
+                        <li><a href="#parent-setup" style="display:block;"><div class="toc-entry"><span class="toc-label">7.4</span>&nbsp;<span class="toc-title">Parent Setup</span><span class="toc-dots"></span><span class="toc-page">17</span></div></a></li>
+                        <li><a href="#cameras" style="display:block;"><div class="toc-entry"><span class="toc-label">7.5</span>&nbsp;<span class="toc-title">Cameras</span><span class="toc-dots"></span><span class="toc-page">18</span></div></a></li>
+                        <li><a href="#attendance-archive" style="display:block;"><div class="toc-entry"><span class="toc-label">7.6</span>&nbsp;<span class="toc-title">Attendance Archive</span><span class="toc-dots"></span><span class="toc-page">19</span></div></a></li>
+                        <li><a href="#settings" style="display:block;"><div class="toc-entry"><span class="toc-label">7.7</span>&nbsp;<span class="toc-title">System Settings</span><span class="toc-dots"></span><span class="toc-page">20</span></div></a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#faq" style="display:block;">
+                        <div class="toc-entry"><span class="toc-label">8.</span><span class="toc-title">Troubleshooting & FAQ</span><span class="toc-dots"></span><span class="toc-page">21</span></div>
+                    </a>
+                </li>
+            </ul>
         </div>
 
         <!-- 1. INTRODUCTION -->
         <section class="section" id="intro">
             <h2>1. Introduction</h2>
 
-            <p>The <strong>DMCMES Smart Attendance System</strong> is built for <strong>Don Marcelo C. Marty Elementary School</strong>, Sta. Cruz, Zambales. It uses face recognition to mark student attendance in under one second and can notify parents or guardians by email when an address is linked to the student's account.</p>
-
-            <p>The system provides separate access for administrators, teachers, and students. Administrators manage accounts, cameras, and attendance records; teachers monitor class sessions and student arrivals. If a face scan cannot be used, attendance can also be recorded manually or with a QR code. Email alerts can include the attendance event, time, and scan location.</p>
+            <p>The <strong>DMCMES Smart Attendance System</strong> is built for <strong>Don Marcelo C. Marty Elementary School</strong>, Sta. Cruz, Zambales. It uses face recognition to mark student attendance in under one second and instantly notifies parents via email.</p>
 
             <h3>Key Features</h3>
             <table style="border: 1px solid #d9e5db; border-radius: 12px; overflow: hidden;">
@@ -362,32 +413,12 @@
             </table>
 
             <h3>Mobile Navigation</h3>
-            <p>On mobile, the navigation links collapse into a <strong>☰ hamburger menu</strong>. Tapping it opens a full-width dropdown with icons for each section. The current page is highlighted in gold. Tapping <strong>✕</strong> closes the menu.</p>
-
-            <div class="feature-box">
-                <strong>📍 Location Badge:</strong> The hero section shows a location badge — "Sta. Cruz, Zambales · DepEd" — identifying the school's location.
-            </div>
+            <p>On mobile, the navigation links collapse into a <strong>☰ hamburger menu</strong>. Tapping it opens a full-width dropdown with icons for each section. The current page is highlighted in gold.</p>
         </section>
 
         <!-- 4. GETTING STARTED -->
         <section class="section" id="getting-started">
             <h2>4. Getting Started</h2>
-
-            <h3 id="accessing-system">4.0 Accessing the System</h3>
-
-            <p>To access the DMCMES Smart Attendance System, visit <a href="https://smartattendacedmcmes.freehosting.dev/" target="_blank" rel="noopener noreferrer">https://smartattendacedmcmes.freehosting.dev/</a> in your browser. From there, users can either sign in with an existing account or create a new one if they are not yet registered.</p>
-
-            <div class="steps">
-                <div class="step"><div class="step-num">1</div><div class="step-body">Open the system in your browser and land on the public homepage.</div></div>
-                <div class="step"><div class="step-num">2</div><div class="step-body">Use the <strong>Sign In</strong> button to access the dashboard if you already have an account.</div></div>
-                <div class="step"><div class="step-num">3</div><div class="step-body">If you are a new user, click <strong>Register</strong> and complete the form with your personal information and role details.</div></div>
-                <div class="step"><div class="step-num">4</div><div class="step-body">After registration, the account remains <strong>pending approval</strong> until an administrator approves it.</div></div>
-                <div class="step"><div class="step-num">5</div><div class="step-body">Once approved, the user is redirected to the correct dashboard based on their role: <strong>Student</strong>, <strong>Teacher</strong>, or <strong>Administrator</strong>.</div></div>
-            </div>
-
-            <div class="tip">
-                <span>💡</span><div><strong>Role Access:</strong> Each account is assigned a role, and after login, the user sees only the tools and pages relevant to that role.</div>
-            </div>
 
             <h3 id="registration">4.1 Registration</h3>
 
@@ -443,6 +474,7 @@
                 <div class="step"><div class="step-num">2</div><div class="step-body">Optionally check <strong>Keep me logged in</strong>.</div></div>
                 <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>Sign In</strong>. You are redirected to your role's dashboard.</div></div>
             </div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Login page showing Email, Password fields, 👁️ show/hide toggle, Keep me logged in checkbox, and Sign In button</p></div>
 
             <h4>Login Messages</h4>
             <table>
@@ -452,9 +484,6 @@
                     <tr><td>Yellow warning about pending approval</td><td>Account not approved yet</td><td>Wait for admin</td></tr>
                 </tbody>
             </table>
-
-            <h4>Mobile Hamburger Menu</h4>
-            <p>On the login and register pages on mobile, the navbar shows a <strong>☰ hamburger button</strong> instead of the Sign In button. Tapping it opens a dropdown with links to: Home, Features, How It Works, Register / Sign In, with icons for each item.</p>
         </section>
 
         <!-- 5. STUDENT GUIDE -->
@@ -502,6 +531,7 @@
             <h3 id="teacher-dashboard">6.1 Dashboard & Welcome Banner</h3>
 
             <p>After logging in, teachers see a personalized <strong>Welcome Banner</strong> at the top of the Class Sessions page.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Teacher dashboard showing the green Welcome Banner with name, greeting, and Teacher role card on the right</p></div>
 
             <div class="screen-mockup">
                 <div class="mockup-label">☀️ Good Morning</div>
@@ -525,36 +555,154 @@
                 <div class="step"><div class="step-num">2</div><div class="step-body">Optionally set a <strong>Schedule</strong> time range.</div></div>
                 <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>▶ Start</strong>. The session becomes live.</div></div>
             </div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — "Start a New Class Session" form showing Subject, Section, Camera dropdown, Type toggle (In/Out), Schedule fields, and ▶ Start button</p></div>
 
-            <h4>Live Face Recognition Camera</h4>
+            <h4>Attendance Methods</h4>
+            <p>Once a session is live, there are <strong>3 ways</strong> to mark student attendance using the toolbar buttons:</p>
+
+            <div class="role-grid" style="grid-template-columns:1fr 1fr 1fr;">
+                <div class="role-card"><div class="emoji">✨</div><div><h4>Auto (Face)</h4><p>Camera automatically detects and recognizes the student's face — fully hands-free.</p></div></div>
+                <div class="role-card"><div class="emoji">👆</div><div><h4>Manual</h4><p>Teacher selects a student from the list and marks them present — for face/camera issues.</p></div></div>
+                <div class="role-card"><div class="emoji">📱</div><div><h4>QR Code</h4><p>Student presents their printed QR card to the camera — scanned and recorded instantly.</p></div></div>
+            </div>
+
+            <h4>Method 1 — ✨ Auto: Face Recognition</h4>
             <div class="steps">
                 <div class="step"><div class="step-num">1</div><div class="step-body">Open an active session and click the <strong>📷 Camera</strong> button.</div></div>
-                <div class="step"><div class="step-num">2</div><div class="step-body">The face recognition camera opens — students stand in front and the system auto-detects and records attendance.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Click <strong>✨ Auto</strong> in the toolbar (default mode). Students stand in front — the system auto-detects and records attendance.</div></div>
                 <div class="step"><div class="step-num">3</div><div class="step-body">A confirmation shows the student's name when recognized.</div></div>
             </div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Camera view in ✨ Auto mode showing the face detection overlay, scan line animation, and student name confirmation popup</p></div>
+
+            <h4>Method 2 — 👆 Manual</h4>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">In the camera view, click <strong>👆 Manual</strong> in the toolbar.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">A student list appears — search by name and select the student to mark present.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Attendance is recorded with the current timestamp and labeled <strong>"Manual"</strong> in reports.</div></div>
+            </div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Camera view switched to 👆 Manual mode showing the student search list with names and a Mark button</p></div>
+            <div class="tip">
+                <span>💡</span><div><strong>When to use Manual:</strong> Poor lighting, student without a registered face, or camera unavailable.</div>
+            </div>
+
+            <h4>Method 3 — 📱 QR Code</h4>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">In the camera view, click <strong>📱 QR</strong> in the toolbar.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">The camera switches to QR scanning mode. The student holds their printed QR card in front of the camera.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">The system reads the QR code and records attendance instantly — labeled <strong>"QR Code"</strong> in reports.</div></div>
+            </div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Camera view in 📱 QR mode showing the QR scanning frame and a student holding their QR card</p></div>
+            <div class="note">
+                <span>📝</span><div><strong>QR Cards:</strong> Printed by the admin from Users → student profile → QR Card button. Each student has a unique QR token.</div>
+            </div>
+
+            <div class="feature-box">
+                <strong>📊 Method badges in roster:</strong> The live roster shows a colored badge per student —
+                <span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">Face</span>&nbsp;
+                <span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">Manual</span>&nbsp;
+                <span style="background:#cffafe;color:#164e63;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">QR</span>
+            </div>
+
+            <h4>Scan Result Notifications</h4>
+            <p>After each scan the camera shows a popup:</p>
+
+            <table>
+                <thead><tr><th>Result</th><th>Meaning</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td>✅ <strong>Timed In</strong></td><td>Recognized, attendance recorded, parent emailed.</td><td>None — next student.</td></tr>
+                    <tr><td>✅ <strong>Timed Out</strong></td><td>Time-out recorded, parent emailed.</td><td>None.</td></tr>
+                    <tr><td>⚠️ <strong>Already Timed In</strong></td><td>Student already marked this session.</td><td>None — already counted.</td></tr>
+                    <tr><td>❌ <strong>No Face Detected</strong></td><td>No face found in frame.</td><td>Move closer, better lighting.</td></tr>
+                    <tr><td>❌ <strong>Face Not Recognized</strong></td><td>Face found but no match.</td><td>Use Manual or ask admin to register face.</td></tr>
+                    <tr><td>❌ <strong>Not in Session</strong></td><td>Student not assigned to your class.</td><td>Add via My Students or use Manual.</td></tr>
+                </tbody>
+            </table>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Camera showing scan result popups (green success, yellow already timed in, red error)</p></div>
 
             <h4>Stopping a Session</h4>
             <p>Click <strong>Stop Session</strong> — all records are saved and the session is marked as Ended.</p>
+            <div class="warning">
+                <span>⏰</span><div><strong>Auto-End:</strong> If a schedule end time was set, the session ends automatically. No manual action needed.</div>
+            </div>
 
-            <h3 id="manual">6.3 Manual Attendance Entry</h3>
-            <p>For situations where face recognition is unavailable:</p>
+            <h3 id="manual">6.3 Manual Attendance</h3>
             <div class="steps">
                 <div class="step"><div class="step-num">1</div><div class="step-body">Open the active session.</div></div>
                 <div class="step"><div class="step-num">2</div><div class="step-body">Find the student and click <strong>Mark Manually</strong>.</div></div>
-                <div class="step"><div class="step-num">3</div><div class="step-body">Attendance is recorded with current timestamp and labeled "Manual".</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Attendance is recorded with current timestamp, labeled "Manual".</div></div>
             </div>
 
-            <h4>Session History</h4>
-            <p>All past sessions appear in the <strong>Session History</strong> table with Subject, Section, Type, Camera, Start/End time, and Status (Active / Ended).</p>
+            <h3 id="my-students">6.4 My Students</h3>
+            <p>Manage the students assigned to your class. Only assigned students can be marked in your sessions.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — My Students page: student list (left), info + stats panel (right), Add Student button (top right)</p></div>
+
+            <table>
+                <thead><tr><th>Column / Area</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Photo</strong></td><td>Registered face photo — click to zoom. Shows initials if not yet registered.</td></tr>
+                    <tr><td><strong>Name / Email</strong></td><td>Student's full name and email</td></tr>
+                    <tr><td><strong>Student ID</strong></td><td>Unique school ID</td></tr>
+                    <tr><td><strong>Grade / Section</strong></td><td>e.g. Grade 7 · Ilang-ilang</td></tr>
+                    <tr><td><strong>Face</strong></td><td><span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">Done</span> — ready for Auto scan &nbsp;·&nbsp; <span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">Pending</span> — not registered</td></tr>
+                    <tr><td>📱 <strong>QR Button</strong></td><td>Opens QR card modal — view, print, or save the student's QR card</td></tr>
+                    <tr><td>👤➖ <strong>Remove Button</strong></td><td>Unlinks student from your class. Account is not deleted.</td></tr>
+                </tbody>
+            </table>
+
+            <h4>📱 QR Card</h4>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Click the <strong>QR icon</strong> next to a student.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Modal shows the QR code with student name, ID, grade, and section.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Print</strong> — opens a print-ready page with 2 card copies side by side.</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Save</strong> — downloads the QR as a PNG image.</div></div>
+                <div class="step"><div class="step-num">5</div><div class="step-body">Give the card to the student — they show it to the camera in 📱 QR mode.</div></div>
+            </div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — QR Card modal with QR code, student info, Print and Save buttons</p></div>
+
+            <h4>➕ Add New Student</h4>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Click <strong>+ Add Student</strong>.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Fill in: Full Name, Email, Student ID, Grade, Section, Password.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>Add Student</strong> — account is created and added to your class.</div></div>
+            </div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Add New Student modal with all input fields</p></div>
+            <div class="note"><span>📝</span><div>Ask the admin to register the student's face for ✨ Auto mode. Otherwise use 👆 Manual or 📱 QR.</div></div>
+
+            <h4>🔗 Assign Existing Student</h4>
+            <p>Links an already-registered student (not yet in any class) to your class:</p>
+            <div class="steps">
+                <div class="step"><div class="step-num">1</div><div class="step-body">Find the <strong>Assign Existing Student</strong> card below the list.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body">Select the student from the dropdown.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body">Click <strong>+ Add to My Class</strong>.</div></div>
+            </div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Assign Existing Student dropdown and "Add to My Class" button</p></div>
+            <div class="warning"><span>⚠️</span><div>This section only appears if there are unassigned registered students.</div></div>
+
+            <h4>Session History Buttons</h4>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Session History table with 👁️ Eye and 📷 Camera buttons on the right</p></div>
+            <table>
+                <thead><tr><th>Button</th><th>Available When</th><th>What It Does</th></tr></thead>
+                <tbody>
+                    <tr><td>👁️ <strong>Eye</strong></td><td>Active or Ended</td><td>Opens the roster — shows all marked students, method, times, duration, notifications. Auto-refreshes every 8s if Active.</td></tr>
+                    <tr><td>📷 <strong>Camera</strong></td><td>Active only</td><td>Opens the camera with ✨ Auto · 👆 Manual · 📱 QR toolbar.</td></tr>
+                </tbody>
+            </table>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Live Roster showing student cards with name, method badge, status, time-in and time-out</p></div>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Camera view with ✨ Auto · 👆 Manual · 📱 QR toolbar</p></div>
+            <div class="feature-box">
+                <span style="background:#dcfce7;color:#15803d;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;">Active</span> — Camera + End buttons available &nbsp;·&nbsp;
+                <span style="background:#e2e8f0;color:#475569;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;">Ended</span> — Only Eye button available
+            </div>
+
         </section>
 
         <!-- 7. ADMIN GUIDE -->
         <section class="section" id="admin">
             <h2>7. Administrator Guide</h2>
 
-            <h3 id="admin-dashboard">7.1 Dashboard & Welcome Banner</h3>
-
-            <p>The admin dashboard shows a personalized <strong>Welcome Banner</strong> above the stat cards.</p>
+            <h3 id="admin-dashboard">7.1 Dashboard</h3>
+            <p>The first page after login. Shows a welcome banner and live system stats.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Admin dashboard with welcome banner, 4 stat cards, charts, and recent attendance table</p></div>
 
             <div class="screen-mockup">
                 <div class="mockup-label">☀️ Good Afternoon</div>
@@ -562,98 +710,182 @@
                 <div class="mockup-sub">Monday, October 13, 2026 · DMCMES Smart Attendance</div>
             </div>
 
-            <h4>Stat Cards</h4>
             <table>
-                <thead><tr><th>Card</th><th>Shows</th></tr></thead>
+                <thead><tr><th>Element</th><th>Description</th></tr></thead>
                 <tbody>
-                    <tr><td>🎒 Total Students</td><td>All registered students</td></tr>
-                    <tr><td>👩‍🏫 Total Teachers</td><td>All registered teachers</td></tr>
-                    <tr><td>📷 Active Cameras</td><td>Active / Total cameras</td></tr>
-                    <tr><td>✅ Present Today</td><td>Students marked present today</td></tr>
+                    <tr><td>🎒 <strong>Total Students</strong></td><td>Count of all registered students</td></tr>
+                    <tr><td>👩‍🏫 <strong>Total Teachers</strong></td><td>Count of all registered teachers</td></tr>
+                    <tr><td>📷 <strong>Active Cameras</strong></td><td>Active / Total cameras (e.g. 1/2)</td></tr>
+                    <tr><td>✅ <strong>Present Today</strong></td><td>Students marked present today</td></tr>
+                    <tr><td>📊 <strong>Last 7 Days chart</strong></td><td>Bar chart of daily attendance count</td></tr>
+                    <tr><td>📈 <strong>Hourly Trend chart</strong></td><td>Line chart of scan activity by hour today</td></tr>
+                    <tr><td>🔍 <strong>Method chart</strong></td><td>Doughnut chart of Face / QR / Manual scan counts</td></tr>
+                    <tr><td>📋 <strong>Recent Events table</strong></td><td>Live list of latest attendance records — auto-updates every 10s</td></tr>
+                    <tr><td><strong>View All button</strong></td><td>Opens the full Attendance Archive</td></tr>
+                    <tr><td><strong>Camera alert</strong></td><td>Shows green (camera ready) or yellow warning (no camera active)</td></tr>
                 </tbody>
             </table>
 
-            <h3 id="user-mgmt">7.2 User Management & Approvals</h3>
+            <h3 id="user-mgmt">7.2 Users</h3>
+            <p>Manage all system accounts — approve pending registrations, add new users, edit, or delete.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Users page: amber Pending Approvals card at top, main users table below with action buttons</p></div>
 
-            <p>Go to <strong>Users</strong> in the sidebar. The page has two sections:</p>
-            <ul style="margin-left:20px;font-size:14px;line-height:2;">
-                <li><strong>Pending Approvals</strong> — amber card at the top showing all unapproved users</li>
-                <li><strong>All Users</strong> — table of all approved users</li>
-            </ul>
-
-            <h4>Approving a User</h4>
-            <div class="steps">
-                <div class="step"><div class="step-num">1</div><div class="step-body">Find the user in <strong>Pending Approvals</strong> and click <strong>Approve</strong>.</div></div>
-                <div class="step"><div class="step-num">2</div><div class="step-body">A <strong>confirmation modal</strong> appears: "Are you sure?" with a green Approve button.</div></div>
-                <div class="step"><div class="step-num">3</div><div class="step-body">Confirm — the user can now log in.</div></div>
-            </div>
-
-            <h4>Approving All Users at Once</h4>
-            <p>Click <strong>✓ Approve All</strong> in the Pending Approvals header → confirm in the modal → all pending users approved.</p>
-
-            <h4>Denying a User</h4>
-            <p>Click <strong>Deny</strong> → confirm in the modal → account is <strong>permanently deleted</strong>.</p>
-
-            <div class="success">
-                <span>✅</span><div><strong>Confirmation Modals:</strong> All critical actions (Approve, Deny, Delete, Approve All) show a clean "Are you sure?" modal before proceeding — no accidental actions.</div>
-            </div>
-
-            <div class="warning">
-                <span>⚠️</span><div><strong>Denial is permanent.</strong> The user must re-register if denied by mistake.</div>
-            </div>
-
-            <h4>Adding a User Directly (Admin-Created)</h4>
-            <p>Click <strong>+ Add User</strong> → fill in details → <strong>Create User</strong>. Admin-created accounts are auto-approved and can log in immediately.</p>
-
-            <h4>Editing / Deleting Users</h4>
-            <p>✏️ Edit button → update fields → Save. 🗑️ Delete button → confirm modal → user permanently removed.</p>
-
-            <h3 id="cameras">7.3 Camera Management</h3>
-            <div class="steps">
-                <div class="step"><div class="step-num">1</div><div class="step-body">Go to <strong>Cameras</strong> in the sidebar.</div></div>
-                <div class="step"><div class="step-num">2</div><div class="step-body">Click <strong>Add Camera</strong> → fill Name and Location → Save.</div></div>
-                <div class="step"><div class="step-num">3</div><div class="step-body">Use the <strong>Toggle</strong> to enable/disable cameras.</div></div>
-            </div>
-
-            <h3 id="attendance-archive">7.4 Attendance Archive & PDF Export</h3>
-
-            <p>Go to <strong>Attendance Archive</strong> to view all attendance records system-wide.</p>
-
-            <h4>Filtering</h4>
+            <h4>Pending Approvals (top card)</h4>
             <table>
-                <thead><tr><th>Filter</th><th>Description</th></tr></thead>
+                <thead><tr><th>Button</th><th>What It Does</th></tr></thead>
                 <tbody>
-                    <tr><td>Date</td><td>Show records for a specific date</td></tr>
-                    <tr><td>Student</td><td>Filter by student</td></tr>
-                    <tr><td>Camera</td><td>Filter by camera/location</td></tr>
-                    <tr><td>Type</td><td>Time-In or Time-Out</td></tr>
+                    <tr><td>✅ <strong>Approve</strong></td><td>Approves the user — they can now log in. Shows confirmation modal first.</td></tr>
+                    <tr><td>❌ <strong>Deny</strong></td><td>Permanently deletes the account. Shows confirmation modal first.</td></tr>
+                    <tr><td>✅ <strong>Approve All</strong></td><td>Approves all pending users at once. Shows confirmation modal first.</td></tr>
+                </tbody>
+            </table>
+            <div class="warning"><span>⚠️</span><div>Denial is permanent. The user must re-register if denied by mistake.</div></div>
+
+            <h4>Users Table (action buttons per row)</h4>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Users table showing Name, Email, Role badge, Created date, and 3 action buttons (pencil, QR grid, trash) per row</p></div>
+            <table>
+                <thead><tr><th>Button</th><th>Icon</th><th>Visible For</th><th>What It Does</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Add User</strong></td><td>➕ green button (top right)</td><td>All</td><td>Opens a modal to create a new user — fill in Name, Email, Password, Role, and role-specific fields (Student ID / Employee ID). Admin-created accounts are auto-approved and can log in immediately.</td></tr>
+                    <tr><td><strong>Edit</strong></td><td>✏️ pencil (green outline)</td><td>All users</td><td>Opens edit modal — update name, email, password, grade, section (students), or employee ID / department (teachers). Leave password blank to keep the current one.</td></tr>
+                    <tr><td><strong>QR Card</strong></td><td>⊞ grid icon (teal/blue)</td><td>Students only</td><td>Opens the student's QR card modal — shows the QR code with name, ID, grade, section. From here: Print (2 copies) or Save as PNG.</td></tr>
+                    <tr><td><strong>Delete</strong></td><td>🗑️ trash (red)</td><td>All (except yourself)</td><td>Permanently removes the user and all linked data. A confirmation modal appears first. Cannot delete your own account.</td></tr>
+                </tbody>
+            </table>
+            <div class="note"><span>📝</span><div>The QR icon only appears on <strong>Student</strong> rows. Admin and Teacher rows only show Edit and Delete.</div></div>
+
+            <h3 id="face-reg">7.3 Face Registration</h3>
+            <p>Register face data for students and teachers so they can be recognized by the camera.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Face Registration page showing Students and Teachers lists with Capture buttons and face status badges</p></div>
+
+            <table>
+                <thead><tr><th>Element</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Students list</strong></td><td>All students — shows name, ID, grade, section, and face registration status</td></tr>
+                    <tr><td><strong>Teachers list</strong></td><td>All teachers — shows name, employee ID, and face registration status</td></tr>
+                    <tr><td><span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">Registered</span></td><td>Face is registered — ready for Auto recognition</td></tr>
+                    <tr><td><span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">Not Registered</span></td><td>No face data yet</td></tr>
+                    <tr><td>📷 <strong>Capture button</strong></td><td>Opens the face capture page for that person — captures front, left, right angles + blink detection</td></tr>
                 </tbody>
             </table>
 
-            <h4>Exporting to PDF</h4>
+            <h4>Face Capture Page</h4>
+            <p>When you click <strong>Capture</strong> on a student or teacher, a dedicated capture page opens with a live camera feed and a guided <strong>Liveness Verification</strong> process.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Face capture page showing live camera feed with oval guide, "Position your face inside the oval" prompt, 4-step Liveness Verification panel on the right, Start Verification button, and Captured Samples thumbnails at the bottom</p></div>
+
+            <table>
+                <thead><tr><th>Element</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Camera feed</strong></td><td>Live video from the device camera. An oval guide shows where to position the face.</td></tr>
+                    <tr><td><strong>"Position your face inside the oval"</strong></td><td>Instruction shown below the camera — align the face within the oval before starting.</td></tr>
+                    <tr><td><strong>LIVE badge</strong></td><td>Green badge — confirms the camera is actively streaming.</td></tr>
+                    <tr><td><strong>New Registration badge</strong></td><td>Yellow badge — shown when registering for the first time. Changes to "Re-register" if updating.</td></tr>
+                    <tr><td><strong>Captured Samples</strong></td><td>4 thumbnail slots at the bottom — fill up as each step is completed (1 per angle/blink).</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Liveness Verification — 4 Steps</h4>
+            <p>The system guides the person through 4 steps automatically after clicking <strong>Start Verification</strong>:</p>
             <div class="steps">
-                <div class="step"><div class="step-num">1</div><div class="step-body">Apply filters (optional) then click the red <strong>📄 PDF</strong> button.</div></div>
-                <div class="step"><div class="step-num">2</div><div class="step-body">The button shows <em>"Generating..."</em> while the PDF is built in the browser using jsPDF.</div></div>
-                <div class="step"><div class="step-num">3</div><div class="step-body">The PDF downloads automatically with school name, date, table headers in <strong>forest green</strong>, and all records.</div></div>
+                <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Face Front</strong> — Look straight at the camera. The system captures the front-facing sample.</div></div>
+                <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Turn Left</strong> — Slowly turn your head to the left. Captures the left-angle sample.</div></div>
+                <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Turn Right</strong> — Slowly turn your head to the right. Captures the right-angle sample.</div></div>
+                <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Blink Detection</strong> — Blink naturally when prompted. Confirms a real person is present (prevents photo spoofing).</div></div>
             </div>
 
-            <div class="tip">
-                <span>💡</span><div><strong>Tip:</strong> Filter by date before exporting for a focused daily report.</div>
-            </div>
+            <h4>Buttons</h4>
+            <table>
+                <thead><tr><th>Button</th><th>What It Does</th></tr></thead>
+                <tbody>
+                    <tr><td>🛡️ <strong>Start Verification</strong></td><td>Begins the 4-step liveness capture process. Make sure the face is well-lit before clicking.</td></tr>
+                    <tr><td>← <strong>Back to list</strong></td><td>Cancels and returns to the Face Registration list without saving.</td></tr>
+                </tbody>
+            </table>
 
-            <h3 id="settings">7.5 System Settings</h3>
+            <div class="tip"><span>💡</span><div><strong>Best results:</strong> Good front-facing light, face centered in the oval, no glasses if possible, neutral expression. The person must be physically present — the blink step prevents using a photo.</div></div>
+            <div class="note"><span>📝</span><div>After successful registration, the student/teacher badge changes to <span style="background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:4px;font-size:12px;font-weight:600;">Registered</span> and they can now be recognized by the ✨ Auto camera mode.</div></div>
+
+            <h3 id="parent-setup">7.4 Parent Setup</h3>
+            <p>Link parent/guardian email addresses to students so they receive attendance notifications.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Parent Setup page showing parent list with Student, Parent Name, Gmail, Relationship columns and action buttons</p></div>
+
+            <table>
+                <thead><tr><th>Button</th><th>Icon</th><th>What It Does</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Link Parent</strong></td><td>➕ top right</td><td>Opens modal to link a parent — select student, enter parent name, Gmail, and relationship (Mother/Father/Guardian)</td></tr>
+                    <tr><td><strong>Edit</strong></td><td>✏️ pencil (blue)</td><td>Update parent name, Gmail, or relationship</td></tr>
+                    <tr><td><strong>Delete</strong></td><td>🗑️ trash (red)</td><td>Remove the parent link. The student remains; only the notification contact is removed.</td></tr>
+                </tbody>
+            </table>
+            <div class="note"><span>📝</span><div>One student can have multiple parents/guardians linked. Each will receive email notifications on time-in and time-out.</div></div>
+
+            <h3 id="cameras">7.5 Cameras</h3>
+            <p>Add and manage attendance cameras used in sessions.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Cameras page showing camera list with Name, Location, Type, Source, Status columns and action buttons</p></div>
+
+            <table>
+                <thead><tr><th>Column / Button</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>Name</strong></td><td>Camera label (e.g. Admin Device)</td></tr>
+                    <tr><td><strong>Location</strong></td><td>Where the camera is placed (e.g. Classroom 101)</td></tr>
+                    <tr><td><strong>Type</strong></td><td>Classroom / Entrance / Kiosk</td></tr>
+                    <tr><td><strong>Source</strong></td><td>Local Device (browser webcam) or IP/Stream URL</td></tr>
+                    <tr><td><strong>Status toggle</strong></td><td>🟢 Enable / ⚫ Disable the camera. Disabled cameras cannot be used in sessions.</td></tr>
+                    <tr><td>➕ <strong>Add Camera</strong></td><td>Opens modal to add a new camera — fill in Name, Location, Type, and source</td></tr>
+                    <tr><td>✏️ <strong>Edit</strong></td><td>Update camera details</td></tr>
+                    <tr><td>🗑️ <strong>Delete</strong></td><td>Permanently removes the camera. Confirmation modal required.</td></tr>
+                </tbody>
+            </table>
+
+            <h3 id="attendance-archive">7.6 Attendance Archive</h3>
+            <p>View and export all attendance records system-wide.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — Attendance Archive with filter bar, records table, and red PDF button</p></div>
+
+            <h4>Filter Bar</h4>
+            <table>
+                <thead><tr><th>Filter</th><th>Button</th><th>Action</th></tr></thead>
+                <tbody>
+                    <tr><td>Date, Student, Camera, Type</td><td>🔵 <strong>Filter</strong></td><td>Apply selected filters to narrow records</td></tr>
+                    <tr><td>—</td><td>⚪ <strong>Reset</strong></td><td>Clear all filters and show all records</td></tr>
+                    <tr><td>—</td><td>🔴 <strong>PDF</strong></td><td>Generate and download a PDF report of the current filtered records</td></tr>
+                </tbody>
+            </table>
+
+            <h4>Records Table Columns</h4>
+            <table>
+                <thead><tr><th>Column</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td>Student</td><td>Name and snapshot photo — click photo to zoom in</td></tr>
+                    <tr><td>ID</td><td>Student ID number</td></tr>
+                    <tr><td>Location</td><td>Camera/location where scan happened</td></tr>
+                    <tr><td>Method</td><td>Face Scan / QR Code / Manual</td></tr>
+                    <tr><td>Time In</td><td>Arrival time</td></tr>
+                    <tr><td>Time Out</td><td>Departure time (— if not yet recorded)</td></tr>
+                    <tr><td>Duration</td><td>Time between Time In and Time Out</td></tr>
+                    <tr><td>Notified</td><td>✉️ Email sent / not sent to parent</td></tr>
+                </tbody>
+            </table>
+            <div class="tip"><span>💡</span><div>Filter by date first, then export PDF for a clean daily attendance report.</div></div>
+
+            <h3 id="settings">7.7 System Settings</h3>
+            <p>Configure school-wide settings that affect all users.</p>
+            <div class="screenshot"><span class="icon">🖼️</span><p>📸 INSERT SCREENSHOT — System Settings page with grouped setting cards and Save button</p></div>
+
             <table>
                 <thead><tr><th>Setting</th><th>Description</th></tr></thead>
                 <tbody>
-                    <tr><td>School Hours</td><td>Define attendance tracking start/end time</td></tr>
-                    <tr><td>Late Threshold</td><td>Time after which a student is marked late</td></tr>
-                    <tr><td>Email Notifications</td><td>Enable/disable parent email alerts</td></tr>
-                    <tr><td>Face Recognition Sensitivity</td><td>Adjust matching threshold</td></tr>
+                    <tr><td><strong>School Name</strong></td><td>Displayed on PDF reports and email notifications</td></tr>
+                    <tr><td><strong>Attendance Time In</strong></td><td>Start time for recording time-in (e.g. 07:00)</td></tr>
+                    <tr><td><strong>Attendance Time Out</strong></td><td>End time for recording time-out (e.g. 17:00)</td></tr>
+                    <tr><td><strong>Late Threshold</strong></td><td>Time after which a student is considered late (e.g. 08:00)</td></tr>
+                    <tr><td><strong>Notify Parents</strong></td><td>Enable/disable email alerts to parents</td></tr>
+                    <tr><td><strong>Face Threshold</strong></td><td>Recognition sensitivity — lower = stricter matching</td></tr>
                 </tbody>
             </table>
-            <div class="warning">
-                <span>⚠️</span><div>Settings changes apply system-wide immediately.</div>
-            </div>
+            <div class="warning"><span>⚠️</span><div>Settings apply system-wide immediately after saving.</div></div>
+
+            <h3>7.8 Logout</h3>
+            <p>Click <strong>Logout</strong> in the sidebar → confirm in the modal → redirected to the landing page.</p>
         </section>
 
         <!-- 8. FAQ -->
